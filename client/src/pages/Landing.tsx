@@ -1,18 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp, 
-  BookOpen, 
-  Users, 
-  Award,
-  BarChart3,
-  Shield,
-  Clock,
-  CheckCircle
-} from "lucide-react";
+import ModernLanding from "@/components/ModernLanding";
 
 export default function Landing() {
+  return <ModernLanding />;
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Header */}
