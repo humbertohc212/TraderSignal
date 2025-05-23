@@ -10,6 +10,8 @@ import Signals from "@/pages/Signals";
 import Education from "@/pages/Education";
 import Plans from "@/pages/Plans";
 import Admin from "@/pages/Admin";
+import Demo from "@/pages/Demo";
+import Subscribe from "@/pages/Subscribe";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,7 +20,11 @@ function Router() {
   return (
     <Switch>
       {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/demo" component={Demo} />
+          <Route path="/plans" component={Plans} />
+        </>
       ) : (
         <>
           <Route path="/" component={Dashboard} />
@@ -26,6 +32,8 @@ function Router() {
           <Route path="/education" component={Education} />
           <Route path="/plans" component={Plans} />
           <Route path="/admin" component={Admin} />
+          <Route path="/demo" component={Demo} />
+          <Route path="/subscribe" component={Subscribe} />
         </>
       )}
       <Route component={NotFound} />
