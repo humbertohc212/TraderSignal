@@ -258,8 +258,12 @@ export default function Admin() {
                         <TableRow key={signal.id}>
                           <TableCell className="font-medium">{signal.pair}</TableCell>
                           <TableCell>
-                            <Badge variant={signal.direction === 'BUY' ? 'default' : 'destructive'}>
-                              {signal.direction}
+                            <Badge variant={
+                              signal.direction === 'BUY' || signal.direction === 'BUY_LIMIT' ? 'default' : 'destructive'
+                            }>
+                              {signal.direction === 'BUY_LIMIT' ? 'BUY LIMIT' : 
+                               signal.direction === 'SELL_LIMIT' ? 'SELL LIMIT' : 
+                               signal.direction}
                             </Badge>
                           </TableCell>
                           <TableCell className="font-mono">{signal.entryPrice}</TableCell>

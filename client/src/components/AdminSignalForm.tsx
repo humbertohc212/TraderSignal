@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 
 const signalFormSchema = z.object({
   pair: z.string().min(1, "Par de moedas é obrigatório"),
-  direction: z.enum(["BUY", "SELL"]),
+  direction: z.enum(["BUY", "SELL", "BUY_LIMIT", "SELL_LIMIT"]),
   entryPrice: z.string().min(1, "Preço de entrada é obrigatório"),
   takeProfitPrice: z.string().min(1, "Take Profit é obrigatório"),
   stopLossPrice: z.string().min(1, "Stop Loss é obrigatório"),
@@ -134,6 +134,8 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
                         <SelectContent>
                           <SelectItem value="BUY">COMPRA (BUY)</SelectItem>
                           <SelectItem value="SELL">VENDA (SELL)</SelectItem>
+                          <SelectItem value="BUY_LIMIT">COMPRA LIMITADA (BUY LIMIT)</SelectItem>
+                          <SelectItem value="SELL_LIMIT">VENDA LIMITADA (SELL LIMIT)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

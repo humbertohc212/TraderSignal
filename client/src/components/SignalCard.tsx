@@ -125,9 +125,11 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
           <div className="flex justify-between">
             <span className="text-sm text-gray-600">Direção:</span>
             <span className={`text-sm font-medium ${
-              signal.direction === 'BUY' ? 'text-green-600' : 'text-red-600'
+              signal.direction === 'BUY' || signal.direction === 'BUY_LIMIT' ? 'text-green-600' : 'text-red-600'
             }`}>
-              {signal.direction}
+              {signal.direction === 'BUY_LIMIT' ? 'BUY LIMIT' : 
+               signal.direction === 'SELL_LIMIT' ? 'SELL LIMIT' : 
+               signal.direction}
             </span>
           </div>
           

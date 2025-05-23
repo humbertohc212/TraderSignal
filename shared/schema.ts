@@ -44,7 +44,7 @@ export const users = pgTable("users", {
 export const signals = pgTable("signals", {
   id: serial("id").primaryKey(),
   pair: varchar("pair").notNull(), // EUR/USD, GBP/USD, etc.
-  direction: varchar("direction").notNull(), // BUY or SELL
+  direction: varchar("direction").notNull(), // BUY, SELL, BUY_LIMIT, SELL_LIMIT
   entryPrice: decimal("entry_price", { precision: 10, scale: 5 }).notNull(),
   takeProfitPrice: decimal("take_profit_price", { precision: 10, scale: 5 }).notNull(),
   stopLossPrice: decimal("stop_loss_price", { precision: 10, scale: 5 }).notNull(),
