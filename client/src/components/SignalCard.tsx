@@ -166,14 +166,26 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
           
           {isAdmin && (
             <div className="flex space-x-2">
-              <Button size="sm" variant="outline">
-                <Edit className="h-3 w-3" />
-              </Button>
               {signal.status === "active" && (
-                <Button size="sm" variant="outline">
-                  <X className="h-3 w-3" />
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleCloseSignal}
+                  disabled={closeSignalMutation.isPending}
+                  className="text-green-600 hover:text-green-700"
+                >
+                  <CheckCircle className="h-3 w-3" />
                 </Button>
               )}
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleDeleteSignal}
+                disabled={deleteSignalMutation.isPending}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
           )}
         </div>

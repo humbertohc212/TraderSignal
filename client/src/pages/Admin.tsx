@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
+import AdminPlanForm from "@/components/AdminPlanForm";
+import LayoutCustomizer from "@/components/LayoutCustomizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,14 +21,23 @@ import {
   Plus,
   Edit,
   Trash2,
-  FileX
+  FileX,
+  Palette,
+  Settings,
+  Crown
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showPlanForm, setShowPlanForm] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
 
   // Redirect non-admin users
   useEffect(() => {
@@ -50,6 +61,31 @@ export default function Admin() {
   const { data: plans } = useQuery({
     queryKey: ["/api/plans"],
   });
+
+  const deletePlanMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/plans/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
+      toast({
+        title: "Plano removido",
+        description: "O plano foi removido com sucesso.",
+      });
+    },
+  });
+
+  const handleEditPlan = (plan: any) => {
+    setEditingPlan(plan);
+    setShowPlanForm(true);
+  };
+
+  const handleDeletePlan = (id: number) => {
+    if (window.confirm("Tem certeza que deseja remover este plano?")) {
+      deletePlanMutation.mutate(id);
+    }
+  };
 
   if (user?.role !== "admin") {
     return (
@@ -157,11 +193,13 @@ export default function Admin() {
 
           {/* Admin Tabs */}
           <Tabs defaultValue="signals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="signals">Sinais</TabsTrigger>
               <TabsTrigger value="lessons">Aulas</TabsTrigger>
-              <TabsTrigger value="users">Usuários</TabsTrigger>
               <TabsTrigger value="plans">Planos</TabsTrigger>
+              <TabsTrigger value="users">Usuários</TabsTrigger>
+              <TabsTrigger value="layout">Layout</TabsTrigger>
+              <TabsTrigger value="settings">Configurações</TabsTrigger>
             </TabsList>
 
             {/* Signals Management */}
@@ -406,7 +444,13 @@ export default function Admin() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Gerenciar Planos</CardTitle>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      setEditingPlan(null);
+                      setShowPlanForm(true);
+                    }}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Novo Plano
                   </Button>
@@ -417,7 +461,10 @@ export default function Admin() {
                       <Card key={plan.id} className="relative">
                         {plan.isPopular && (
                           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                            <Badge className="bg-amber-500 text-slate-900">Popular</Badge>
+                            <Badge className="bg-amber-500 text-slate-900 flex items-center space-x-1">
+                              <Crown className="h-3 w-3" />
+                              <span>Popular</span>
+                            </Badge>
                           </div>
                         )}
                         <CardHeader className="text-center">
@@ -438,12 +485,27 @@ export default function Admin() {
                             {plan.hasDetailedReports && <p>• Relatórios detalhados</p>}
                           </div>
                           <div className="space-y-2">
-                            <Button className="w-full" variant="outline">
-                              Editar Plano
-                            </Button>
-                            <p className="text-xs text-gray-500 text-center">
-                              {Math.floor(Math.random() * 200)} assinantes ativos
-                            </p>
+                            <div className="flex space-x-2">
+                              <Button 
+                                className="flex-1" 
+                                variant="outline"
+                                onClick={() => handleEditPlan(plan)}
+                              >
+                                <Edit className="h-3 w-3 mr-2" />
+                                Editar
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                onClick={() => handleDeletePlan(plan.id)}
+                                className="text-red-600 hover:text-red-700"
+                                disabled={deletePlanMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Badge variant="secondary" className="w-full justify-center">
+                              {plan.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
                           </div>
                         </CardContent>
                       </Card>
@@ -452,7 +514,88 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Layout Customization */}
+            <TabsContent value="layout">
+              <LayoutCustomizer />
+            </TabsContent>
+
+            {/* Settings */}
+            <TabsContent value="settings">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Settings className="h-5 w-5" />
+                    <span>Configurações da Plataforma</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Configurações Gerais</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Label>Permitir novos cadastros</Label>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <input type="checkbox" defaultChecked />
+                            <span className="text-sm text-gray-600">Usuários podem se cadastrar</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Modo de manutenção</Label>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <input type="checkbox" />
+                            <span className="text-sm text-gray-600">Exibir página de manutenção</span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Notificações por email</Label>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <input type="checkbox" defaultChecked />
+                            <span className="text-sm text-gray-600">Enviar notificações de sinais</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Backup e Segurança</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <Button className="w-full" variant="outline">
+                          Fazer Backup do Banco de Dados
+                        </Button>
+                        <Button className="w-full" variant="outline">
+                          Exportar Dados dos Usuários
+                        </Button>
+                        <Button className="w-full" variant="outline">
+                          Ver Logs de Atividade
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
+
+          {/* Plan Form Modal */}
+          {showPlanForm && (
+            <AdminPlanForm 
+              plan={editingPlan}
+              onClose={() => {
+                setShowPlanForm(false);
+                setEditingPlan(null);
+              }}
+              onSuccess={() => {
+                setShowPlanForm(false);
+                setEditingPlan(null);
+              }}
+            />
+          )}
         </main>
       </div>
     </div>
