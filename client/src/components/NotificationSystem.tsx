@@ -20,34 +20,28 @@ export default function NotificationSystem() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // WebSocket connection for real-time notifications
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onmessage = (event) => {
-      const notification = JSON.parse(event.data);
-      if (notification.type === "notification") {
-        addNotification({
-          id: Date.now().toString(),
-          type: notification.data.type,
-          title: notification.data.title,
-          message: notification.data.message,
-          timestamp: new Date(),
-          read: false,
-          data: notification.data
-        });
+    // Simulando notificações iniciais para demonstração
+    const initialNotifications = [
+      {
+        id: "1",
+        type: "signal" as const,
+        title: "Novo Sinal EUR/USD",
+        message: "Sinal de compra ativo para EUR/USD",
+        timestamp: new Date(),
+        read: false
+      },
+      {
+        id: "2", 
+        type: "system" as const,
+        title: "Bem-vindo!",
+        message: "Sua conta está ativa e pronta para trading",
+        timestamp: new Date(),
+        read: false
       }
-    };
-
-    ws.onopen = () => {
-      console.log("WebSocket connected for notifications");
-    };
-
-    return () => {
-      ws.close();
-    };
+    ];
+    
+    setNotifications(initialNotifications);
+    setUnreadCount(initialNotifications.length);
   }, []);
 
   const addNotification = (notification: Notification) => {
