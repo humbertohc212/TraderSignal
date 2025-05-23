@@ -501,7 +501,7 @@ export default function Admin() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {lessons?.slice(0, 10).map((lesson: any) => (
+                      {(lessons || []).map((lesson: any) => (
                         <TableRow key={lesson.id}>
                           <TableCell className="font-medium">{lesson.title}</TableCell>
                           <TableCell>{lesson.category}</TableCell>
@@ -600,7 +600,7 @@ export default function Admin() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {plans?.map((plan: any) => (
+                    {(plans || []).map((plan: any) => (
                       <Card key={plan.id} className="relative">
                         {plan.isPopular && (
                           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
