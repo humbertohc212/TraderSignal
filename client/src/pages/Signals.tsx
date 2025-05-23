@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
 import SignalCard from "@/components/SignalCard";
 import AdminSignalForm from "@/components/AdminSignalForm";
+import SubscriptionGuard from "@/components/SubscriptionGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +14,7 @@ import { Plus } from "lucide-react";
 
 export default function Signals() {
   const { user } = useAuth();
+  const { isActive, status } = useSubscription();
   const [showSignalForm, setShowSignalForm] = useState(false);
   const [filterPair, setFilterPair] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -27,6 +30,9 @@ export default function Signals() {
   }) || [];
 
   const isAdmin = user?.role === "admin";
+  
+  // Limitar sinais para usuários sem assinatura ativa
+  const displaySignals = isActive || isAdmin ? filteredSignals : filteredSignals.slice(0, 2);
 
   return (
     <div className="min-h-screen bg-gray-50">
