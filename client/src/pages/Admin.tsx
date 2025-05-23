@@ -652,7 +652,7 @@ export default function Admin() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
