@@ -5,6 +5,8 @@ import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
 import AdminPlanForm from "@/components/AdminPlanForm";
 import AdminSignalForm from "@/components/AdminSignalForm";
+import AdminLessonForm from "@/components/AdminLessonForm";
+import AdminUserForm from "@/components/AdminUserForm";
 import LayoutCustomizer from "@/components/LayoutCustomizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +49,8 @@ export default function Admin() {
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
   const [editingSignal, setEditingSignal] = useState(null);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   // Delete signal mutation
   const deleteSignalMutation = useMutation({
@@ -763,11 +767,10 @@ export default function Admin() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => {
-                                  toast({
-                                    title: "Em desenvolvimento",
-                                    description: "Edição de usuários será implementada em breve",
-                                  });
+                                  setEditingUser(user);
+                                  setShowUserForm(true);
                                 }}
+                                className="text-blue-600 hover:text-blue-700"
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -862,6 +865,22 @@ export default function Admin() {
               onSuccess={() => {
                 setShowLessonForm(false);
                 setEditingLesson(null);
+              }}
+            />
+          )}
+
+          {/* User Form Modal */}
+          {showUserForm && (
+            <AdminUserForm
+              user={editingUser}
+              isOpen={showUserForm}
+              onClose={() => {
+                setShowUserForm(false);
+                setEditingUser(null);
+              }}
+              onSuccess={() => {
+                setShowUserForm(false);
+                setEditingUser(null);
               }}
             />
           )}
