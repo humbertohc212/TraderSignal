@@ -69,17 +69,38 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
     createSignalMutation.mutate(data);
   };
 
-  const currencyPairs = [
-    "EUR/USD",
-    "GBP/USD",
-    "USD/JPY",
-    "GBP/JPY",
-    "USD/CAD",
-    "AUD/USD",
-    "USD/CHF",
-    "NZD/USD",
-    "EUR/GBP",
-    "EUR/JPY",
+  const tradingInstruments = {
+    forex: [
+      "EUR/USD", "GBP/USD", "USD/JPY", "GBP/JPY", "USD/CAD",
+      "AUD/USD", "USD/CHF", "NZD/USD", "EUR/GBP", "EUR/JPY",
+      "AUD/JPY", "CAD/JPY", "CHF/JPY", "EUR/AUD", "EUR/CAD",
+      "EUR/CHF", "GBP/AUD", "GBP/CAD", "GBP/CHF", "USD/SGD"
+    ],
+    commodities: [
+      "XAUUSD", "XAGUSD", "USOIL", "UKOIL", "NATGAS"
+    ],
+    crypto: [
+      "BTCUSD", "ETHUSD", "ADAUSD", "BNBUSD", "SOLUSD",
+      "XRPUSD", "DOTUSD", "LINKUSD", "MATICUSD", "AVAXUSD",
+      "LUNAUSD", "ATOMUSD", "ALGOUSD", "VETUSD", "FILUSD"
+    ],
+    stocks: [
+      "AAPL", "TSLA", "GOOGL", "AMZN", "MSFT", "NVDA", "META",
+      "NFLX", "AMD", "BABA", "DIS", "PYPL", "CRM", "UBER",
+      "MRNA", "ZM", "SHOP", "SQ", "TWTR", "SNAP"
+    ],
+    indices: [
+      "US30", "US500", "NAS100", "UK100", "GER40", "FRA40",
+      "JPN225", "AUS200", "HK50", "EUSTX50"
+    ]
+  };
+
+  const allInstruments = [
+    ...tradingInstruments.forex,
+    ...tradingInstruments.commodities,
+    ...tradingInstruments.crypto,
+    ...tradingInstruments.stocks,
+    ...tradingInstruments.indices
   ];
 
   const calculateRiskReward = () => {
@@ -122,20 +143,20 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
         
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Currency Pair */}
+            {/* Trading Instrument */}
             <div className="space-y-2">
-              <Label htmlFor="pair">Par de Moedas</Label>
+              <Label htmlFor="pair">Instrumento</Label>
               <Select
                 value={watch("pair")}
                 onValueChange={(value) => setValue("pair", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o par de moedas" />
+                  <SelectValue placeholder="Selecione o instrumento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {currencyPairs.map((pair) => (
-                    <SelectItem key={pair} value={pair}>
-                      {pair}
+                  {allInstruments.map((instrument) => (
+                    <SelectItem key={instrument} value={instrument}>
+                      {instrument}
                     </SelectItem>
                   ))}
                 </SelectContent>
