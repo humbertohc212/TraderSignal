@@ -46,6 +46,7 @@ export default function Admin() {
   const [showSignalForm, setShowSignalForm] = useState(false);
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
+  const [editingSignal, setEditingSignal] = useState(null);
 
   // Delete signal mutation
   const deleteSignalMutation = useMutation({
@@ -408,11 +409,10 @@ export default function Admin() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => {
-                                  toast({
-                                    title: "Em desenvolvimento",
-                                    description: "Funcionalidade de edição será implementada em breve",
-                                  });
+                                  setEditingSignal(signal);
+                                  setShowSignalForm(true);
                                 }}
+                                className="text-blue-600 hover:text-blue-700"
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -836,8 +836,14 @@ export default function Admin() {
           {/* Signal Form Modal */}
           {showSignalForm && (
             <AdminSignalForm
-              onClose={() => setShowSignalForm(false)}
+              signal={editingSignal}
+              onClose={() => {
+                setShowSignalForm(false);
+                setEditingSignal(null);
+              }}
               onSuccess={() => {
+                setShowSignalForm(false);
+                setEditingSignal(null);
                 queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
                 queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
               }}

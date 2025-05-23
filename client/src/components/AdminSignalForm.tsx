@@ -27,24 +27,25 @@ const signalFormSchema = z.object({
 type SignalFormData = z.infer<typeof signalFormSchema>;
 
 interface AdminSignalFormProps {
+  signal?: any;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormProps) {
+export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSignalFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<SignalFormData>({
     resolver: zodResolver(signalFormSchema),
     defaultValues: {
-      pair: "",
-      direction: "BUY",
-      entryPrice: "",
-      takeProfitPrice: "",
-      takeProfit2Price: "",
-      stopLossPrice: "",
-      analysis: "",
+      pair: signal?.pair || "",
+      direction: signal?.direction || "BUY",
+      entryPrice: signal?.entryPrice || "",
+      takeProfitPrice: signal?.takeProfitPrice || "",
+      takeProfit2Price: signal?.takeProfit2Price || "",
+      stopLossPrice: signal?.stopLossPrice || "",
+      analysis: signal?.analysis || "",
     },
   });
 
