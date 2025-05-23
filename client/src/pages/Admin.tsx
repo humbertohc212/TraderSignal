@@ -31,6 +31,8 @@ import { useLocation } from "wouter";
 import { useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import BackupManager from "@/components/BackupManager";
+import LaunchStrategy from "@/components/LaunchStrategy";
 
 export default function Admin() {
   const { user } = useAuth();
@@ -523,63 +525,20 @@ export default function Admin() {
 
             {/* Settings */}
             <TabsContent value="settings">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Settings className="h-5 w-5" />
-                    <span>Configurações da Plataforma</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Configurações Gerais</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <Label>Permitir novos cadastros</Label>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <input type="checkbox" defaultChecked />
-                            <span className="text-sm text-gray-600">Usuários podem se cadastrar</span>
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Modo de manutenção</Label>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <input type="checkbox" />
-                            <span className="text-sm text-gray-600">Exibir página de manutenção</span>
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Notificações por email</Label>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <input type="checkbox" defaultChecked />
-                            <span className="text-sm text-gray-600">Enviar notificações de sinais</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Backup e Segurança</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <Button className="w-full" variant="outline">
-                          Fazer Backup do Banco de Dados
-                        </Button>
-                        <Button className="w-full" variant="outline">
-                          Exportar Dados dos Usuários
-                        </Button>
-                        <Button className="w-full" variant="outline">
-                          Ver Logs de Atividade
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
+              <Tabs defaultValue="backup" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="backup">Backup & Segurança</TabsTrigger>
+                  <TabsTrigger value="launch">Estratégia de Lançamento</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="backup">
+                  <BackupManager />
+                </TabsContent>
+                
+                <TabsContent value="launch">
+                  <LaunchStrategy />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           </Tabs>
 
