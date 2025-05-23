@@ -44,6 +44,8 @@ export default function Admin() {
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [showSignalForm, setShowSignalForm] = useState(false);
+  const [showLessonForm, setShowLessonForm] = useState(false);
+  const [editingLesson, setEditingLesson] = useState(null);
 
   // Delete signal mutation
   const deleteSignalMutation = useMutation({
@@ -440,10 +442,8 @@ export default function Admin() {
                   <CardTitle>Gerenciar Aulas</CardTitle>
                   <Button 
                     onClick={() => {
-                      toast({
-                        title: "Em desenvolvimento",
-                        description: "Criação de aulas será implementada em breve",
-                      });
+                      setEditingLesson(null);
+                      setShowLessonForm(true);
                     }}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -553,10 +553,8 @@ export default function Admin() {
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => {
-                                  toast({
-                                    title: "Em desenvolvimento",
-                                    description: "Edição de aulas será implementada em breve",
-                                  });
+                                  setEditingLesson(lesson);
+                                  setShowLessonForm(true);
                                 }}
                               >
                                 <Edit className="h-3 w-3" />
@@ -842,6 +840,22 @@ export default function Admin() {
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
                 queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
+              }}
+            />
+          )}
+
+          {/* Lesson Form Modal */}
+          {showLessonForm && (
+            <AdminLessonForm
+              lesson={editingLesson}
+              isOpen={showLessonForm}
+              onClose={() => {
+                setShowLessonForm(false);
+                setEditingLesson(null);
+              }}
+              onSuccess={() => {
+                setShowLessonForm(false);
+                setEditingLesson(null);
               }}
             />
           )}
