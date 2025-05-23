@@ -233,7 +233,10 @@ export default function Admin() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Gerenciar Sinais</CardTitle>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    onClick={() => setShowSignalForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Novo Sinal
                   </Button>
@@ -276,7 +279,13 @@ export default function Admin() {
                               <Button size="sm" variant="outline">
                                 <Edit className="h-3 w-3" />
                               </Button>
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => deleteSignalMutation.mutate(signal.id)}
+                                disabled={deleteSignalMutation.isPending}
+                                className="text-red-600 hover:text-red-700"
+                              >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
