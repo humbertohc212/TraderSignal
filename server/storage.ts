@@ -65,6 +65,9 @@ export interface IStorage {
     totalLessons: number;
     monthlyRevenue: number;
   }>;
+  
+  // User management for admin
+  getUsers(): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -318,6 +321,10 @@ export class DatabaseStorage implements IStorage {
       totalLessons: lessonsCount.count,
       monthlyRevenue: Math.round(monthlyRevenue),
     };
+  }
+
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.createdAt);
   }
 }
 
