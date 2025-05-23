@@ -65,6 +65,28 @@ export default function Admin() {
     },
   });
 
+  // Close signal mutation
+  const closeSignalMutation = useMutation({
+    mutationFn: async ({ signalId, result, type }: { signalId: number, result: number, type: string }) => {
+      return await apiRequest("POST", `/api/signals/${signalId}/close`, { result });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
+      toast({
+        title: "Sucesso",
+        description: "Sinal fechado com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao fechar sinal",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Redirect non-admin users
   useEffect(() => {
     if (user && user.role !== "admin") {
@@ -250,6 +272,7 @@ export default function Admin() {
                         <TableHead>Entrada</TableHead>
                         <TableHead>TP/SL</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Resultado</TableHead>
                         <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -277,12 +300,91 @@ export default function Admin() {
                               signal.status === 'active' ? 'default' : 
                               signal.status === 'closed' ? 'secondary' : 'destructive'
                             }>
-                              {signal.status}
+                              {signal.status === 'active' ? 'ATIVO' : 
+                               signal.status === 'closed' ? 'FECHADO' : 'CANCELADO'}
                             </Badge>
                           </TableCell>
                           <TableCell>
+                            {signal.status === 'active' ? (
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  className="text-green-600 hover:text-green-700 text-xs px-2"
+                                  onClick={() => {
+                                    if (window.confirm("Marcar sinal como atingiu Take Profit 1?")) {
+                                      const entry = parseFloat(signal.entryPrice);
+                                      const tp1 = parseFloat(signal.takeProfitPrice);
+                                      const pips = Math.abs(tp1 - entry) * (signal.pair.includes('JPY') ? 100 : 10000);
+                                      closeSignalMutation.mutate({ 
+                                        signalId: signal.id, 
+                                        result: pips, 
+                                        type: 'TP1' 
+                                      });
+                                    }
+                                  }}
+                                >
+                                  TP1
+                                </Button>
+                                {signal.takeProfit2Price && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-green-600 hover:text-green-700 text-xs px-2"
+                                    onClick={() => {
+                                      if (window.confirm("Marcar sinal como atingiu Take Profit 2?")) {
+                                        const entry = parseFloat(signal.entryPrice);
+                                        const tp2 = parseFloat(signal.takeProfit2Price);
+                                        const pips = Math.abs(tp2 - entry) * (signal.pair.includes('JPY') ? 100 : 10000);
+                                        closeSignalMutation.mutate({ 
+                                          signalId: signal.id, 
+                                          result: pips, 
+                                          type: 'TP2' 
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    TP2
+                                  </Button>
+                                )}
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700 text-xs px-2"
+                                  onClick={() => {
+                                    if (window.confirm("Marcar sinal como atingiu Stop Loss?")) {
+                                      const entry = parseFloat(signal.entryPrice);
+                                      const sl = parseFloat(signal.stopLossPrice);
+                                      const pips = -Math.abs(sl - entry) * (signal.pair.includes('JPY') ? 100 : 10000);
+                                      closeSignalMutation.mutate({ 
+                                        signalId: signal.id, 
+                                        result: pips, 
+                                        type: 'SL' 
+                                      });
+                                    }
+                                  }}
+                                >
+                                  SL
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-500">
+                                {signal.result ? `${signal.result > 0 ? '+' : ''}${signal.result} pips` : 'Fechado'}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  toast({
+                                    title: "Em desenvolvimento",
+                                    description: "Funcionalidade de edição será implementada em breve",
+                                  });
+                                }}
+                              >
                                 <Edit className="h-3 w-3" />
                               </Button>
                               <Button 
