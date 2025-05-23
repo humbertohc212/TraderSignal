@@ -132,6 +132,11 @@ export default function Admin() {
     queryKey: ["/api/plans"],
   });
 
+  const { data: users } = useQuery({
+    queryKey: ["/api/users"],
+    enabled: user?.role === "admin",
+  });
+
   const deletePlanMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest("DELETE", `/api/plans/${id}`);
