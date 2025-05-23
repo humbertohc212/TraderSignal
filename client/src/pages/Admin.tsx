@@ -26,7 +26,8 @@ import {
   FileX,
   Palette,
   Settings,
-  Crown
+  Crown,
+  Ban
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
@@ -82,6 +83,27 @@ export default function Admin() {
       toast({
         title: "Erro",
         description: "Falha ao fechar sinal",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete lesson mutation
+  const deleteLessonMutation = useMutation({
+    mutationFn: async (lessonId: number) => {
+      return await apiRequest("DELETE", `/api/lessons/${lessonId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
+      toast({
+        title: "Sucesso",
+        description: "Aula removida com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Falha ao remover aula",
         variant: "destructive",
       });
     },
@@ -411,7 +433,15 @@ export default function Admin() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Gerenciar Aulas</CardTitle>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: "Em desenvolvimento",
+                        description: "Criação de aulas será implementada em breve",
+                      });
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Aula
                   </Button>
@@ -514,10 +544,29 @@ export default function Admin() {
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  toast({
+                                    title: "Em desenvolvimento",
+                                    description: "Edição de aulas será implementada em breve",
+                                  });
+                                }}
+                              >
                                 <Edit className="h-3 w-3" />
                               </Button>
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  if (window.confirm("Tem certeza que deseja remover esta aula?")) {
+                                    deleteLessonMutation.mutate(lesson.id);
+                                  }
+                                }}
+                                disabled={deleteLessonMutation.isPending}
+                                className="text-red-600 hover:text-red-700"
+                              >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
@@ -654,6 +703,90 @@ export default function Admin() {
                       </Card>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Users Management */}
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gerenciar Usuários</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Plano</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Cadastro</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(users || []).map((user: any) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-mono text-xs">{user.id}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            {user.firstName || user.lastName 
+                              ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                              : 'Não informado'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              user.subscriptionPlan === 'vip' ? 'default' :
+                              user.subscriptionPlan === 'premium' ? 'secondary' :
+                              user.subscriptionPlan === 'basic' ? 'outline' : 'destructive'
+                            }>
+                              {user.subscriptionPlan?.toUpperCase() || 'FREE'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.subscriptionStatus === 'active' ? 'default' : 'secondary'}>
+                              {user.subscriptionStatus === 'active' ? 'ATIVO' : 'INATIVO'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-500">
+                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  toast({
+                                    title: "Em desenvolvimento",
+                                    description: "Edição de usuários será implementada em breve",
+                                  });
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  toast({
+                                    title: "Bloqueio temporário",
+                                    description: "Funcionalidade de banir usuários será implementada em breve",
+                                  });
+                                }}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                <Ban className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
