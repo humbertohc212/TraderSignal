@@ -108,9 +108,11 @@ export default function ModernLanding() {
               </Button>
             </Link>
             
-            <Button variant="outline" className="border-2 border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-full backdrop-blur-sm">
-              Ver Demonstração
-            </Button>
+            <Link href="/demo">
+              <Button variant="outline" className="border-2 border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-full backdrop-blur-sm">
+                Ver Demonstração
+              </Button>
+            </Link>
           </div>
 
           {/* Stats */}
