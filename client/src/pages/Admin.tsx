@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
 import AdminPlanForm from "@/components/AdminPlanForm";
+import AdminSignalForm from "@/components/AdminSignalForm";
 import LayoutCustomizer from "@/components/LayoutCustomizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,28 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
+  const [showSignalForm, setShowSignalForm] = useState(false);
+
+  // Delete signal mutation
+  const deleteSignalMutation = useMutation({
+    mutationFn: async (signalId: number) => {
+      return await apiRequest("DELETE", `/api/signals/${signalId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+      toast({
+        title: "Sucesso",
+        description: "Sinal removido com sucesso!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro", 
+        description: "Falha ao remover sinal",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Redirect non-admin users
   useEffect(() => {
@@ -553,6 +576,17 @@ export default function Admin() {
               onSuccess={() => {
                 setShowPlanForm(false);
                 setEditingPlan(null);
+              }}
+            />
+          )}
+
+          {/* Signal Form Modal */}
+          {showSignalForm && (
+            <AdminSignalForm
+              onClose={() => setShowSignalForm(false)}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
               }}
             />
           )}
