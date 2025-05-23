@@ -47,6 +47,7 @@ export const signals = pgTable("signals", {
   direction: varchar("direction").notNull(), // BUY, SELL, BUY_LIMIT, SELL_LIMIT
   entryPrice: decimal("entry_price", { precision: 10, scale: 5 }).notNull(),
   takeProfitPrice: decimal("take_profit_price", { precision: 10, scale: 5 }).notNull(),
+  takeProfit2Price: decimal("take_profit_2_price", { precision: 10, scale: 5 }),
   stopLossPrice: decimal("stop_loss_price", { precision: 10, scale: 5 }).notNull(),
   status: varchar("status").notNull().default("active"), // active, closed, cancelled
   result: decimal("result", { precision: 10, scale: 2 }), // pips gained/lost

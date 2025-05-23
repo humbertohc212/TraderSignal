@@ -18,7 +18,8 @@ const signalFormSchema = z.object({
   pair: z.string().min(1, "Par de moedas é obrigatório"),
   direction: z.enum(["BUY", "SELL", "BUY_LIMIT", "SELL_LIMIT"]),
   entryPrice: z.string().min(1, "Preço de entrada é obrigatório"),
-  takeProfitPrice: z.string().min(1, "Take Profit é obrigatório"),
+  takeProfitPrice: z.string().min(1, "Take Profit 1 é obrigatório"),
+  takeProfit2Price: z.string().optional(),
   stopLossPrice: z.string().min(1, "Stop Loss é obrigatório"),
   analysis: z.string().optional(),
 });
@@ -41,6 +42,7 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
       direction: "BUY",
       entryPrice: "",
       takeProfitPrice: "",
+      takeProfit2Price: "",
       stopLossPrice: "",
       analysis: "",
     },
@@ -144,7 +146,7 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="entryPrice"
@@ -164,9 +166,23 @@ export default function AdminSignalForm({ onClose, onSuccess }: AdminSignalFormP
                   name="takeProfitPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Take Profit</FormLabel>
+                      <FormLabel>Take Profit 1</FormLabel>
                       <FormControl>
                         <Input placeholder="1.0900" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="takeProfit2Price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Take Profit 2 (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="1.0950" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

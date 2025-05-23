@@ -268,7 +268,9 @@ export default function Admin() {
                           </TableCell>
                           <TableCell className="font-mono">{signal.entryPrice}</TableCell>
                           <TableCell className="text-sm">
-                            {signal.takeProfitPrice} / {signal.stopLossPrice}
+                            TP1: {signal.takeProfitPrice}
+                            {signal.takeProfit2Price && <><br/>TP2: {signal.takeProfit2Price}</>}
+                            <br/>SL: {signal.stopLossPrice}
                           </TableCell>
                           <TableCell>
                             <Badge variant={

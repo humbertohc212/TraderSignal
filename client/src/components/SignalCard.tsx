@@ -139,9 +139,16 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
           </div>
           
           <div className="flex justify-between">
-            <span className="text-sm text-gray-600">Take Profit:</span>
+            <span className="text-sm text-gray-600">Take Profit 1:</span>
             <span className="text-sm font-mono text-green-600">{signal.takeProfitPrice}</span>
           </div>
+          
+          {signal.takeProfit2Price && (
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">Take Profit 2:</span>
+              <span className="text-sm font-mono text-green-600">{signal.takeProfit2Price}</span>
+            </div>
+          )}
           
           <div className="flex justify-between">
             <span className="text-sm text-gray-600">Stop Loss:</span>
