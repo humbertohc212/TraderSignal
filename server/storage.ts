@@ -16,8 +16,9 @@ import {
   type InsertUserLesson,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, count } from "drizzle-orm";
+import { eq, and, count, sql, desc } from "drizzle-orm";
 
+// Interface for storage operations
 export interface IStorage {
   // User operations - Required for Replit Auth
   getUser(id: string): Promise<User | undefined>;
@@ -108,12 +109,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSignal(id: number, updates: Partial<InsertSignal>): Promise<Signal> {
-    const [updatedSignal] = await db
+    const [updated] = await db
       .update(signals)
-      .set(updates)
+      .set({ ...updates, updatedAt: new Date() })
       .where(eq(signals.id, id))
       .returning();
-    return updatedSignal;
+    return updated;
   }
 
   async deleteSignal(id: number): Promise<void> {
@@ -121,16 +122,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async closeSignal(id: number, result: number): Promise<Signal> {
-    const [closedSignal] = await db
+    const [updated] = await db
       .update(signals)
-      .set({
-        status: "closed",
+      .set({ 
+        status: "closed", 
         result: result.toString(),
-        closedAt: new Date(),
+        updatedAt: new Date() 
       })
       .where(eq(signals.id, id))
       .returning();
-    return closedSignal;
+    return updated;
   }
 
   // Lesson operations
@@ -157,12 +158,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLesson(id: number, updates: Partial<InsertLesson>): Promise<Lesson> {
-    const [updatedLesson] = await db
+    const [updated] = await db
       .update(lessons)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(lessons.id, id))
       .returning();
-    return updatedLesson;
+    return updated;
   }
 
   async deleteLesson(id: number): Promise<void> {
@@ -193,12 +194,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePlan(id: number, updates: Partial<InsertPlan>): Promise<Plan> {
-    const [updatedPlan] = await db
+    const [updated] = await db
       .update(plans)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(plans.id, id))
       .returning();
-    return updatedPlan;
+    return updated;
   }
 
   async deletePlan(id: number): Promise<void> {
@@ -255,26 +256,26 @@ export class DatabaseStorage implements IStorage {
       .select({ count: count() })
       .from(signals)
       .where(eq(signals.status, "active"));
-    
-    const userProgress = await this.getUserLessonProgress(userId);
-    const completedLessons = userProgress.filter(p => p.isCompleted).length;
+
+    const userProgress = await db
+      .select()
+      .from(userLessons)
+      .where(and(eq(userLessons.userId, userId), eq(userLessons.isCompleted, true)));
+
+    const completedLessons = userProgress.length;
 
     // Calculate win rate and profit from closed signals
     const closedSignals = await db
       .select()
       .from(signals)
       .where(eq(signals.status, "closed"));
+
+    const winningSignals = closedSignals.filter(s => parseFloat(s.result || "0") > 0).length;
+    const winRate = closedSignals.length > 0 ? (winningSignals / closedSignals.length) * 100 : 0;
     
-    const winningSignals = closedSignals.filter(s => 
-      s.result && parseFloat(s.result) > 0
-    );
-    const winRate = closedSignals.length > 0 
-      ? (winningSignals.length / closedSignals.length) * 100 
-      : 0;
-    
-    const totalProfit = closedSignals.reduce((sum, signal) => 
-      sum + (signal.result ? parseFloat(signal.result) : 0), 0
-    );
+    const totalProfit = closedSignals.reduce((sum, signal) => {
+      return sum + parseFloat(signal.result || "0");
+    }, 0);
 
     return {
       totalUsers: userCount.count,
@@ -298,21 +299,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(signals.status, "active"));
     const [lessonsCount] = await db.select({ count: count() }).from(lessons);
 
-    // Calculate estimated monthly revenue based on subscription plans
+    // Calculate monthly revenue based on active subscriptions
     const activeUsers = await db
       .select()
       .from(users)
       .where(eq(users.subscriptionStatus, "active"));
-    
-    const allPlans = await this.getPlans();
-    const planPriceMap = allPlans.reduce((map, plan) => {
-      map[plan.name.toLowerCase()] = parseFloat(plan.price);
-      return map;
-    }, {} as Record<string, number>);
 
-    const monthlyRevenue = activeUsers.reduce((sum, user) => {
-      const planPrice = planPriceMap[user.subscriptionPlan || ""] || 0;
-      return sum + planPrice;
+    const monthlyRevenue = activeUsers.reduce((total, user) => {
+      const plan = user.subscriptionPlan;
+      if (plan === "basic") return total + 47;
+      if (plan === "premium") return total + 97;
+      if (plan === "vip") return total + 197;
+      return total;
     }, 0);
 
     return {
@@ -324,7 +322,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(users.createdAt);
+    return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 }
 
