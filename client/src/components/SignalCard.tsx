@@ -1,7 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, X } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Edit, X, Trash2, CheckCircle } from "lucide-react";
 
 interface SignalCardProps {
   signal: {
@@ -20,6 +23,53 @@ interface SignalCardProps {
 }
 
 export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteSignalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/signals/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+      toast({
+        title: "Sinal removido",
+        description: "O sinal foi removido com sucesso.",
+      });
+    },
+  });
+
+  const closeSignalMutation = useMutation({
+    mutationFn: async ({ id, result }: { id: number; result: number }) => {
+      const response = await apiRequest("POST", `/api/signals/${id}/close`, { result });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+      toast({
+        title: "Sinal fechado",
+        description: "O sinal foi fechado com sucesso.",
+      });
+    },
+  });
+
+  const handleCloseSignal = () => {
+    const result = prompt("Digite o resultado em pips (ex: 25 para lucro, -15 para perda):");
+    if (result !== null) {
+      const numResult = parseFloat(result);
+      if (!isNaN(numResult)) {
+        closeSignalMutation.mutate({ id: signal.id, result: numResult });
+      }
+    }
+  };
+
+  const handleDeleteSignal = () => {
+    if (window.confirm("Tem certeza que deseja remover este sinal?")) {
+      deleteSignalMutation.mutate(signal.id);
+    }
+  };
+
   const getStatusColor = (status: string, result?: string) => {
     if (status === "active") return "bg-blue-100 text-blue-800";
     if (status === "closed") {
