@@ -1,9 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertSignalSchema, insertLessonSchema, insertPlanSchema } from "@shared/schema";
 import { z } from "zod";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2025-04-30.basil",
+});
+
+// Store WebSocket connections
+const wsClients = new Set<WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -322,6 +334,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stripe payment routes
+  app.post("/api/create-subscription", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const { planId } = req.body;
+      
+      if (!user || !user.email) {
+        return res.status(400).json({ message: "User email required" });
+      }
+
+      // Create Stripe customer if not exists
+      let customerId = user.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        });
+        customerId = customer.id;
+        await storage.updateUserStripeInfo(userId, { stripeCustomerId: customerId });
+      }
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{ price: `price_${planId}` }], // You'll need to create prices in Stripe
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+      });
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+      });
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Failed to create subscription" });
+    }
+  });
+
+  // WebSocket notification function
+  const broadcastNotification = (notification: any) => {
+    const message = JSON.stringify({
+      type: "notification",
+      data: notification
+    });
+    
+    wsClients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  };
+
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    wsClients.add(ws);
+    console.log('WebSocket client connected');
+    
+    ws.on('close', () => {
+      wsClients.delete(ws);
+      console.log('WebSocket client disconnected');
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      wsClients.delete(ws);
+    });
+  });
+
   return httpServer;
 }
