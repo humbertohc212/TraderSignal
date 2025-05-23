@@ -109,7 +109,7 @@ export default function ModernLanding() {
             </Link>
             
             <Link href="/demo">
-              <Button className="bg-transparent border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-8 py-4 text-lg font-semibold rounded-full backdrop-blur-sm transition-all duration-300">
+              <Button className="bg-white border-2 border-white text-black hover:bg-gray-100 hover:border-gray-200 px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300">
                 Ver Demonstração
               </Button>
             </Link>
