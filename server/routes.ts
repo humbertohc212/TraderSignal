@@ -464,39 +464,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // WebSocket notification function
-  const broadcastNotification = (notification: any) => {
-    const message = JSON.stringify({
-      type: "notification",
-      data: notification
-    });
-    
-    wsClients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
-  };
-
   const httpServer = createServer(app);
-  
-  // Setup WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  wss.on('connection', (ws) => {
-    wsClients.add(ws);
-    console.log('WebSocket client connected');
-    
-    ws.on('close', () => {
-      wsClients.delete(ws);
-      console.log('WebSocket client disconnected');
-    });
-    
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      wsClients.delete(ws);
-    });
-  });
-
   return httpServer;
 }
