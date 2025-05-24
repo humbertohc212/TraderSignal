@@ -5,6 +5,7 @@ import {
   plans,
   userLessons,
   subscriptionRequests,
+  tradingEntries,
   type User,
   type UpsertUser,
   type Signal,
@@ -17,6 +18,8 @@ import {
   type InsertUserLesson,
   type SubscriptionRequest,
   type InsertSubscriptionRequest,
+  type TradingEntry,
+  type InsertTradingEntry,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sql, desc } from "drizzle-orm";
@@ -81,6 +84,12 @@ export interface IStorage {
   getSubscriptionRequests(): Promise<SubscriptionRequest[]>;
   getSubscriptionRequest(id: number): Promise<SubscriptionRequest | undefined>;
   updateSubscriptionRequest(id: number, updates: Partial<InsertSubscriptionRequest>): Promise<SubscriptionRequest>;
+  
+  // Trading entries operations
+  getTradingEntriesByUser(userId: string): Promise<TradingEntry[]>;
+  createTradingEntry(entry: InsertTradingEntry): Promise<TradingEntry>;
+  updateTradingEntry(id: number, updates: Partial<InsertTradingEntry>): Promise<TradingEntry>;
+  deleteTradingEntry(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -409,6 +418,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(subscriptionRequests.id, id))
       .returning();
     return updated;
+  }
+
+  // Trading entries operations
+  async getTradingEntriesByUser(userId: string): Promise<TradingEntry[]> {
+    return await db
+      .select()
+      .from(tradingEntries)
+      .where(eq(tradingEntries.userId, userId))
+      .orderBy(desc(tradingEntries.date));
+  }
+
+  async createTradingEntry(entry: InsertTradingEntry): Promise<TradingEntry> {
+    const [tradingEntry] = await db
+      .insert(tradingEntries)
+      .values(entry)
+      .returning();
+    return tradingEntry;
+  }
+
+  async updateTradingEntry(id: number, updates: Partial<InsertTradingEntry>): Promise<TradingEntry> {
+    const [tradingEntry] = await db
+      .update(tradingEntries)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(tradingEntries.id, id))
+      .returning();
+    return tradingEntry;
+  }
+
+  async deleteTradingEntry(id: number): Promise<void> {
+    await db.delete(tradingEntries).where(eq(tradingEntries.id, id));
   }
 }
 
