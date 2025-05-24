@@ -229,14 +229,18 @@ export default function Dashboard() {
                       </div>
                       
 
-                      {user?.initialBalance && user?.monthlyGoal ? (
+                      {user?.initialBalance || user?.monthlyGoal ? (
                         <>
                           {/* Progresso Principal */}
                           <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">Progresso da Meta</span>
                               <span className="text-2xl font-bold text-green-600">
-                                R$ {((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)).toFixed(2)}
+                                R$ {(() => {
+                                  const initial = parseFloat(user?.initialBalance || "0");
+                                  const current = parseFloat(user?.currentBalance || user?.initialBalance || "0");
+                                  return (current - initial).toFixed(2);
+                                })()}
                               </span>
                             </div>
                             
@@ -244,37 +248,43 @@ export default function Dashboard() {
                               <div 
                                 className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
                                 style={{ 
-                                  width: `${Math.min(
-                                    Math.max(
-                                      ((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100, 
-                                      0
-                                    ), 
-                                    100
-                                  )}%` 
+                                  width: `${(() => {
+                                    const initial = parseFloat(user?.initialBalance || "0");
+                                    const current = parseFloat(user?.currentBalance || user?.initialBalance || "0");
+                                    const goal = parseFloat(user?.monthlyGoal || "100");
+                                    const progress = goal > 0 ? ((current - initial) / goal) * 100 : 0;
+                                    return Math.min(Math.max(progress, 0), 100);
+                                  })()}%` 
                                 }}
                               >
-                                {((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) > 0 && (
-                                  <span className="text-xs font-bold text-white">
-                                    {Math.round(((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100)}%
-                                  </span>
-                                )}
+                                {(() => {
+                                  const initial = parseFloat(user?.initialBalance || "0");
+                                  const current = parseFloat(user?.currentBalance || user?.initialBalance || "0");
+                                  const goal = parseFloat(user?.monthlyGoal || "100");
+                                  const progress = goal > 0 ? ((current - initial) / goal) * 100 : 0;
+                                  return progress > 0 && (
+                                    <span className="text-xs font-bold text-white">
+                                      {Math.round(progress)}%
+                                    </span>
+                                  );
+                                })()}
                               </div>
                             </div>
                             
                             <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-                              <span>R$ {parseFloat(user?.initialBalance).toFixed(2)}</span>
-                              <span>Meta: R$ {(parseFloat(user?.initialBalance) + parseFloat(user?.monthlyGoal)).toFixed(2)}</span>
+                              <span>R$ {(parseFloat(user?.initialBalance || "0")).toFixed(2)}</span>
+                              <span>Meta: R$ {(parseFloat(user?.initialBalance || "0") + parseFloat(user?.monthlyGoal || "0")).toFixed(2)}</span>
                             </div>
                           </div>
                           
                           {/* Métricas do Mês */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-blue-600">R$ {(parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)).toFixed(2)}</div>
+                              <div className="text-lg font-bold text-blue-600">R$ {(parseFloat(user?.currentBalance || user?.initialBalance || "0")).toFixed(2)}</div>
                               <div className="text-xs text-gray-600">Banca Atual</div>
                             </div>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-purple-600">R$ {parseFloat(user?.monthlyGoal).toFixed(2)}</div>
+                              <div className="text-lg font-bold text-purple-600">R$ {(parseFloat(user?.monthlyGoal || "0")).toFixed(2)}</div>
                               <div className="text-xs text-gray-600">Meta Mensal</div>
                             </div>
                           </div>
