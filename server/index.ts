@@ -243,6 +243,17 @@ app.get('/api/plans', authenticateToken, (req, res) => {
   res.json(plans);
 });
 
+app.get('/api/plans/:id', authenticateToken, (req, res) => {
+  const id = parseInt(req.params.id);
+  const plan = plans.find(p => p.id === id);
+  
+  if (!plan) {
+    return res.status(404).json({ message: 'Plano não encontrado' });
+  }
+  
+  res.json(plan);
+});
+
 app.post('/api/plans', authenticateToken, (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
