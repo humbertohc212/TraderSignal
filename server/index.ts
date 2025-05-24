@@ -886,20 +886,14 @@ app.get('/api/stats/admin', authenticateToken, async (req: any, res) => {
   }
 });
 
-app.get('/api/stats/user', authenticateToken, (req: any, res) => {
-  const activeSignals = signals.filter(s => s.status === 'active').length;
-  const totalUsers = users.length;
-  const completedLessons = 0; // User-specific data would go here
-  const winRate = 85; // Placeholder win rate
-  const totalProfit = 1250; // Placeholder profit
-  
-  res.json({
-    totalUsers,
-    activeSignals,
-    completedLessons,
-    winRate,
-    totalProfit
-  });
+app.get('/api/stats/user', authenticateToken, async (req: any, res) => {
+  try {
+    const userStats = await storage.getUserStats(req.user.id);
+    res.json(userStats);
+  } catch (error) {
+    console.error('Error fetching user stats:', error);
+    res.status(500).json({ message: 'Erro ao buscar estatísticas do usuário' });
+  }
 });
 
 // USERS CRUD
