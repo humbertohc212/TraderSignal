@@ -763,6 +763,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin reports routes
+  app.get("/api/admin/reports/revenue", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const users = await storage.getUsers();
+      const plans = await storage.getPlans();
+      
+      const activeUsers = users.filter(u => u.subscriptionStatus === 'active');
+      const monthlyRevenue = activeUsers.reduce((total, user) => {
+        const plan = plans.find(p => p.name === user.subscriptionPlan);
+        return total + (plan ? parseFloat(plan.price.toString()) : 0);
+      }, 0);
+
+      const revenueStats = {
+        monthlyRevenue,
+        activeSubscriptions: activeUsers.length,
+        averageRevenuePerUser: activeUsers.length > 0 
+          ? monthlyRevenue / activeUsers.length 
+          : 0,
+        totalUsers: users.length,
+        conversionRate: users.length > 0 
+          ? (activeUsers.length / users.length) * 100 
+          : 0
+      };
+
+      res.json(revenueStats);
+    } catch (error: any) {
+      console.error("Error fetching revenue stats:", error);
+      res.status(500).json({ message: "Failed to fetch revenue stats" });
+    }
+  });
+
+  app.get("/api/admin/reports/signals", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const signals = await storage.getSignals();
+      const closedSignals = signals.filter(s => s.status === 'closed');
+      const winningSignals = closedSignals.filter(s => s.result && parseFloat(s.result) > 0);
+      
+      const signalStats = {
+        totalSignals: signals.length,
+        activeSignals: signals.filter(s => s.status === 'active').length,
+        closedSignals: closedSignals.length,
+        winningSignals: winningSignals.length,
+        winRate: closedSignals.length > 0 
+          ? (winningSignals.length / closedSignals.length) * 100 
+          : 0,
+        totalProfit: closedSignals.reduce((total, signal) => {
+          return total + (signal.result ? parseFloat(signal.result) : 0);
+        }, 0)
+      };
+
+      res.json(signalStats);
+    } catch (error: any) {
+      console.error("Error fetching signal stats:", error);
+      res.status(500).json({ message: "Failed to fetch signal stats" });
+    }
+  });
+
+  app.get("/api/admin/reports/users", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const users = await storage.getUsers();
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      
+      const newUsers = users.filter(u => 
+        u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
+      );
+
+      const userStats = {
+        totalUsers: users.length,
+        newUsers: newUsers.length,
+        activeUsers: users.filter(u => u.subscriptionStatus === 'active').length,
+        adminUsers: users.filter(u => u.role === 'admin').length,
+        usersByPlan: users.reduce((acc: any, user) => {
+          const plan = user.subscriptionPlan || 'Sem plano';
+          acc[plan] = (acc[plan] || 0) + 1;
+          return acc;
+        }, {})
+      };
+
+      res.json(userStats);
+    } catch (error: any) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

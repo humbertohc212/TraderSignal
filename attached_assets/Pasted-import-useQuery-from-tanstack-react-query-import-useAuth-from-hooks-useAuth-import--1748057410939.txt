@@ -1,0 +1,313 @@
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import Navigation from "@/components/Navigation";
+import Sidebar from "@/components/Sidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import {
+  BarChart3,
+  Users,
+  Signal,
+  BookOpen,
+  DollarSign,
+  ArrowUp,
+  ArrowDown,
+  Percent,
+} from "lucide-react";
+
+export default function AdminReports() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const { data: overview } = useQuery({
+    queryKey: ["admin-overview"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/reports/overview");
+      if (!response.ok) throw new Error("Failed to fetch overview");
+      return response.json();
+    },
+  });
+
+  const { data: userStats } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/reports/users");
+      if (!response.ok) throw new Error("Failed to fetch user stats");
+      return response.json();
+    },
+  });
+
+  const { data: signalStats } = useQuery({
+    queryKey: ["admin-signals"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/reports/signals");
+      if (!response.ok) throw new Error("Failed to fetch signal stats");
+      return response.json();
+    },
+  });
+
+  const { data: lessonStats } = useQuery({
+    queryKey: ["admin-lessons"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/reports/lessons");
+      if (!response.ok) throw new Error("Failed to fetch lesson stats");
+      return response.json();
+    },
+  });
+
+  const { data: revenueStats } = useQuery({
+    queryKey: ["admin-revenue"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/reports/revenue");
+      if (!response.ok) throw new Error("Failed to fetch revenue stats");
+      return response.json();
+    },
+  });
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Acesso Restrito
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Você não tem permissão para acessar esta página.
+          </p>
+          <Button onClick={() => setLocation("/")}>Voltar ao Início</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
+      <div className="flex">
+        <Sidebar />
+        
+        <main className="flex-1 p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Relatórios
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Visão geral das métricas do sistema.
+            </p>
+          </div>
+
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Usuários Ativos</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {userStats?.active || 0}
+                    </p>
+                    <p className="text-sm text-green-600">
+                      <ArrowUp className="h-3 w-3 inline mr-1" />
+                      +{userStats?.total ? Math.round((userStats.active / userStats.total) * 100) : 0}% do total
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                      <Signal className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Taxa de Acerto</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {signalStats?.winRate || 0}%
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {signalStats?.winning || 0} ganhos de {signalStats?.closed || 0}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Aulas Publicadas</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {lessonStats?.published || 0}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {lessonStats?.completions || 0} conclusões
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
+                      <DollarSign className="h-5 w-5 text-yellow-600" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Receita Mensal</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      R$ {revenueStats?.monthlyRevenue.toFixed(2) || "0.00"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {revenueStats?.activeSubscriptions || 0} assinaturas
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Detailed Stats */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição de Planos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Free</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-gray-400 rounded-full" 
+                          style={{ 
+                            width: `${userStats?.total ? (userStats.free / userStats.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{userStats?.free || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Basic</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-blue-400 rounded-full" 
+                          style={{ 
+                            width: `${userStats?.total ? (userStats.basic / userStats.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{userStats?.basic || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Premium</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-purple-400 rounded-full" 
+                          style={{ 
+                            width: `${userStats?.total ? (userStats.premium / userStats.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{userStats?.premium || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">VIP</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-yellow-400 rounded-full" 
+                          style={{ 
+                            width: `${userStats?.total ? (userStats.vip / userStats.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{userStats?.vip || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance dos Sinais</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Ativos</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-blue-400 rounded-full" 
+                          style={{ 
+                            width: `${signalStats?.total ? (signalStats.active / signalStats.total) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{signalStats?.active || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Ganhos</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-green-400 rounded-full" 
+                          style={{ 
+                            width: `${signalStats?.closed ? (signalStats.winning / signalStats.closed) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{signalStats?.winning || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Perdas</span>
+                    <div className="flex items-center">
+                      <div className="w-48 h-2 bg-gray-200 rounded-full mr-2">
+                        <div 
+                          className="h-2 bg-red-400 rounded-full" 
+                          style={{ 
+                            width: `${signalStats?.closed ? (signalStats.losing / signalStats.closed) * 100 : 0}%` 
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{signalStats?.losing || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
