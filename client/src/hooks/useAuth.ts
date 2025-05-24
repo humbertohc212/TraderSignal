@@ -1,7 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 export function useAuth() {
-  const { data: user, isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       const token = localStorage.getItem('auth-token');
@@ -20,6 +24,7 @@ export function useAuth() {
         if (!response.ok) {
           if (response.status === 401) {
             localStorage.removeItem('auth-token');
+            setLocation('/login');
           }
           return null;
         }
@@ -29,6 +34,7 @@ export function useAuth() {
       } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('auth-token');
+        setLocation('/login');
         return null;
       }
     },
@@ -39,29 +45,39 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      // Limpar token do localStorage
-      localStorage.removeItem('auth-token');
-      
-      // Fazer request para limpar cookie no servidor
-      await fetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
+        }
       });
+
+      const data = await response.json();
       
-      // Atualizar o estado forçando um refetch
-      window.location.href = '/';
+      // Clear local storage
+      localStorage.removeItem('auth-token');
+      
+      // Clear all queries from the cache
+      await queryClient.clear();
+      
+      // Redirect to login page
+      setLocation('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Mesmo com erro, limpar localmente e redirecionar
+      // Even if the API call fails, we should still clear local state
       localStorage.removeItem('auth-token');
-      window.location.href = '/';
+      await queryClient.clear();
+      setLocation('/login');
     }
   };
 
   return {
     user,
     isLoading,
+    error,
     isAuthenticated: !!user,
-    logout,
+    logout
   };
 }
