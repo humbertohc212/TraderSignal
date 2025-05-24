@@ -942,9 +942,10 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
     console.log('Updated token generated successfully');
     console.log('Token includes Alexandre:', updatedToken.includes('Alexandre'));
     console.log('Token being sent:', updatedToken ? 'YES' : 'NO');
+    console.log('Actual token:', updatedToken);
 
-    // RESPOSTA DEFINITIVA COM TOKEN
-    const response = {
+    // GARANTIR QUE O TOKEN SEJA INCLUÍDO NA RESPOSTA
+    const responseData = {
       success: true,
       message: 'Perfil atualizado com sucesso',
       user: {
@@ -970,8 +971,11 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
       token: updatedToken
     };
     
-    console.log('Response token check:', response.token ? 'PRESENT' : 'MISSING');
-    res.json(response);
+    console.log('FINAL RESPONSE INCLUDES TOKEN:', !!responseData.token);
+    console.log('TOKEN LENGTH:', responseData.token?.length || 0);
+    
+    res.json(responseData);
+    return;
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({
