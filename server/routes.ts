@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Logout endpoint
-  app.post('/api/auth/logout', (req, res) => {
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
     try {
       // Limpa o cookie de autenticação
       res.clearCookie('auth-token', {
