@@ -216,6 +216,11 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
+                      {/* Debug: Mostrar valores atuais */}
+                      <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
+                        Debug - Banca: {user?.initialBalance || 'undefined'} | Meta: {user?.monthlyGoal || 'undefined'}
+                      </div>
+                      
                       {user?.initialBalance && user?.monthlyGoal ? (
                         <>
                           {/* Progresso Principal */}
@@ -223,7 +228,7 @@ export default function Dashboard() {
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">Progresso da Meta</span>
                               <span className="text-2xl font-bold text-green-600">
-                                R$ {((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)).toFixed(2)}
+                                R$ {((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)).toFixed(2)}
                               </span>
                             </div>
                             
@@ -233,16 +238,16 @@ export default function Dashboard() {
                                 style={{ 
                                   width: `${Math.min(
                                     Math.max(
-                                      ((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100, 
+                                      ((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100, 
                                       0
                                     ), 
                                     100
                                   )}%` 
                                 }}
                               >
-                                {((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) > 0 && (
+                                {((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) > 0 && (
                                   <span className="text-xs font-bold text-white">
-                                    {Math.round(((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100)}%
+                                    {Math.round(((parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100)}%
                                   </span>
                                 )}
                               </div>
@@ -257,7 +262,7 @@ export default function Dashboard() {
                           {/* Métricas do Mês */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-blue-600">R$ {(parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)).toFixed(2)}</div>
+                              <div className="text-lg font-bold text-blue-600">R$ {(parseFloat(user?.currentBalance || user?.initialBalance) || parseFloat(user?.initialBalance)).toFixed(2)}</div>
                               <div className="text-xs text-gray-600">Banca Atual</div>
                             </div>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
