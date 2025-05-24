@@ -164,18 +164,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { initialBalance, monthlyGoal, defaultLotSize } = req.body;
       const userId = req.user.id;
       
+      console.log('Updating bank config for user:', userId, {
+        initialBalance,
+        monthlyGoal, 
+        defaultLotSize
+      });
+      
       if (!initialBalance || !monthlyGoal || !defaultLotSize) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
       }
 
-      await storage.updateUser(userId, {
+      const updatedUser = await storage.updateUser(userId, {
         initialBalance: initialBalance.toString(),
         currentBalance: initialBalance.toString(),
         monthlyGoal: monthlyGoal.toString(),
         defaultLotSize: defaultLotSize.toString(),
       });
 
-      res.json({ message: 'Configurações da banca atualizadas com sucesso' });
+      console.log('User updated successfully:', updatedUser);
+      res.json({ 
+        message: 'Configurações da banca atualizadas com sucesso',
+        user: updatedUser
+      });
     } catch (error) {
       console.error('Erro ao atualizar configurações da banca:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
