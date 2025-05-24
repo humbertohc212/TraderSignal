@@ -470,10 +470,10 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">
-                    {(parseInt(localStorage.getItem('userTotalPips') || '0') + 130)}
+                    130
                   </div>
                   <p className="text-xs text-gray-400">
-                    {localStorage.getItem('userTotalPips') || 0} suas + 130 sinais
+                    Pips dos sinais da plataforma
                   </p>
                 </CardContent>
               </Card>
