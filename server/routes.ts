@@ -200,18 +200,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Download endpoint for project files
   app.get('/download/project', (req, res) => {
+    const fs = require('fs');
     const path = require('path');
     const filePath = path.join(process.cwd(), 'tradesignal-pro-complete.tar.gz');
     
-    res.setHeader('Content-Type', 'application/gzip');
-    res.setHeader('Content-Disposition', 'attachment; filename="tradesignal-pro-complete.tar.gz"');
-    
-    res.download(filePath, 'tradesignal-pro-complete.tar.gz', (err) => {
-      if (err) {
-        console.error('Download error:', err);
+    try {
+      if (fs.existsSync(filePath)) {
+        const stat = fs.statSync(filePath);
+        
+        res.setHeader('Content-Type', 'application/gzip');
+        res.setHeader('Content-Disposition', 'attachment; filename="tradesignal-pro-complete.tar.gz"');
+        res.setHeader('Content-Length', stat.size);
+        
+        const readStream = fs.createReadStream(filePath);
+        readStream.pipe(res);
+      } else {
         res.status(404).send('File not found');
       }
-    });
+    } catch (error) {
+      console.error('Download error:', error);
+      res.status(500).send('Server error');
+    }
   });
 
   // Signals routes

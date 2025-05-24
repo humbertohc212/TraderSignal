@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download TradeSignal Pro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            margin: 0;
+            padding: 40px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+        }
+        .download-btn {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .copy-btn {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background: #059669;
+        }
+        #copyText {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TradeSignal Pro</h1>
+        <p>Baixe o código completo da sua plataforma de trading!</p>
+        
+        <a href="/download/project" class="download-btn" download>
+            📥 Download Completo (162KB)
+        </a>
+        
+        <div class="info">
+            <h3>📦 O que está incluído:</h3>
+            <ul style="text-align: left;">
+                <li>✅ Frontend React completo</li>
+                <li>✅ Backend Express com JWT</li>
+                <li>✅ Sistema de autenticação</li>
+                <li>✅ Painel administrativo</li>
+                <li>✅ Integração Stripe</li>
+                <li>✅ Schema do banco de dados</li>
+                <li>✅ Todas as configurações</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>🚀 Para executar:</h3>
+            <div id="copyText">tar -xzf tradesignal-pro-complete.tar.gz && cd tradesignal-pro && npm install && npm run dev</div>
+            <button class="copy-btn" onclick="copyToClipboard()">Copiar</button>
+        </div>
+
+        <p style="margin-top: 30px; opacity: 0.8;">
+            <small>Arquivo: tradesignal-pro-complete.tar.gz</small>
+        </p>
+    </div>
+
+    <script>
+        function copyToClipboard() {
+            const text = document.getElementById('copyText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copiado!';
+                btn.style.background = '#059669';
+                setTimeout(() => {
+                    btn.textContent = 'Copiar';
+                    btn.style.background = '#10b981';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
