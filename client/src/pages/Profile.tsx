@@ -203,7 +203,7 @@ export default function Profile() {
             <Button
               onClick={() => setLocation("/")}
               variant="outline"
-              className="border-gray-600 hover:bg-gray-700 text-white"
+              className="bg-black border-gray-600 hover:bg-gray-800 text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar ao Dashboard
