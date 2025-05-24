@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -157,8 +157,7 @@ function TradingForm() {
       lotSize: '0.1'
     });
     
-    // Forçar atualização da página para mostrar as mudanças
-    window.location.reload();
+    // Atualizar interface automaticamente
   };
 
   const { pips: previewPips, profit: previewProfit } = calculatePipsAndProfit();
@@ -293,9 +292,34 @@ function TradingForm() {
 
 function RecentTrades() {
   const { toast } = useToast();
-  
-  // Carregar operações do localStorage
-  const tradingEntries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
+  const [tradingEntries, setTradingEntries] = useState(() => 
+    JSON.parse(localStorage.getItem('tradingEntries') || '[]')
+  );
+
+  // Recarregar dados sempre que o componente for renderizado
+  useEffect(() => {
+    const loadEntries = () => {
+      const entries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
+      setTradingEntries(entries);
+    };
+    
+    loadEntries();
+    
+    // Adicionar listener para mudanças no localStorage
+    const handleStorageChange = () => {
+      loadEntries();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Verificar mudanças a cada segundo (para mudanças na mesma aba)
+    const interval = setInterval(loadEntries, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleDelete = (entryId: number) => {
     const updatedEntries = tradingEntries.filter((entry: any) => entry.id !== entryId);
@@ -314,8 +338,8 @@ function RecentTrades() {
       className: "bg-blue-600 text-white border-blue-700"
     });
     
-    // Atualizar página para refletir mudanças
-    window.location.reload();
+    // Atualizar estado local
+    setTradingEntries(updatedEntries);
   };
 
   if (!Array.isArray(tradingEntries) || tradingEntries.length === 0) {
