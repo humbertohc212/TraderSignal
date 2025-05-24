@@ -302,15 +302,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========== ROTAS DO PERFIL ==========
   
   // Atualizar dados do perfil
-  app.put('/api/profile', async (req, res) => {
+  app.put('/api/profile', jwtAuth, async (req: any, res) => {
     try {
       const { userId, firstName, lastName, phone, bio } = req.body;
+      const authenticatedUserId = req.user.id;
       
-      if (!userId) {
+      // Usar o ID do usuário autenticado se não foi fornecido
+      const targetUserId = userId || authenticatedUserId;
+      
+      if (!targetUserId) {
         return res.status(400).json({ message: 'ID do usuário é obrigatório' });
       }
 
-      const updatedUser = await storage.updateUser(userId, {
+      console.log('Atualizando perfil do usuário:', targetUserId, {
+        firstName,
+        lastName,
+        phone,
+        bio
+      });
+
+      const updatedUser = await storage.updateUser(targetUserId, {
         firstName,
         lastName,
         phone,
