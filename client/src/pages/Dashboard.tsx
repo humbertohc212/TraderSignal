@@ -147,8 +147,8 @@ function TradingForm() {
       className: pips > 0 ? "bg-green-600 text-white border-green-700" : "bg-red-600 text-white border-red-700"
     });
 
-    // Recarregar página para garantir atualização
-    window.location.reload();
+    // Remover reload automático para não perder a operação
+    // window.location.reload();
 
     // Reset do formulário
     setFormData({
