@@ -6,23 +6,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { UserPlus, LogIn } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+const registerSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Confirme sua senha"),
+  firstName: z.string().min(1, "Nome é obrigatório"),
+  lastName: z.string().min(1, "Sobrenome é obrigatório"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<LoginFormData>({
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -30,7 +44,18 @@ export default function Login() {
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
+    },
+  });
+
+  const onLoginSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/auth/login', {
@@ -38,7 +63,7 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for cookies
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -46,14 +71,11 @@ export default function Login() {
         throw new Error('Credenciais inválidas');
       }
 
-      const userData = await response.json();
-      
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o dashboard...",
       });
       
-      // Force page reload to refresh authentication state
       window.location.href = "/";
       
     } catch (error: any) {
@@ -67,66 +89,198 @@ export default function Login() {
     }
   };
 
+  const onRegisterSubmit = async (data: RegisterFormData) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao criar conta');
+      }
+
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Fazendo login automaticamente...",
+      });
+      
+      window.location.href = "/";
+      
+    } catch (error: any) {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Erro ao criar conta",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="bg-gray-800/90 border-gray-700 shadow-2xl backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-white mb-2">
-              Entrar na Plataforma
+              TradeSignal Pro
             </CardTitle>
             <p className="text-gray-400">
-              Acesse sua conta para continuar
+              Entre ou crie sua conta para continuar
             </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-200">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register("email")}
-                  placeholder="seu@email.com"
-                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-sm text-red-400">{form.formState.errors.email.message}</p>
-                )}
-              </div>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-700/50">
+                <TabsTrigger value="login" className="flex items-center gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Entrar
+                </TabsTrigger>
+                <TabsTrigger value="register" className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  Cadastrar
+                </TabsTrigger>
+              </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-200">Senha</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...form.register("password")}
-                  placeholder="Sua senha"
-                  className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                />
-                {form.formState.errors.password && (
-                  <p className="text-sm text-red-400">{form.formState.errors.password.message}</p>
-                )}
-              </div>
+              <TabsContent value="login">
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email" className="text-gray-200">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      {...loginForm.register("email")}
+                      placeholder="seu@email.com"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                    {loginForm.formState.errors.email && (
+                      <p className="text-sm text-red-400">{loginForm.formState.errors.email.message}</p>
+                    )}
+                  </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={isLoading}
-              >
-                {isLoading ? "Entrando..." : "Entrar"}
-              </Button>
-            </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password" className="text-gray-200">Senha</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      {...loginForm.register("password")}
+                      placeholder="Sua senha"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                    {loginForm.formState.errors.password && (
+                      <p className="text-sm text-red-400">{loginForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
 
-            <div className="mt-6 p-4 bg-gray-700/50 rounded-lg">
-              <p className="text-sm text-gray-300 mb-2">
-                <strong>Credenciais de teste:</strong>
-              </p>
-              <p className="text-xs text-gray-400">
-                Email: homercavalcanti@gmail.com<br />
-                Senha: Betinho21@
-              </p>
-            </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Entrando..." : "Entrar"}
+                  </Button>
+                </form>
+
+                <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
+                  <p className="text-sm text-gray-300 mb-1">
+                    <strong>Conta de teste:</strong>
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Email: homercavalcanti@gmail.com<br />
+                    Senha: Betinho21@
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="register">
+                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-gray-200">Nome</Label>
+                      <Input
+                        id="firstName"
+                        {...registerForm.register("firstName")}
+                        placeholder="Seu nome"
+                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      />
+                      {registerForm.formState.errors.firstName && (
+                        <p className="text-sm text-red-400">{registerForm.formState.errors.firstName.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-gray-200">Sobrenome</Label>
+                      <Input
+                        id="lastName"
+                        {...registerForm.register("lastName")}
+                        placeholder="Seu sobrenome"
+                        className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      />
+                      {registerForm.formState.errors.lastName && (
+                        <p className="text-sm text-red-400">{registerForm.formState.errors.lastName.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-email" className="text-gray-200">Email</Label>
+                    <Input
+                      id="register-email"
+                      type="email"
+                      {...registerForm.register("email")}
+                      placeholder="seu@email.com"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                    {registerForm.formState.errors.email && (
+                      <p className="text-sm text-red-400">{registerForm.formState.errors.email.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="register-password" className="text-gray-200">Senha</Label>
+                    <Input
+                      id="register-password"
+                      type="password"
+                      {...registerForm.register("password")}
+                      placeholder="Mínimo 6 caracteres"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                    {registerForm.formState.errors.password && (
+                      <p className="text-sm text-red-400">{registerForm.formState.errors.password.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-gray-200">Confirmar Senha</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      {...registerForm.register("confirmPassword")}
+                      placeholder="Confirme sua senha"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                    {registerForm.formState.errors.confirmPassword && (
+                      <p className="text-sm text-red-400">{registerForm.formState.errors.confirmPassword.message}</p>
+                    )}
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Criando conta..." : "Criar Conta"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
