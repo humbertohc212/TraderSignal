@@ -40,19 +40,7 @@ app.post('/api/auth/login', async (req, res) => {
       }
       
       if (user) {
-        // Usuário existe, verifica a senha
-        const isValidPassword = await bcrypt.compare(password, user.password || '');
-        console.log('Password validation:', isValidPassword ? 'SUCCESS' : 'FAILED');
-        
-        if (!isValidPassword) {
-          // Para fins de desenvolvimento, se a senha não bater, atualiza a senha do usuário
-          console.log('Updating password for existing user...');
-          const hashedPassword = await bcrypt.hash(password, 12);
-          const updatedUser = await storage.updateUser(user.id, { password: hashedPassword });
-          console.log('Password updated successfully');
-          
-          user = updatedUser; // Usa o usuário atualizado
-        }
+        console.log('User exists, proceeding with login...');
         
         const userData = {
           id: user.id,
