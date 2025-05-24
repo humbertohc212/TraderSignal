@@ -229,7 +229,7 @@ export default function Dashboard() {
                       </div>
                       
 
-                      {user?.initialBalance || user?.monthlyGoal ? (
+                      {true ? (
                         <>
                           {/* Progresso Principal */}
                           <div className="mb-6">
