@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, X, Trash2, CheckCircle } from "lucide-react";
+import { Edit, X, Trash2, CheckCircle, ExternalLink } from "lucide-react";
 
 interface SignalCardProps {
   signal: {
@@ -17,6 +17,7 @@ interface SignalCardProps {
     status: string;
     result?: string;
     analysis?: string;
+    tradingViewLink?: string;
     createdAt: string;
   };
   isAdmin: boolean;

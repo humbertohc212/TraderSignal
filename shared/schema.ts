@@ -52,6 +52,7 @@ export const signals = pgTable("signals", {
   status: varchar("status").notNull().default("active"), // active, closed, cancelled
   result: decimal("result", { precision: 10, scale: 2 }), // pips gained/lost
   analysis: text("analysis"), // Technical analysis description
+  tradingViewLink: varchar("trading_view_link"), // Link to TradingView chart
   closedAt: timestamp("closed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: varchar("created_by").notNull().references(() => users.id),

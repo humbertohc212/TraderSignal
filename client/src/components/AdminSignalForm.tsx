@@ -22,6 +22,7 @@ const signalFormSchema = z.object({
   takeProfit2Price: z.string().optional(),
   stopLossPrice: z.string().min(1, "Stop Loss é obrigatório"),
   analysis: z.string().optional(),
+  tradingViewLink: z.string().optional(),
 });
 
 type SignalFormData = z.infer<typeof signalFormSchema>;
@@ -46,6 +47,7 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
       takeProfit2Price: signal?.takeProfit2Price || "",
       stopLossPrice: signal?.stopLossPrice || "",
       analysis: signal?.analysis || "",
+      tradingViewLink: signal?.tradingViewLink || "",
     },
   });
 
@@ -215,6 +217,23 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="tradingViewLink"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link do TradingView (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://www.tradingview.com/chart/..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
