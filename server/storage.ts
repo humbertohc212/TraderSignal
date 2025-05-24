@@ -137,10 +137,7 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .onConflictDoUpdate({
         target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
+        set: userData,
       })
       .returning();
     return user;
@@ -149,10 +146,7 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, updates: Partial<UpsertUser>): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
+      .set(updates)
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -176,7 +170,7 @@ export class DatabaseStorage implements IStorage {
   async updateSignal(id: number, updates: Partial<InsertSignal>): Promise<Signal> {
     const [updated] = await db
       .update(signals)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(signals.id, id))
       .returning();
     return updated;
@@ -191,8 +185,7 @@ export class DatabaseStorage implements IStorage {
       .update(signals)
       .set({ 
         status: "closed", 
-        result: result.toString(),
-        updatedAt: new Date() 
+        result: result.toString()
       })
       .where(eq(signals.id, id))
       .returning();
