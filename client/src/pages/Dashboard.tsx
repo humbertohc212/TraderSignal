@@ -40,6 +40,14 @@ function TradingForm() {
     profit: ''
   });
   const { toast } = useToast();
+  
+  // Buscar sinais para mostrar os pares disponíveis
+  const { data: signals } = useQuery({
+    queryKey: ["/api/signals"],
+  });
+  
+  // Extrair pares únicos dos sinais
+  const availablePairs = signals ? Array.from(new Set(signals.map((signal: any) => signal.pair))) : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +79,37 @@ function TradingForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label htmlFor="pair" className="text-gray-300">Par</Label>
-        <Input
-          id="pair"
-          value={formData.pair}
-          onChange={(e) => setFormData({...formData, pair: e.target.value})}
-          placeholder="EUR/USD, BTC/USD..."
-          className="bg-gray-700 border-gray-600 text-white"
-          required
-        />
+        <Select value={formData.pair} onValueChange={(value) => setFormData({...formData, pair: value})}>
+          <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+            <SelectValue placeholder="Escolha um par dos sinais" />
+          </SelectTrigger>
+          <SelectContent>
+            {availablePairs.length > 0 && (
+              <>
+                <SelectItem value="" disabled className="text-gray-400 font-semibold">
+                  🎯 Pares dos Sinais Ativos
+                </SelectItem>
+                {availablePairs.map((pair: string) => (
+                  <SelectItem key={`signal-${pair}`} value={pair}>
+                    📈 {pair}
+                  </SelectItem>
+                ))}
+                <SelectItem value="" disabled className="text-gray-400 font-semibold">
+                  ━━━━━━━━━━━━━━━━
+                </SelectItem>
+              </>
+            )}
+            <SelectItem value="" disabled className="text-gray-400 font-semibold">
+              💰 Outros Pares Populares
+            </SelectItem>
+            <SelectItem value="EUR/USD">EUR/USD</SelectItem>
+            <SelectItem value="GBP/USD">GBP/USD</SelectItem>
+            <SelectItem value="USD/JPY">USD/JPY</SelectItem>
+            <SelectItem value="XAU/USD">XAU/USD (Ouro)</SelectItem>
+            <SelectItem value="BTC/USD">BTC/USD</SelectItem>
+            <SelectItem value="ETH/USD">ETH/USD</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
