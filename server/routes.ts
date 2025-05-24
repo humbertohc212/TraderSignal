@@ -124,8 +124,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Simple auth check middleware
+  const simpleAuth = (req: any, res: any, next: any) => {
+    if (req.session?.user) {
+      return next();
+    }
+    return res.status(401).json({ message: "Unauthorized" });
+  };
+
   // Signals routes
-  app.get("/api/signals", isAuthenticated, async (req, res) => {
+  app.get("/api/signals", simpleAuth, async (req, res) => {
     try {
       const signals = await storage.getSignals();
       res.json(signals);
@@ -135,10 +143,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/signals", isAuthenticated, async (req: any, res) => {
+  app.post("/api/signals", simpleAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.session.user;
       
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
