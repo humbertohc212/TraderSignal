@@ -81,9 +81,18 @@ export default function Profile() {
       console.log('Response status:', response.status);
       
       if (response.ok) {
-        const result = await response.json();
-        console.log('Success response:', result);
-        return result;
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
+        try {
+          const result = JSON.parse(responseText);
+          console.log('Parsed JSON successfully:', result);
+          return result;
+        } catch (parseError) {
+          console.error('Failed to parse JSON:', parseError);
+          console.error('Response was:', responseText);
+          throw new Error('Resposta do servidor não é um JSON válido');
+        }
       } else {
         const errorText = await response.text();
         console.error('Error response:', errorText);
