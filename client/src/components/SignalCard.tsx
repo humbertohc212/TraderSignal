@@ -167,6 +167,20 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
               <p className="text-sm text-gray-700">{signal.analysis}</p>
             </div>
           )}
+
+          {signal.tradingViewLink && (
+            <div className="mt-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => window.open(signal.tradingViewLink, '_blank')}
+                className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Ver no TradingView
+              </Button>
+            </div>
+          )}
         </div>
         
         <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
