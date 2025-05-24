@@ -76,7 +76,7 @@ export default function Plans() {
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                 <div className="flex items-baseline text-white">
                   <span className="text-4xl font-bold">
-                    R$ {plan.price?.toFixed(2) || plan.price}
+                    R$ {typeof plan.price === 'number' ? plan.price.toFixed(2) : plan.price}
                   </span>
                   <span className="text-gray-400 ml-1">/mês</span>
                 </div>
