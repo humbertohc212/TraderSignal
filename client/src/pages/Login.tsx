@@ -75,18 +75,18 @@ export default function Login() {
       if (result.success && result.token) {
         // Store token in localStorage
         localStorage.setItem('auth-token', result.token);
-        console.log('Token stored successfully');
-
+        
+        // Force a refetch of the user data before redirecting
+        await queryClient.invalidateQueries({ queryKey: ["user"] });
+        await queryClient.refetchQueries({ queryKey: ["user"] });
+        
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para o dashboard...",
         });
         
-        // Use setLocation instead of window.location.href
+        // Use setLocation to redirect
         setLocation("/");
-        
-        // Force a refetch of the user data
-        queryClient.invalidateQueries({ queryKey: ["user"] });
       } else {
         throw new Error(result.message || 'Credenciais inválidas');
       }
