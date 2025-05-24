@@ -7,6 +7,7 @@ import AdminPlanForm from "@/components/AdminPlanForm";
 import AdminSignalForm from "@/components/AdminSignalForm";
 import AdminLessonForm from "@/components/AdminLessonForm";
 import AdminUserForm from "@/components/AdminUserForm";
+import AdminSubscriptionRequests from "@/components/AdminSubscriptionRequests";
 import LayoutCustomizer from "@/components/LayoutCustomizer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -275,11 +276,12 @@ export default function Admin() {
 
           {/* Admin Tabs */}
           <Tabs defaultValue="signals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="signals">Sinais</TabsTrigger>
               <TabsTrigger value="lessons">Aulas</TabsTrigger>
               <TabsTrigger value="plans">Planos</TabsTrigger>
               <TabsTrigger value="users">Usuários</TabsTrigger>
+              <TabsTrigger value="subscriptions">Assinaturas</TabsTrigger>
               <TabsTrigger value="layout">Layout</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
             </TabsList>
@@ -795,6 +797,11 @@ export default function Admin() {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Subscription Requests Management */}
+            <TabsContent value="subscriptions">
+              <AdminSubscriptionRequests />
             </TabsContent>
 
             {/* Layout Customization */}
