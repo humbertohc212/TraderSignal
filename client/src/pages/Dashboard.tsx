@@ -143,8 +143,13 @@ function TradingForm() {
       className: pips > 0 ? "bg-green-600 text-white border-green-700" : "bg-red-600 text-white border-red-700"
     });
 
-    // Invalidar cache para atualizar a interface
-    queryClient.invalidateQueries({ queryKey: ['/api/trading-entries'] });
+    // Forçar atualização imediata dos componentes RecentTrades
+    window.dispatchEvent(new Event('tradingEntriesUpdated'));
+    
+    // Também forçar re-render da interface
+    setTimeout(() => {
+      window.dispatchEvent(new Event('tradingEntriesUpdated'));
+    }, 100);
 
     // Reset do formulário
     setFormData({
@@ -305,18 +310,20 @@ function RecentTrades() {
     
     loadEntries();
     
-    // Adicionar listener para mudanças no localStorage
-    const handleStorageChange = () => {
+    // Listener para mudanças customizadas
+    const handleUpdate = () => {
       loadEntries();
     };
     
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('tradingEntriesUpdated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
     
-    // Verificar mudanças a cada segundo (para mudanças na mesma aba)
-    const interval = setInterval(loadEntries, 1000);
+    // Verificar mudanças a cada 2 segundos
+    const interval = setInterval(loadEntries, 2000);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('tradingEntriesUpdated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
       clearInterval(interval);
     };
   }, []);
