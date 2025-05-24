@@ -1,19 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
 
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth-token');
+      if (!token) {
+        return null;
+      }
+
+      const response = await fetch('/api/auth/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem('auth-token');
+        return null;
+      }
+
+      return response.json();
+    },
     retry: false,
-    enabled: !!localStorage.getItem('auth-token'), // Only run if token exists
   });
 
-  // Check if token exists but user fetch failed
-  const hasToken = !!localStorage.getItem('auth-token');
-  
   return {
     user,
-    isLoading: hasToken ? isLoading : false,
-    isAuthenticated: !!user && hasToken,
-    hasToken,
+    isLoading,
+    isAuthenticated: !!user,
   };
 }

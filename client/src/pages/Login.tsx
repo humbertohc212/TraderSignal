@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { UserPlus, LogIn } from "lucide-react";
 
@@ -82,10 +82,11 @@ export default function Login() {
           description: "Redirecionando para o dashboard...",
         });
         
-        // Small delay to ensure token is stored
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 500);
+        // Use setLocation instead of window.location.href
+        setLocation("/");
+        
+        // Force a refetch of the user data
+        queryClient.invalidateQueries({ queryKey: ["user"] });
       } else {
         throw new Error(result.message || 'Credenciais inválidas');
       }
