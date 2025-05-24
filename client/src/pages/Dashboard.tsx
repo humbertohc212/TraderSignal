@@ -201,49 +201,86 @@ export default function Dashboard() {
                   <CardContent>
                     <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-semibold text-gray-800">Maio 2025</h3>
-                        <div className="text-sm text-gray-600">Meta: 15.000 pips</div>
+                        <h3 className="text-lg font-semibold text-gray-800">Progresso da Banca</h3>
+                        <div className="flex gap-2">
+                          <BankConfigModal user={user}>
+                            <Button variant="outline" size="sm">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </BankConfigModal>
+                          <TradingEntryForm user={user}>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                              + Operação
+                            </Button>
+                          </TradingEntryForm>
+                        </div>
                       </div>
                       
-                      {/* Progresso Principal */}
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Pips Conquistados</span>
-                          <span className="text-2xl font-bold text-green-600">+{stats?.totalPips || 0}</span>
-                        </div>
-                        
-                        <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
-                          <div 
-                            className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
-                            style={{ width: `${Math.min((stats?.totalPips || 0) / 15000 * 100, 100)}%` }}
-                          >
-                            {(stats?.totalPips || 0) > 1000 && (
-                              <span className="text-xs font-bold text-white">
-                                {Math.round((stats?.totalPips || 0) / 15000 * 100)}%
+                      {user?.initialBalance ? (
+                        <>
+                          {/* Progresso Principal */}
+                          <div className="mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-700">Progresso da Meta</span>
+                              <span className="text-2xl font-bold text-green-600">
+                                R$ {((user?.currentBalance || user?.initialBalance) - user?.initialBalance).toFixed(2)}
                               </span>
-                            )}
+                            </div>
+                            
+                            <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
+                              <div 
+                                className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                                style={{ 
+                                  width: `${Math.min(
+                                    Math.max(
+                                      ((user?.currentBalance || user?.initialBalance) - user?.initialBalance) / user?.monthlyGoal * 100, 
+                                      0
+                                    ), 
+                                    100
+                                  )}%` 
+                                }}
+                              >
+                                {((user?.currentBalance || user?.initialBalance) - user?.initialBalance) > 0 && (
+                                  <span className="text-xs font-bold text-white">
+                                    {Math.round(((user?.currentBalance || user?.initialBalance) - user?.initialBalance) / user?.monthlyGoal * 100)}%
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                              <span>R$ {user?.initialBalance}</span>
+                              <span>Meta: R$ {(parseFloat(user?.initialBalance) + parseFloat(user?.monthlyGoal)).toFixed(2)}</span>
+                            </div>
                           </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-                          <span>0</span>
-                          <span>15.000 pips</span>
-                        </div>
-                      </div>
-                      
-                      {/* Métricas do Mês */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white/60 rounded-lg p-3 text-center">
-                          <div className="text-lg font-bold text-blue-600">{stats?.winRate || 0}%</div>
-                          <div className="text-xs text-gray-600">Taxa de Acerto</div>
-                        </div>
-                        <div className="bg-white/60 rounded-lg p-3 text-center">
-                          <div className="text-lg font-bold text-purple-600">
-                            {new Date().getDate()}
+                          
+                          {/* Métricas do Mês */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/60 rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-blue-600">R$ {user?.currentBalance || user?.initialBalance}</div>
+                              <div className="text-xs text-gray-600">Banca Atual</div>
+                            </div>
+                            <div className="bg-white/60 rounded-lg p-3 text-center">
+                              <div className="text-lg font-bold text-purple-600">R$ {user?.monthlyGoal}</div>
+                              <div className="text-xs text-gray-600">Meta Mensal</div>
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-600">Dias Ativos</div>
+                        </>
+                      ) : (
+                        <div className="text-center py-8">
+                          <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Configure sua Banca</h3>
+                          <p className="text-gray-600 mb-4">
+                            Defina sua banca inicial e meta mensal para acompanhar seu progresso personalizado.
+                          </p>
+                          <BankConfigModal user={user}>
+                            <Button className="bg-blue-600 hover:bg-blue-700">
+                              <Settings className="h-4 w-4 mr-2" />
+                              Configurar Agora
+                            </Button>
+                          </BankConfigModal>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
