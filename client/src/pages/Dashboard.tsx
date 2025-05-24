@@ -17,16 +17,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   BarChart3, 
-  Signal, 
-  TrendingUp, 
+  Signal,
   GraduationCap,
+  Users, 
+  TrendingUp, 
   DollarSign,
   Settings,
   RefreshCw,
   CreditCard,
   CheckCircle,
   Clock,
-  Users,
   Plus,
   Trash2,
   User
@@ -440,6 +440,24 @@ export default function Dashboard() {
                 Painel Admin
               </Button>
             )}
+            <Button 
+              onClick={() => window.location.href = '/education'}
+              variant="outline" 
+              size="sm"
+              className="bg-green-600/20 border-green-400/30 text-green-300 hover:bg-green-600/40"
+            >
+              <GraduationCap className="h-4 w-4 mr-2" />
+              Aulas
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/community'}
+              variant="outline" 
+              size="sm"
+              className="bg-purple-600/20 border-purple-400/30 text-purple-300 hover:bg-purple-600/40"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Comunidade
+            </Button>
             <Button 
               onClick={() => window.location.href = '/profile'}
               variant="outline" 
