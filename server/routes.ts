@@ -274,10 +274,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/signals/:id", isAuthenticated, async (req: any, res) => {
+  app.put("/api/signals/:id", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
@@ -294,10 +293,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/signals/:id/close", isAuthenticated, async (req: any, res) => {
+  app.post("/api/signals/:id/close", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
@@ -314,10 +312,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/signals/:id", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/signals/:id", jwtAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
