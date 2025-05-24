@@ -371,11 +371,14 @@ export default function Dashboard() {
   // Carregar dados da banca do localStorage
   const initialBanca = parseFloat(localStorage.getItem('initialBanca') || '2000');
   const monthlyGoal = parseFloat(localStorage.getItem('monthlyGoal') || '800');
-  const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
+  const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '0');
   const userTotalPips = parseInt(localStorage.getItem('userTotalPips') || '0');
 
-  // Calcular progresso da meta
-  const goalProgress = Math.min((currentProgress / monthlyGoal) * 100, 100);
+  // Calcular progresso da meta (lucro/prejuízo em relação à meta)
+  const goalProgress = monthlyGoal > 0 ? Math.max(0, (currentProgress / monthlyGoal) * 100) : 0;
+  
+  // Banca atual = banca inicial + progresso atual
+  const currentBalance = initialBanca + currentProgress;
 
   const activeSignals = Array.isArray(signals) ? signals.filter((signal: any) => signal.status === 'active') : [];
   const closedSignals = Array.isArray(signals) ? signals.filter((signal: any) => signal.status === 'closed') : [];
@@ -502,53 +505,110 @@ export default function Dashboard() {
 
               <Card className="bg-gray-800/90 border-gray-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-300">Progresso da Meta</CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-300">Banca Atual</CardTitle>
                   <DollarSign className="h-4 w-4 text-green-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{goalProgress.toFixed(1)}%</div>
+                  <div className={`text-2xl font-bold ${currentBalance >= initialBanca ? 'text-green-400' : 'text-red-400'}`}>
+                    R$ {currentBalance.toFixed(2)}
+                  </div>
                   <p className="text-xs text-gray-400">
-                    R$ {currentProgress.toFixed(2)} / R$ {monthlyGoal.toFixed(2)}
+                    {currentProgress >= 0 ? '+' : ''}R$ {currentProgress.toFixed(2)} este mês
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Sinais Ativos */}
-            <Card className="bg-gray-800/90 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Sinais Ativos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {signalsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full" />
-                  </div>
-                ) : activeSignals.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                    <p>Nenhum sinal ativo no momento</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {activeSignals.slice(0, 3).map((signal: any) => (
-                      <div key={signal.id} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" />
-                          <div>
-                            <p className="text-white font-medium">{signal.pair}</p>
-                            <p className="text-sm text-gray-400">{signal.direction} • {signal.entryPrice}</p>
+            {/* Sinais da Plataforma */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Sinais Ativos */}
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                    Sinais Ativos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {signalsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full" />
+                    </div>
+                  ) : activeSignals.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>Nenhum sinal ativo no momento</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {activeSignals.slice(0, 4).map((signal: any) => (
+                        <div key={signal.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                            <div>
+                              <p className="text-white font-medium text-sm">{signal.pair}</p>
+                              <p className="text-xs text-gray-400">{signal.direction} • {signal.entryPrice}</p>
+                            </div>
                           </div>
+                          <Badge variant="outline" className="border-green-400 text-green-400 text-xs">
+                            ATIVO
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="border-blue-400 text-blue-400">
-                          {signal.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Sinais Fechados */}
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-400 rounded-full" />
+                    Sinais Fechados
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {signalsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full" />
+                    </div>
+                  ) : closedSignals.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>Nenhum sinal fechado ainda</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {closedSignals.slice(0, 4).map((signal: any) => {
+                        const isProfit = signal.result && parseFloat(signal.result) > 0;
+                        return (
+                          <div key={signal.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-2 h-2 rounded-full ${isProfit ? 'bg-green-400' : 'bg-red-400'}`} />
+                              <div>
+                                <p className="text-white font-medium text-sm">{signal.pair}</p>
+                                <p className="text-xs text-gray-400">{signal.direction} • {signal.entryPrice}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <Badge variant="outline" className={`text-xs ${isProfit ? 'border-green-400 text-green-400' : 'border-red-400 text-red-400'}`}>
+                                {isProfit ? 'LUCRO' : 'PERDA'}
+                              </Badge>
+                              {signal.result && (
+                                <p className={`text-xs mt-1 ${isProfit ? 'text-green-400' : 'text-red-400'}`}>
+                                  {isProfit ? '+' : ''}{signal.result} pips
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Configuração da Banca */}
             <Card className="bg-gray-800/90 border-gray-700">
