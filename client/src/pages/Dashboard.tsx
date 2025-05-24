@@ -295,13 +295,11 @@ function TradingForm() {
   );
 }
 
-function RecentTrades() {
+function RecentTrades({ refreshTrigger }: { refreshTrigger?: number }) {
   const { toast } = useToast();
-  const [tradingEntries, setTradingEntries] = useState(() => 
-    JSON.parse(localStorage.getItem('tradingEntries') || '[]')
-  );
+  const [tradingEntries, setTradingEntries] = useState([]);
 
-  // Recarregar dados sempre que o componente for renderizado
+  // Recarregar dados sempre que refreshTrigger mudar
   useEffect(() => {
     const loadEntries = () => {
       const entries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
@@ -309,24 +307,7 @@ function RecentTrades() {
     };
     
     loadEntries();
-    
-    // Listener para mudanças customizadas
-    const handleUpdate = () => {
-      loadEntries();
-    };
-    
-    window.addEventListener('tradingEntriesUpdated', handleUpdate);
-    window.addEventListener('storage', handleUpdate);
-    
-    // Verificar mudanças a cada 2 segundos
-    const interval = setInterval(loadEntries, 2000);
-    
-    return () => {
-      window.removeEventListener('tradingEntriesUpdated', handleUpdate);
-      window.removeEventListener('storage', handleUpdate);
-      clearInterval(interval);
-    };
-  }, []);
+  }, [refreshTrigger]);
 
   const handleDelete = (entryId: number) => {
     const updatedEntries = tradingEntries.filter((entry: any) => entry.id !== entryId);
