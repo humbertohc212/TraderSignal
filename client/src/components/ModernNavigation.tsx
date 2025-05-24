@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function ModernNavigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -32,6 +32,11 @@ export default function ModernNavigation() {
   if (user?.role === "admin") {
     menuItems.push({ href: "/admin", label: "Admin", icon: Settings });
   }
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-white/10">
@@ -104,15 +109,14 @@ export default function ModernNavigation() {
                   </div>
 
                   {/* Logout */}
-                  <Link href="/api/logout">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-300 hover:text-white hover:bg-red-500/20 rounded-xl p-2 transition-all duration-300"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="text-gray-300 hover:text-white hover:bg-red-500/20 rounded-xl p-2 transition-all duration-300"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
                 </div>
               </>
             ) : (
