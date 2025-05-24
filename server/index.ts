@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
-import { storage } from "./simpleStorage";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -635,12 +635,14 @@ app.get('/api/signals', authenticateToken, async (req: any, res) => {
 
     // Admin vê todos os sinais
     if (user.role === 'admin') {
-      return res.json(signals);
+      const allSignals = await storage.getSignals();
+      return res.json(allSignals);
     }
 
     // Filtrar sinais baseado no plano do usuário
     const userPlan = user.subscriptionPlan || 'free';
-    const filteredSignals = signals.filter(signal => {
+    const allSignals = await storage.getSignals();
+    const filteredSignals = allSignals.filter(signal => {
       // Se o sinal não tem allowedPlans definido, permitir para todos
       if (!signal.allowedPlans || signal.allowedPlans.length === 0) {
         return true;
@@ -656,20 +658,23 @@ app.get('/api/signals', authenticateToken, async (req: any, res) => {
   }
 });
 
-app.post('/api/signals', authenticateToken, (req: any, res) => {
+app.post('/api/signals', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const newSignal = {
-    id: Date.now(),
-    ...req.body,
-    allowedPlans: req.body.allowedPlans || ['free', 'basic', 'premium', 'vip'],
-    createdAt: new Date().toISOString()
-  };
-  
-  signals.push(newSignal);
-  res.json(newSignal);
+  try {
+    const newSignal = await storage.createSignal({
+      ...req.body,
+      allowedPlans: req.body.allowedPlans || ['free', 'basic', 'premium', 'vip'],
+      createdBy: req.user.id
+    });
+    
+    res.json(newSignal);
+  } catch (error) {
+    console.error('Erro ao criar sinal:', error);
+    res.status(500).json({ message: 'Erro ao criar sinal' });
+  }
 });
 
 app.put('/api/signals/:id', authenticateToken, (req: any, res) => {
@@ -857,20 +862,9 @@ app.get('/api/stats/admin', authenticateToken, async (req: any, res) => {
   }
   
   try {
-    // Calcular estatísticas dos sinais em memória
-    const activeSignals = signals.filter(s => s.status === 'active').length;
-    const totalUsers = users.length;
-    const totalLessons = lessons.length;
-    const monthlyRevenue = 0; // Placeholder
-    
-    const adminStats = {
-      totalUsers,
-      activeSignals,
-      totalLessons,
-      monthlyRevenue
-    };
-    
-    console.log('Admin stats calculated:', adminStats);
+    // Usar estatísticas do banco de dados
+    const adminStats = await storage.getAdminStats();
+    console.log('Admin stats from database:', adminStats);
     
     res.json(adminStats);
   } catch (error) {
