@@ -705,7 +705,7 @@ app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
   }
   
   try {
-    const signalId = parseInt(req.params.id);
+    const signalId = Number(req.params.id);
     const { result, type } = req.body;
     
     console.log(`Fechando sinal ${signalId} com tipo ${type} e resultado ${result} pips`);
