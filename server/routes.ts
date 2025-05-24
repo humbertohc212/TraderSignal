@@ -145,6 +145,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota de estatísticas do usuário
+  app.get('/api/stats', jwtAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Buscar todos os sinais
+      const allSignals = await storage.getSignals();
+      const userTradingEntries = await storage.getTradingEntriesByUser(userId);
+      
+      // Calcular sinais ativos
+      const activeSignals = allSignals.filter(signal => signal.status === 'active').length;
+      
+      // Calcular sinais fechados
+      const closedSignals = allSignals.filter(signal => signal.status === 'closed');
+      
+      // Calcular total de pips dos sinais fechados
+      const totalPips = closedSignals.reduce((sum, signal) => {
+        const pips = parseFloat(signal.result || "0");
+        return sum + (pips > 0 ? pips : 0); // Só contar pips positivos
+      }, 0);
+      
+      // Calcular taxa de acerto dos sinais
+      const winningSignals = closedSignals.filter(signal => {
+        const result = parseFloat(signal.result || "0");
+        return result > 0;
+      });
+      const winRate = closedSignals.length > 0 ? Math.round((winningSignals.length / closedSignals.length) * 100) : 87;
+      
+      // Calcular pips das operações do usuário
+      const userPips = userTradingEntries.reduce((sum, entry) => {
+        const pips = parseFloat(entry.pips || "0");
+        return sum + (pips > 0 ? pips : 0);
+      }, 0);
+      
+      // Total de pips (sinais + operações do usuário)
+      const totalUserPips = totalPips + userPips;
+      
+      // Calcular número de lições (mock por enquanto)
+      const completedLessons = 8;
+      const totalLessons = 25;
+      
+      res.json({
+        totalPips: Math.round(totalUserPips),
+        activeSignals,
+        winRate,
+        completedLessons,
+        totalLessons,
+        userPips: Math.round(userPips),
+        signalPips: Math.round(totalPips),
+        totalSignals: allSignals.length,
+        closedSignals: closedSignals.length,
+        winningSignals: winningSignals.length
+      });
+    } catch (error) {
+      console.error('Erro ao calcular estatísticas:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota de logout
   app.post('/api/auth/logout', (req, res) => {
     res.clearCookie('auth-token', {

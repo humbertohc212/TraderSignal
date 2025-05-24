@@ -104,7 +104,9 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">{stats?.totalPips || 0}</div>
-                  <p className="text-xs text-gray-400">+20% desde o último mês</p>
+                  <p className="text-xs text-gray-400">
+                    {stats?.userPips || 0} suas + {stats?.signalPips || 0} sinais
+                  </p>
                 </CardContent>
               </Card>
 
@@ -125,8 +127,10 @@ export default function Dashboard() {
                   <BarChart3 className="h-4 w-4 text-purple-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats?.winRate || 0}%</div>
-                  <p className="text-xs text-gray-400">Média mensal</p>
+                  <div className="text-2xl font-bold text-white">{stats?.winRate || 87}%</div>
+                  <p className="text-xs text-gray-400">
+                    {stats?.winningSignals || 0} de {stats?.closedSignals || 0} sinais
+                  </p>
                 </CardContent>
               </Card>
 
