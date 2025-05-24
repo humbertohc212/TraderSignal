@@ -55,7 +55,7 @@ Enviarei o comprovante do PIX em seguida.`;
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">
             <Link href="/">
-              <Button variant="outline" size="sm" className="text-white border-gray-600 hover:bg-gray-700">
+              <Button variant="outline" size="sm" className="text-white border-black bg-black hover:bg-gray-800">
                 <Home className="h-4 w-4 mr-2" />
                 Voltar ao Início
               </Button>
