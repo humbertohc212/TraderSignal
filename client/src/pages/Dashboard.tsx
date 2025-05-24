@@ -50,6 +50,44 @@ function TradingForm() {
   
   // Extrair pares únicos dos sinais
   const availablePairs = signals ? Array.from(new Set(signals.map((signal: any) => signal.pair))) : [];
+  
+  // Encontrar sinal selecionado para auto-preenchimento
+  const selectedSignal = signals ? signals.find((s: any) => s.pair === formData.pair) : null;
+
+  // Função para auto-preencher preços baseado no sinal e tipo de saída
+  const autoFillExitPrice = (exitType: string) => {
+    if (!selectedSignal) return;
+    
+    let exitPrice = '';
+    const signal = selectedSignal;
+    
+    // Auto-preencher preço de entrada se vazio
+    if (!formData.entryPrice && signal.entryPrice) {
+      setFormData(prev => ({...prev, entryPrice: signal.entryPrice}));
+    }
+    
+    // Auto-preencher direção se vazia
+    if (!formData.direction && signal.direction) {
+      setFormData(prev => ({...prev, direction: signal.direction}));
+    }
+    
+    // Selecionar preço de saída baseado no tipo
+    switch(exitType) {
+      case 'TP1':
+        exitPrice = signal.tp1 || '';
+        break;
+      case 'TP2':
+        exitPrice = signal.tp2 || '';
+        break;
+      case 'SL':
+        exitPrice = signal.sl || '';
+        break;
+    }
+    
+    if (exitPrice) {
+      setFormData(prev => ({...prev, exitPrice, exitType}));
+    }
+  };
 
   const calculatePipsAndProfit = () => {
     const entry = parseFloat(formData.entryPrice || '0');
@@ -188,7 +226,7 @@ function TradingForm() {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="exitType" className="text-gray-300">Tipo de Saída</Label>
-          <Select value={formData.exitType} onValueChange={(value) => setFormData({...formData, exitType: value})}>
+          <Select value={formData.exitType} onValueChange={(value) => autoFillExitPrice(value)}>
             <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
               <SelectValue placeholder="TP1, TP2 ou SL" />
             </SelectTrigger>
@@ -198,6 +236,11 @@ function TradingForm() {
               <SelectItem value="SL">🛑 SL (Stop Loss)</SelectItem>
             </SelectContent>
           </Select>
+          {selectedSignal && (
+            <p className="text-xs text-gray-400 mt-1">
+              Auto-preenchimento disponível para {selectedSignal.pair}
+            </p>
+          )}
         </div>
         <div>
           <Label htmlFor="lotSize" className="text-gray-300">Tamanho do Lote</Label>
