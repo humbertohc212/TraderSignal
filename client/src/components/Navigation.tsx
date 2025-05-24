@@ -5,7 +5,7 @@ import { TrendingUp, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 export default function Navigation() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location] = useLocation();
 
   const navLinks = [
@@ -15,6 +15,11 @@ export default function Navigation() {
     { path: "/plans", label: "Planos", id: "plans" },
     ...(user?.role === "admin" ? [{ path: "/admin", label: "Admin", id: "admin" }] : []),
   ];
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+  };
 
   return (
     <nav className="bg-slate-900 text-white shadow-lg">
@@ -60,7 +65,7 @@ export default function Navigation() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={handleLogout}
               className="text-gray-300 hover:text-white"
             >
               <LogOut className="h-4 w-4" />
