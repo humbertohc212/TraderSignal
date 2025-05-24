@@ -5,6 +5,20 @@ export function useAuth() {
     queryKey: ["/api/auth/user"],
     retry: false,
     refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        return null;
+      }
+      
+      return response.json();
+    },
   });
 
   return {
