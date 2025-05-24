@@ -42,33 +42,25 @@ export function useAuth() {
   });
 
   const logout = async () => {
+    // Always clear local state first
+    localStorage.removeItem('auth-token');
+    await queryClient.clear();
+    
     try {
-      const response = await fetch('/api/auth/logout', {
+      // Try to call logout endpoint, but don't fail if it doesn't work
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth-token')}`
         }
       });
-
-      const data = await response.json();
-      
-      // Clear local storage
-      localStorage.removeItem('auth-token');
-      
-      // Clear all queries from the cache
-      await queryClient.clear();
-      
-      // Redirect to login page
-      setLocation('/login');
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if the API call fails, we should still clear local state
-      localStorage.removeItem('auth-token');
-      await queryClient.clear();
-      setLocation('/login');
+      console.log('Logout endpoint failed, but continuing with local cleanup');
     }
+    
+    // Always redirect to login page
+    setLocation('/login');
   };
 
   return {
