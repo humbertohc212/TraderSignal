@@ -194,13 +194,50 @@ export default function Dashboard() {
                     <CardTitle>Progresso Mensal</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <TrendingUp className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-                        <p className="text-gray-600">Gráfico de Performance</p>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Acompanhe sua evolução mensal
-                        </p>
+                    <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-800">Maio 2025</h3>
+                        <div className="text-sm text-gray-600">Meta: 15.000 pips</div>
+                      </div>
+                      
+                      {/* Progresso Principal */}
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700">Pips Conquistados</span>
+                          <span className="text-2xl font-bold text-green-600">+{stats?.totalPips || 0}</span>
+                        </div>
+                        
+                        <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
+                          <div 
+                            className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                            style={{ width: `${Math.min((stats?.totalPips || 0) / 15000 * 100, 100)}%` }}
+                          >
+                            {(stats?.totalPips || 0) > 1000 && (
+                              <span className="text-xs font-bold text-white">
+                                {Math.round((stats?.totalPips || 0) / 15000 * 100)}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                          <span>0</span>
+                          <span>15.000 pips</span>
+                        </div>
+                      </div>
+                      
+                      {/* Métricas do Mês */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white/60 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-blue-600">{stats?.winRate || 0}%</div>
+                          <div className="text-xs text-gray-600">Taxa de Acerto</div>
+                        </div>
+                        <div className="bg-white/60 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-purple-600">
+                            {new Date().getDate()}
+                          </div>
+                          <div className="text-xs text-gray-600">Dias Ativos</div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
