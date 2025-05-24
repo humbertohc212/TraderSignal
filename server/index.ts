@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
-import { storage } from "./storage";
+import { storage } from "./simpleStorage";
 
 const app = express();
 app.use(express.json());
