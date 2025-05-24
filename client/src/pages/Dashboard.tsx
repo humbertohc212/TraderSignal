@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
+import BankConfigModal from "@/components/BankConfigModal";
+import TradingEntryForm from "@/components/TradingEntryForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +18,10 @@ import {
   CreditCard,
   Calendar,
   CheckCircle,
-  XCircle
+  XCircle,
+  DollarSign,
+  Target,
+  Settings
 } from "lucide-react";
 
 export default function Dashboard() {

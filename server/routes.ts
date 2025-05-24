@@ -135,6 +135,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Atualizar configurações da banca do usuário
+  app.put('/api/user/bank-config', jwtAuth, async (req: any, res) => {
+    try {
+      const { initialBalance, monthlyGoal, defaultLotSize } = req.body;
+      const userId = req.user.id;
+      
+      if (!initialBalance || !monthlyGoal || !defaultLotSize) {
+        return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
+      }
+
+      await storage.updateUser(userId, {
+        initialBalance: initialBalance.toString(),
+        currentBalance: initialBalance.toString(),
+        monthlyGoal: monthlyGoal.toString(),
+        defaultLotSize: defaultLotSize.toString(),
+      });
+
+      res.json({ message: 'Configurações da banca atualizadas com sucesso' });
+    } catch (error) {
+      console.error('Erro ao atualizar configurações da banca:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota pública para obter planos (não requer autenticação)
   app.get('/api/plans', async (req, res) => {
     try {
