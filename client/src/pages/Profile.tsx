@@ -79,7 +79,16 @@ export default function Profile() {
       console.log('Enviando dados do perfil:', data);
       console.log('User ID:', user?.id);
       
-      const response = await apiRequest("PUT", "/api/update-profile", data);
+      // Usando fetch direto para evitar interceptação do Vite
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
       console.log('Response status:', response.status);
       
       if (response.ok) {

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 import { storage } from "./storage";
+import { registerRoutes } from "./routes";
 
 const app = express();
 
@@ -1020,6 +1021,9 @@ app.put('/api/profile', authenticateToken, async (req: any, res) => {
 
 // Create HTTP server
 const httpServer = createServer(app);
+
+// Register essential routes BEFORE Vite setup
+console.log('Registering API routes before Vite...');
 
 // Start server - reorganized to avoid Vite conflicts
 (async () => {
