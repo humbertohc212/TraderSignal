@@ -25,7 +25,9 @@ export default function Sidebar() {
   ];
 
   const adminLinks = user?.role === "admin" ? [
-    { path: "/admin", icon: Settings, label: "Gerenciar Sinais", id: "admin-signals" },
+    { path: "/admin", icon: Settings, label: "Painel Admin", id: "admin-panel" },
+    { path: "/admin-dashboard", icon: BarChart3, label: "Admin Dashboard", id: "admin-dashboard" },
+    { path: "/admin", icon: Signal, label: "Gerenciar Sinais", id: "admin-signals" },
     { path: "/admin", icon: Video, label: "Gerenciar Aulas", id: "admin-courses" },
     { path: "/admin", icon: Users, label: "Usuários", id: "admin-users" },
     { path: "/admin", icon: Tags, label: "Planos", id: "admin-plans" },
