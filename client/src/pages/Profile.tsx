@@ -83,7 +83,10 @@ export default function Profile() {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Token não encontrado. Faça login novamente.');
+        // Se não tem token, redireciona para login
+        localStorage.clear();
+        window.location.href = '/';
+        throw new Error('Sessão expirada. Redirecionando para login...');
       }
       
       console.log('Token sendo enviado:', token ? 'Presente' : 'Ausente');

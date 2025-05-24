@@ -8,7 +8,7 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth-token');
+      const token = localStorage.getItem('token'); // Corrigido para usar 'token'
       if (!token) {
         return null;
       }
@@ -23,8 +23,8 @@ export function useAuth() {
 
         if (!response.ok) {
           if (response.status === 401) {
-            localStorage.removeItem('auth-token');
-            setLocation('/login');
+            localStorage.removeItem('token');
+            setLocation('/');
           }
           return null;
         }
@@ -33,8 +33,8 @@ export function useAuth() {
         return userData;
       } catch (error) {
         console.error('Auth error:', error);
-        localStorage.removeItem('auth-token');
-        setLocation('/login');
+        localStorage.removeItem('token');
+        setLocation('/');
         return null;
       }
     },
@@ -59,7 +59,7 @@ export function useAuth() {
       }
 
       // Depois limpa os dados locais
-      localStorage.removeItem('auth-token');
+      localStorage.removeItem('token');
       
       // Limpa o cache do React Query
       await queryClient.clear();
@@ -68,13 +68,13 @@ export function useAuth() {
       await queryClient.invalidateQueries({ queryKey: ['user'] });
       
       // Força um reload da página para limpar todo o estado
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       // Mesmo com erro, limpa os dados locais e redireciona
-      localStorage.removeItem('auth-token');
+      localStorage.removeItem('token');
       await queryClient.clear();
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 
