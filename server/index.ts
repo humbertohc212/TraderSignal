@@ -273,68 +273,7 @@ let users = [
   }
 ];
 
-// PLANS - Rota pública simples
-app.get('/api/plans', (req, res) => {
-  console.log('=== ROTA /api/plans CHAMADA ===');
-  
-  // Planos fixos baseados no banco de dados atual
-  const plans = [
-    {
-      id: 4,
-      name: "Free Trial",
-      price: 0,
-      currency: "BRL",
-      isPopular: false,
-      features: [
-        "21 sinais por semana",
-        "Acesso ao conteúdo educacional"
-      ]
-    },
-    {
-      id: 1,
-      name: "Básico", 
-      price: 47,
-      currency: "BRL",
-      isPopular: false,
-      features: [
-        "5 sinais por semana",
-        "Acesso ao conteúdo educacional"
-      ]
-    },
-    {
-      id: 2,
-      name: "Premium",
-      price: 97,
-      currency: "BRL", 
-      isPopular: true,
-      features: [
-        "15 sinais por semana",
-        "Acesso ao conteúdo educacional",
-        "Suporte prioritário",
-        "Análises exclusivas"
-      ]
-    },
-    {
-      id: 3,
-      name: "VIP",
-      price: 197,
-      currency: "BRL",
-      isPopular: false,
-      features: [
-        "Sinais ilimitados",
-        "Acesso ao conteúdo educacional",
-        "Suporte prioritário", 
-        "Análises exclusivas",
-        "Mentoria personalizada",
-        "Suporte via WhatsApp",
-        "Relatórios detalhados"
-      ]
-    }
-  ];
-  
-  console.log('Enviando planos:', plans.length);
-  res.json(plans);
-});
+
 
 // SIGNALS CRUD
 app.get('/api/signals', authenticateToken, (req, res) => {
