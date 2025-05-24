@@ -27,7 +27,7 @@ import BankConfigModal from "@/components/BankConfigModal";
 import TradingEntryForm from "@/components/TradingEntryForm";
 
 export default function Dashboard() {
-  const { user, refetch: refetchUser } = useAuth();
+  const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Dados das estatísticas
@@ -44,7 +44,7 @@ export default function Dashboard() {
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
-    refetchUser();
+    window.location.reload();
   };
 
   // Função para obter dados da banca (localStorage + usuário)
