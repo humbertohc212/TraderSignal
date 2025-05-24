@@ -400,6 +400,26 @@ export default function Dashboard() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const queryClient = useQueryClient();
   const [showBankModal, setShowBankModal] = useState(false);
+  
+  // Estados para sincronização em tempo real
+  const [userTotalPips, setUserTotalPips] = useState(0);
+  const [userTotalProfit, setUserTotalProfit] = useState(0);
+  const [currentProgress, setCurrentProgress] = useState(0);
+
+  // Atualizar dados a cada segundo
+  useEffect(() => {
+    const updateData = () => {
+      const pips = parseInt(localStorage.getItem('userTotalPips') || '0');
+      const profit = parseFloat(localStorage.getItem('userTotalProfit') || '0');
+      setUserTotalPips(pips);
+      setUserTotalProfit(profit);
+      setCurrentProgress(profit);
+    };
+    
+    updateData();
+    const interval = setInterval(updateData, 1000);
+    return () => clearInterval(interval);
+  }, [refreshTrigger]);
 
   // Auto-refresh dos sinais a cada 30 segundos
   const { data: signals, isLoading: signalsLoading, refetch: refetchSignals } = useQuery({
@@ -459,15 +479,6 @@ export default function Dashboard() {
   // Carregar dados da banca do localStorage
   const initialBanca = parseFloat(localStorage.getItem('initialBanca') || '2000');
   const monthlyGoal = parseFloat(localStorage.getItem('monthlyGoal') || '800');
-  const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '0');
-  const userTotalPips = parseInt(localStorage.getItem('userTotalPips') || '0');
-
-  // Zerar progresso atual para começar do zero apenas uma vez
-  if (!localStorage.getItem('progressReset')) {
-    localStorage.setItem('currentProgress', '0');
-    localStorage.setItem('userTotalPips', '0');
-    localStorage.setItem('progressReset', 'true');
-  }
 
   // Calcular progresso da meta (lucro/prejuízo em relação à meta)
   const goalProgress = monthlyGoal > 0 ? Math.max(0, (currentProgress / monthlyGoal) * 100) : 0;
