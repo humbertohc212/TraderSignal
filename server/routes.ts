@@ -2,11 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 // WebSocket imports removed to prevent connection errors
 import Stripe from "stripe";
+import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertSignalSchema, insertLessonSchema, insertPlanSchema } from "@shared/schema";
 import { z } from "zod";
 import "./types";
+
+const JWT_SECRET = 'your-jwt-secret-key';
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -33,26 +36,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Auth routes
+  // JWT-based auth check
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      console.log('Auth check - Session user:', req.session?.user);
+      const token = req.cookies['auth-token'];
+      console.log('Auth check - Token:', token ? 'present' : 'missing');
       
-      // Check simple session first
-      if (req.session?.user) {
-        console.log('User found in session:', req.session.user);
-        return res.json(req.session.user);
+      if (!token) {
+        console.log('No token found, returning 401');
+        return res.status(401).json({ message: "Unauthorized" });
       }
 
-      console.log('No user in session, returning 401');
-      res.status(401).json({ message: "Unauthorized" });
+      // Verify JWT token
+      const userData = jwt.verify(token, JWT_SECRET) as any;
+      console.log('Token verified, user:', userData);
+      
+      res.json(userData);
     } catch (error) {
-      console.error("Error fetching user:", error);
+      console.error("Token verification error:", error);
       res.status(401).json({ message: "Unauthorized" });
     }
   });
 
-  // Simple login endpoint 
+  // JWT-based login endpoint 
   app.post('/api/auth/login', (req, res) => {
     console.log('Login attempt:', req.body);
     
@@ -69,9 +75,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: 'User'
         };
         
-        // Set session data
-        (req as any).session.user = userData;
-        console.log('User set in session:', userData);
+        // Create JWT token
+        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+        
+        // Set token as httpOnly cookie
+        res.cookie('auth-token', token, {
+          httpOnly: true,
+          secure: false,
+          maxAge: 24 * 60 * 60 * 1000,
+          sameSite: 'lax'
+        });
+        
+        console.log('Token created and set:', token);
         
         // Return immediately with JSON
         res.setHeader('Content-Type', 'application/json');
@@ -136,16 +151,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Simple auth check middleware
-  const simpleAuth = (req: any, res: any, next: any) => {
-    if (req.session?.user) {
+  // JWT auth middleware
+  const jwtAuth = (req: any, res: any, next: any) => {
+    try {
+      const token = req.cookies['auth-token'];
+      if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const userData = jwt.verify(token, JWT_SECRET) as any;
+      req.user = userData;
       return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-    return res.status(401).json({ message: "Unauthorized" });
   };
 
+  // Logout endpoint
+  app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('auth-token');
+    res.json({ success: true });
+  });
+
   // Signals routes
-  app.get("/api/signals", simpleAuth, async (req, res) => {
+  app.get("/api/signals", jwtAuth, async (req, res) => {
     try {
       const signals = await storage.getSignals();
       res.json(signals);
@@ -155,9 +184,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/signals", simpleAuth, async (req: any, res) => {
+  app.post("/api/signals", jwtAuth, async (req: any, res) => {
     try {
-      const user = req.session.user;
+      const user = req.user;
       
       if (user?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
