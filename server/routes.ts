@@ -148,6 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota de estatísticas do usuário
   app.get('/api/stats', jwtAuth, async (req: any, res) => {
     try {
+      console.log('=== ROTA /api/stats CHAMADA ===');
       const userId = req.user.id;
       
       // Buscar todos os sinais
@@ -163,9 +164,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calcular total de pips dos sinais fechados
       const totalPips = closedSignals.reduce((sum, signal) => {
         const result = parseFloat(signal.result || "0");
-        // Converter valores altos em pips (assumindo que valores > 1000 são valores monetários)
+        // Converter valores altos em pips (BTC 13000 -> 130 pips)
         const pips = result > 1000 ? Math.round(result / 100) : result;
-        return sum + (pips > 0 ? pips : 0); // Só contar pips positivos
+        console.log(`Signal ${signal.id} - Result: ${result}, Converted Pips: ${pips}`);
+        return sum + (pips > 0 ? pips : 0);
       }, 0);
       
       // Calcular taxa de acerto dos sinais
@@ -188,7 +190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completedLessons = 8;
       const totalLessons = 25;
       
-      res.json({
+      const statsResponse = {
         totalPips: Math.round(totalUserPips),
         activeSignals,
         winRate,
@@ -199,7 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSignals: allSignals.length,
         closedSignals: closedSignals.length,
         winningSignals: winningSignals.length
-      });
+      };
+      
+      console.log('Stats Response:', statsResponse);
+      res.json(statsResponse);
     } catch (error) {
       console.error('Erro ao calcular estatísticas:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
