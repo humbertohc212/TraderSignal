@@ -292,7 +292,10 @@ app.get('/api/stats/admin', authenticateToken, (req: any, res) => {
   const activeSignals = signals.filter(s => s.status === 'active').length;
   const totalUsers = users.length;
   const totalLessons = lessons.length;
-  const monthlyRevenue = 2500; // Placeholder revenue
+  const monthlyRevenue = 2500;
+  
+  console.log('Admin stats requested:', { activeSignals, totalUsers, totalLessons, monthlyRevenue });
+  console.log('Current signals:', signals);
   
   res.json({
     totalUsers,
