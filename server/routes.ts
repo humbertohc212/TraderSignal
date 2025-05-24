@@ -314,12 +314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'ID do usuário é obrigatório' });
       }
 
-      console.log('Atualizando perfil do usuário:', targetUserId, {
-        firstName,
-        lastName,
-        phone,
-        bio
-      });
+      console.log('=== ATUALIZANDO PERFIL ===');
+      console.log('Target User ID:', targetUserId);
+      console.log('Dados recebidos:', { firstName, lastName, phone, bio });
 
       const updatedUser = await storage.updateUser(targetUserId, {
         firstName,
@@ -328,14 +325,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bio
       });
 
-      res.json({ 
+      console.log('Usuário atualizado:', updatedUser);
+
+      const response = { 
         success: true, 
         message: 'Perfil atualizado com sucesso',
         user: updatedUser 
-      });
+      };
+
+      console.log('Enviando resposta:', response);
+      
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).json(response);
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      return res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
     }
   });
 
