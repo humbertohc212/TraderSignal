@@ -159,7 +159,6 @@ app.post('/api/auth/login', async (req, res) => {
       });
       
       const newUser = await storage.createUser({
-        id: `user_${Date.now()}`,
         email: email,
         password: hashedPassword,
         role: role,
