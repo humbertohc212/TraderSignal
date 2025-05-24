@@ -399,6 +399,36 @@ app.get('/api/stats/user', authenticateToken, (req: any, res) => {
   });
 });
 
+// PLANS - Rota pública (não requer autenticação)
+app.get('/api/plans', async (req, res) => {
+  try {
+    const plans = await storage.getActivePlans();
+    
+    // Formatando os planos para o frontend
+    const formattedPlans = plans.map(plan => ({
+      id: plan.id,
+      name: plan.name,
+      price: plan.price,
+      currency: plan.currency,
+      isPopular: plan.isPopular,
+      features: [
+        `${plan.signalsPerWeek === 999 ? 'Sinais ilimitados' : `${plan.signalsPerWeek} sinais por semana`}`,
+        ...(plan.hasEducationalAccess ? ['Acesso ao conteúdo educacional'] : []),
+        ...(plan.hasPrioritySupport ? ['Suporte prioritário'] : []),
+        ...(plan.hasExclusiveAnalysis ? ['Análises exclusivas'] : []),
+        ...(plan.hasMentoring ? ['Mentoria personalizada'] : []),
+        ...(plan.hasWhatsappSupport ? ['Suporte via WhatsApp'] : []),
+        ...(plan.hasDetailedReports ? ['Relatórios detalhados'] : [])
+      ]
+    }));
+    
+    res.json(formattedPlans);
+  } catch (error) {
+    console.error('Erro ao buscar planos:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 // USERS CRUD
 app.get('/api/users', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
