@@ -328,11 +328,18 @@ app.get('/api/stats/user', authenticateToken, (req: any, res) => {
 });
 
 // USERS CRUD
-app.get('/api/users', authenticateToken, (req: any, res) => {
+app.get('/api/users', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
-  res.json(users);
+  
+  try {
+    const dbUsers = await storage.getUsers();
+    res.json(dbUsers);
+  } catch (error) {
+    console.error('Error fetching users from database:', error);
+    res.status(500).json({ message: 'Erro ao buscar usuários' });
+  }
 });
 
 app.post('/api/users', authenticateToken, (req: any, res) => {
