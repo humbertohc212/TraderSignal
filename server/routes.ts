@@ -68,15 +68,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fixed login endpoint with proper JSON response
+  // Improved login endpoint with better error handling
   app.post('/api/auth/login', (req, res) => {
-    console.log('=== LOGIN ATTEMPT ===');
-    console.log('Body:', req.body);
+    console.log('=== LOGIN ENDPOINT HIT ===');
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
     
     try {
       const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email e senha são obrigatórios' 
+        });
+      }
       
-      // Admin credentials check
+      // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
         const userData = {
           id: 'admin-user-id',
@@ -89,16 +97,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create JWT token
         const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
         
-        console.log('Login successful, token generated');
+        // Set cookie for additional security
+        res.cookie('auth-token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
         
-        // Return success response
-        return res.status(200).json({ 
+        const response = { 
           success: true, 
           user: userData,
           token: token
-        });
+        };
+        
+        console.log('Login successful, sending response:', response);
+        return res.json(response);
       } else {
-        console.log('Invalid credentials provided');
+        console.log('Invalid credentials attempt');
         return res.status(401).json({ 
           success: false,
           message: 'Credenciais inválidas' 
