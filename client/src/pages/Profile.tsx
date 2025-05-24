@@ -81,12 +81,20 @@ export default function Profile() {
       
       // Usando fetch direto para evitar interceptação do Vite
       const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token não encontrado. Faça login novamente.');
+      }
+      
+      console.log('Token sendo enviado:', token ? 'Presente' : 'Ausente');
+      
       const response = await fetch('/profile-update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
       console.log('Response status:', response.status);
