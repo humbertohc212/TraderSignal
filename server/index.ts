@@ -677,30 +677,34 @@ app.post('/api/signals', authenticateToken, async (req: any, res) => {
   }
 });
 
-app.put('/api/signals/:id', authenticateToken, (req: any, res) => {
+app.put('/api/signals/:id', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const id = parseInt(req.params.id);
-  const index = signals.findIndex(s => s.id === id);
-  
-  if (index === -1) {
-    return res.status(404).json({ message: 'Sinal não encontrado' });
+  try {
+    const id = Number(req.params.id);
+    const updatedSignal = await storage.updateSignal(id, req.body);
+    res.json(updatedSignal);
+  } catch (error) {
+    console.error('Erro ao atualizar sinal:', error);
+    res.status(500).json({ message: 'Erro ao atualizar sinal' });
   }
-  
-  signals[index] = { ...signals[index], ...req.body };
-  res.json(signals[index]);
 });
 
-app.delete('/api/signals/:id', authenticateToken, (req: any, res) => {
+app.delete('/api/signals/:id', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const id = parseInt(req.params.id);
-  signals = signals.filter(s => s.id !== id);
-  res.json({ success: true });
+  try {
+    const id = Number(req.params.id);
+    await storage.deleteSignal(id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao deletar sinal:', error);
+    res.status(500).json({ message: 'Erro ao deletar sinal' });
+  }
 });
 
 // Close signal with TP1/TP2/SL
@@ -747,49 +751,58 @@ app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
 });
 
 // LESSONS CRUD
-app.get('/api/lessons', authenticateToken, (req, res) => {
-  res.json(lessons);
+app.get('/api/lessons', authenticateToken, async (req, res) => {
+  try {
+    const allLessons = await storage.getLessons();
+    res.json(allLessons);
+  } catch (error) {
+    console.error('Erro ao buscar aulas:', error);
+    res.status(500).json({ message: 'Erro ao buscar aulas' });
+  }
 });
 
-app.post('/api/lessons', authenticateToken, (req: any, res) => {
+app.post('/api/lessons', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const newLesson = {
-    id: Date.now(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  
-  lessons.push(newLesson);
-  res.json(newLesson);
+  try {
+    const newLesson = await storage.createLesson(req.body);
+    res.json(newLesson);
+  } catch (error) {
+    console.error('Erro ao criar aula:', error);
+    res.status(500).json({ message: 'Erro ao criar aula' });
+  }
 });
 
-app.put('/api/lessons/:id', authenticateToken, (req: any, res) => {
+app.put('/api/lessons/:id', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const id = parseInt(req.params.id);
-  const index = lessons.findIndex(l => l.id === id);
-  
-  if (index === -1) {
-    return res.status(404).json({ message: 'Aula não encontrada' });
+  try {
+    const id = Number(req.params.id);
+    const updatedLesson = await storage.updateLesson(id, req.body);
+    res.json(updatedLesson);
+  } catch (error) {
+    console.error('Erro ao atualizar aula:', error);
+    res.status(500).json({ message: 'Erro ao atualizar aula' });
   }
-  
-  lessons[index] = { ...lessons[index], ...req.body };
-  res.json(lessons[index]);
 });
 
-app.delete('/api/lessons/:id', authenticateToken, (req: any, res) => {
+app.delete('/api/lessons/:id', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const id = parseInt(req.params.id);
-  lessons = lessons.filter(l => l.id !== id);
-  res.json({ success: true });
+  try {
+    const id = Number(req.params.id);
+    await storage.deleteLesson(id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao deletar aula:', error);
+    res.status(500).json({ message: 'Erro ao deletar aula' });
+  }
 });
 
 // PLANS CRUD
