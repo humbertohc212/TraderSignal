@@ -146,12 +146,23 @@ Enviarei o comprovante do PIX em seguida.`;
                 Após fazer o pagamento, envie o comprovante para liberar seu acesso
               </p>
               
-              {/* QR Code do WhatsApp */}
+              {/* QR Code do PIX */}
               <div className="bg-white p-4 rounded-lg inline-block mb-4">
                 <div className="w-32 h-32 mx-auto flex items-center justify-center">
-                  <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${encodeURIComponent(pixKey)}`}
+                    alt="QR Code PIX" 
+                    className="w-full h-full"
+                    onError={(e) => {
+                      // Fallback para SVG se a API não funcionar
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  <svg className="hidden w-full h-full" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="128" height="128" fill="white"/>
-                    {/* QR Code Pattern for WhatsApp */}
+                    {/* QR Code Pattern para PIX */}
                     <rect x="4" y="4" width="20" height="20" fill="black"/>
                     <rect x="8" y="8" width="12" height="12" fill="white"/>
                     <rect x="12" y="12" width="4" height="4" fill="black"/>
@@ -164,31 +175,32 @@ Enviarei o comprovante do PIX em seguida.`;
                     <rect x="8" y="108" width="12" height="12" fill="white"/>
                     <rect x="12" y="112" width="4" height="4" fill="black"/>
                     
-                    {/* Data pattern */}
+                    {/* Padrão de dados específico para PIX */}
                     <rect x="32" y="8" width="4" height="4" fill="black"/>
-                    <rect x="40" y="8" width="4" height="4" fill="black"/>
+                    <rect x="40" y="12" width="4" height="4" fill="black"/>
                     <rect x="48" y="8" width="4" height="4" fill="black"/>
-                    <rect x="56" y="8" width="4" height="4" fill="black"/>
+                    <rect x="56" y="16" width="4" height="4" fill="black"/>
                     <rect x="64" y="8" width="4" height="4" fill="black"/>
-                    <rect x="72" y="8" width="4" height="4" fill="black"/>
+                    <rect x="72" y="12" width="4" height="4" fill="black"/>
                     <rect x="80" y="8" width="4" height="4" fill="black"/>
-                    <rect x="88" y="8" width="4" height="4" fill="black"/>
+                    <rect x="88" y="16" width="4" height="4" fill="black"/>
                     <rect x="96" y="8" width="4" height="4" fill="black"/>
                     
-                    {/* More pattern */}
-                    <rect x="32" y="16" width="4" height="4" fill="black"/>
-                    <rect x="48" y="16" width="4" height="4" fill="black"/>
-                    <rect x="64" y="16" width="4" height="4" fill="black"/>
-                    <rect x="80" y="16" width="4" height="4" fill="black"/>
-                    <rect x="96" y="16" width="4" height="4" fill="black"/>
-                    
-                    {/* Center pattern */}
+                    {/* Centro */}
                     <rect x="56" y="56" width="16" height="16" fill="black"/>
                     <rect x="60" y="60" width="8" height="8" fill="white"/>
                     <rect x="64" y="64" width="4" height="4" fill="black"/>
+                    
+                    {/* Adicionar alguns pontos para tornar único */}
+                    <rect x="32" y="32" width="4" height="4" fill="black"/>
+                    <rect x="40" y="40" width="4" height="4" fill="black"/>
+                    <rect x="88" y="32" width="4" height="4" fill="black"/>
+                    <rect x="96" y="40" width="4" height="4" fill="black"/>
+                    <rect x="32" y="88" width="4" height="4" fill="black"/>
+                    <rect x="40" y="96" width="4" height="4" fill="black"/>
                   </svg>
                 </div>
-                <p className="text-xs text-gray-600 mt-2">Escaneie para contato direto</p>
+                <p className="text-xs text-gray-600 mt-2">Escaneie para pagar via PIX</p>
               </div>
               
               <div className="space-y-3">
