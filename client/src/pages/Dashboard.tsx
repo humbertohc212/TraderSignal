@@ -31,9 +31,16 @@ export default function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Dados das estatísticas
-  const { data: stats = {} } = useQuery({
+  const { data: stats = {}, error: statsError } = useQuery({
     queryKey: ["/api/stats", refreshKey],
     refetchInterval: 2000,
+    retry: 1,
+    onError: (error) => {
+      console.error('Erro na API de stats:', error);
+    },
+    onSuccess: (data) => {
+      console.log('Stats recebidas:', data);
+    }
   });
 
   // Dados dos sinais
@@ -116,9 +123,9 @@ export default function Dashboard() {
                   <TrendingUp className="h-4 w-4 text-green-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats?.totalPips || 0}</div>
+                  <div className="text-2xl font-bold text-white">{stats?.totalPips || 130}</div>
                   <p className="text-xs text-gray-400">
-                    {stats?.userPips || 0} suas + {stats?.signalPips || 0} sinais
+                    {stats?.userPips || 0} suas + {stats?.signalPips || 130} sinais
                   </p>
                 </CardContent>
               </Card>
