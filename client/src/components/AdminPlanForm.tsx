@@ -23,6 +23,7 @@ const planFormSchema = z.object({
   hasMentoring: z.boolean(),
   hasWhatsappSupport: z.boolean(),
   hasDetailedReports: z.boolean(),
+  isActive: z.boolean(),
   isPopular: z.boolean(),
 });
 
@@ -58,6 +59,7 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
       hasMentoring: plan.hasMentoring || false,
       hasWhatsappSupport: plan.hasWhatsappSupport || false,
       hasDetailedReports: plan.hasDetailedReports || false,
+      isActive: plan.isActive !== undefined ? plan.isActive : true,
       isPopular: plan.isPopular || false,
     } : {
       currency: "BRL",
@@ -68,6 +70,7 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
       hasMentoring: false,
       hasWhatsappSupport: false,
       hasDetailedReports: false,
+      isActive: true,
       isPopular: false,
     }
   });
@@ -238,6 +241,17 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
 
             {/* Special Options */}
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="isActive">Plano Ativo</Label>
+                  <p className="text-sm text-gray-500">Disponível para assinatura pelos usuários</p>
+                </div>
+                <Switch
+                  checked={watch("isActive")}
+                  onCheckedChange={(checked) => setValue("isActive", checked)}
+                />
+              </div>
+              
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="isPopular">Marcar como Popular</Label>
