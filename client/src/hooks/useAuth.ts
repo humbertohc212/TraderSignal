@@ -60,14 +60,14 @@ export function useAuth() {
       // Clear all queries from the cache
       await queryClient.clear();
       
-      // Redirect to home page
-      setLocation('/');
+      // Redirect to login page
+      setLocation('/login');
     } catch (error) {
       console.error('Logout error:', error);
       // Even if the API call fails, we should still clear local state
       localStorage.removeItem('auth-token');
       await queryClient.clear();
-      setLocation('/');
+      setLocation('/login');
     }
   };
 
