@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ const signalFormSchema = z.object({
   stopLossPrice: z.string().min(1, "Stop Loss é obrigatório"),
   analysis: z.string().optional(),
   tradingViewLink: z.string().optional(),
+  allowedPlans: z.array(z.string()).min(1, "Selecione pelo menos um plano"),
 });
 
 type SignalFormData = z.infer<typeof signalFormSchema>;
@@ -48,6 +50,7 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
       stopLossPrice: signal?.stopLossPrice || "",
       analysis: signal?.analysis || "",
       tradingViewLink: signal?.tradingViewLink || "",
+      allowedPlans: signal?.allowedPlans || ["free", "basic", "premium", "vip"],
     },
   });
 
@@ -242,6 +245,47 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="allowedPlans"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Planos Permitidos</FormLabel>
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-gray-800/50 rounded-lg">
+                      {[
+                        { id: "free", label: "Free Trial", description: "Usuários em período gratuito" },
+                        { id: "basic", label: "Básico", description: "Plano básico (R$ 47)" },
+                        { id: "premium", label: "Premium", description: "Plano premium (R$ 97)" },
+                        { id: "vip", label: "VIP", description: "Plano VIP (R$ 197)" }
+                      ].map((plan) => (
+                        <div key={plan.id} className="flex items-start space-x-3">
+                          <Checkbox
+                            id={plan.id}
+                            checked={field.value?.includes(plan.id)}
+                            onCheckedChange={(checked) => {
+                              const updatedPlans = checked
+                                ? [...(field.value || []), plan.id]
+                                : (field.value || []).filter((p) => p !== plan.id);
+                              field.onChange(updatedPlans);
+                            }}
+                          />
+                          <div className="space-y-1">
+                            <Label 
+                              htmlFor={plan.id} 
+                              className="text-sm font-medium text-white cursor-pointer"
+                            >
+                              {plan.label}
+                            </Label>
+                            <p className="text-xs text-gray-400">{plan.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -58,6 +58,7 @@ export const signals = pgTable("signals", {
   result: decimal("result", { precision: 10, scale: 2 }), // pips gained/lost
   analysis: text("analysis"), // Technical analysis description
   tradingViewLink: varchar("trading_view_link"), // Link to TradingView chart
+  allowedPlans: text("allowed_plans").array().default(['free', 'basic', 'premium', 'vip']), // Planos que podem ver este sinal
   closedAt: timestamp("closed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: varchar("created_by").notNull().references(() => users.id),
