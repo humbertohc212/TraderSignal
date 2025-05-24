@@ -58,60 +58,21 @@ export default function Login() {
   const onLoginSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      console.log('Attempting login with:', data);
+      console.log('Tentando fazer login com:', { email: data.email });
       
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response text:', errorText);
-        throw new Error(`Login failed: ${response.status}`);
-      }
-
-      // Adiciona logs detalhados para debug
-      const responseText = await response.text();
-      console.log('Raw response text:', responseText.substring(0, 200));
-      
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('Login response:', result);
-      } catch (e) {
-        console.error('Failed to parse JSON:', e);
-        console.error('Response was:', responseText.substring(0, 500));
-        toast({
-          title: "Erro no servidor",
-          description: "Resposta inválida do servidor",
-          variant: "destructive",
-        });
-        return;
-      }
+      const response = await apiRequest('POST', '/api/auth/login', data);
+      const result = await response.json();
 
       if (result.success && result.token) {
-        // Store token in localStorage
         localStorage.setItem('auth-token', result.token);
         
-        // Force a refetch of the user data before redirecting
         await queryClient.invalidateQueries({ queryKey: ["user"] });
-        await queryClient.refetchQueries({ queryKey: ["user"] });
         
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para o dashboard...",
         });
         
-        // Use setLocation to redirect
         setLocation("/");
       } else {
         throw new Error(result.message || 'Credenciais inválidas');

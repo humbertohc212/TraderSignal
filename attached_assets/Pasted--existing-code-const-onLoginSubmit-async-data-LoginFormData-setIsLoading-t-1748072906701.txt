@@ -1,0 +1,72 @@
+// ... existing code ...
+  const onLoginSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
+    try {
+      console.log('Tentando fazer login com:', { email: data.email });
+      
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+
+      if (response.success && response.token) {
+        // Armazena o token
+        localStorage.setItem('auth-token', response.token);
+        
+        // Força atualização dos dados do usuário
+        await queryClient.invalidateQueries({ queryKey: ["user"] });
+        
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para o dashboard...",
+        });
+        
+        setLocation("/");
+      } else {
+        throw new Error(response.message || 'Credenciais inválidas');
+      }
+    } catch (error: any) {
+      console.error('Erro durante o login:', error);
+      toast({
+        title: "Erro no login",
+        description: error.message || "Credenciais inválidas",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRegisterSubmit = async (data: RegisterFormData) => {
+    setIsLoading(true);
+    try {
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+
+      if (response.success && response.token) {
+        // Armazena o token
+        localStorage.setItem('auth-token', response.token);
+        
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Redirecionando para o dashboard...",
+        });
+        
+        setLocation("/");
+      } else {
+        throw new Error(response.message || 'Erro ao criar conta');
+      }
+    } catch (error: any) {
+      console.error('Erro durante o cadastro:', error);
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Erro ao criar conta",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+// ... existing code ...
