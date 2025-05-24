@@ -56,14 +56,22 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
       return await apiRequest("PUT", "/api/user/bank-config", data);
     },
     onSuccess: () => {
+      // Invalidar e recarregar os dados do usuário
       queryClient.invalidateQueries({ queryKey: ["user"] });
+      queryClient.refetchQueries({ queryKey: ["user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
       toast({
         title: "Configurações Salvas!",
         description: "Sua banca e meta foram configuradas com sucesso.",
       });
       setOpen(false);
+      
+      // Forçar reload da página para garantir atualização
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     },
     onError: () => {
       toast({
