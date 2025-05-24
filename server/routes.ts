@@ -44,30 +44,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple login endpoint (temporary until Replit Auth is fixed)
+  // Simple login endpoint 
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
       
-      // For now, only allow the admin credentials
+      // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
-        // Create a simple session with user data
-        (req as any).session.user = {
+        const userData = {
           id: 'admin-user-id',
           email: email,
           role: 'admin',
           firstName: 'Admin',
           lastName: 'User'
         };
-        res.json({ 
-          success: true, 
-          user: {
-            id: 'admin-user-id',
-            email: email,
-            role: 'admin',
-            firstName: 'Admin',
-            lastName: 'User'
+        
+        // Set session data
+        (req as any).session.user = userData;
+        
+        // Save session explicitly
+        (req as any).session.save((err: any) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ message: 'Erro ao salvar sessão' });
           }
+          
+          res.json({ 
+            success: true, 
+            user: userData
+          });
         });
       } else {
         res.status(401).json({ message: 'Credenciais inválidas' });
