@@ -42,8 +42,9 @@ export default function Demo() {
       entryPrice: "2045.20",
       takeProfitPrice: "2025.00",
       stopLossPrice: "2055.00",
-      status: "active",
-      analysis: "Ouro rejeitando resistência histórica. Esperamos correção para 2025.",
+      status: "closed",
+      result: 387.80,
+      analysis: "Ouro rejeitando resistência histórica. Correção executada conforme esperado.",
       time: "30min atrás",
       winRate: "92%"
     },
@@ -54,8 +55,9 @@ export default function Demo() {
       entryPrice: "43200.00",
       takeProfitPrice: "45800.00",
       stopLossPrice: "42000.00",
-      status: "active",
-      analysis: "Bitcoin rompendo triângulo ascendente. Momentum forte para continuação de alta.",
+      status: "closed",
+      result: 521.40,
+      analysis: "Bitcoin rompeu triângulo ascendente. Take profit atingido com sucesso.",
       time: "1h atrás",
       winRate: "89%"
     }
@@ -87,7 +89,7 @@ export default function Demo() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       {/* Header with Home Button */}
       <div className="pt-6 pb-4">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -116,10 +118,10 @@ export default function Demo() {
           {performanceStats.map((stat, index) => {
             const IconComponent = stat.icon;
             return (
-              <Card key={index} className="bg-white/5 backdrop-blur-xl border border-white/10 hover:border-purple-500/30 transition-all duration-300">
+              <Card key={index} className="bg-gray-800/90 backdrop-blur-xl border border-gray-700 hover:border-blue-500/50 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="flex items-center justify-center mb-3">
-                    <IconComponent className="h-8 w-8 text-purple-400" />
+                    <IconComponent className="h-8 w-8 text-blue-400" />
                   </div>
                   <div className="text-2xl font-bold text-white mb-2">
                     {stat.value}
@@ -139,10 +141,10 @@ export default function Demo() {
         </div>
 
         {/* Demo Signals */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 mb-12">
+        <Card className="bg-gray-800/90 backdrop-blur-xl border border-gray-700 mb-12">
           <CardHeader>
             <CardTitle className="text-white text-2xl flex items-center">
-              <Play className="h-6 w-6 mr-3 text-purple-400" />
+              <Play className="h-6 w-6 mr-3 text-blue-400" />
               Sinais em Tempo Real - Demonstração
             </CardTitle>
             <p className="text-gray-400">
@@ -151,7 +153,7 @@ export default function Demo() {
           </CardHeader>
           <CardContent className="space-y-6">
             {demoSignals.map((signal) => (
-              <div key={signal.id} className="p-6 bg-white/5 rounded-xl border border-white/5 hover:border-purple-500/30 transition-all duration-300">
+              <div key={signal.id} className="p-6 bg-gray-700/50 rounded-xl border border-gray-600 hover:border-blue-500/50 transition-all duration-300">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Signal Info */}
                   <div className="flex items-center space-x-4">
@@ -218,8 +220,8 @@ export default function Demo() {
                 </div>
 
                 {/* Analysis */}
-                <div className="mt-4 p-3 bg-white/5 rounded-lg border-l-4 border-purple-500">
-                  <h4 className="text-purple-400 font-semibold text-sm mb-1">ANÁLISE TÉCNICA</h4>
+                <div className="mt-4 p-3 bg-gray-600/30 rounded-lg border-l-4 border-blue-500">
+                  <h4 className="text-blue-400 font-semibold text-sm mb-1">ANÁLISE TÉCNICA</h4>
                   <p className="text-gray-300 text-sm">{signal.analysis}</p>
                 </div>
               </div>
@@ -229,10 +231,10 @@ export default function Demo() {
 
         {/* Historical Performance */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <Card className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 backdrop-blur-xl border border-purple-500/30">
+          <Card className="bg-gray-800/90 backdrop-blur-xl border border-gray-700">
             <CardHeader>
               <CardTitle className="text-white text-xl flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-purple-400" />
+                <Calendar className="h-5 w-5 mr-2 text-blue-400" />
                 Histórico dos Últimos 6 Meses
               </CardTitle>
             </CardHeader>
