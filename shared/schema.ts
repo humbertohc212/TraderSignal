@@ -173,6 +173,7 @@ export const tradingEntries = pgTable("trading_entries", {
   pair: varchar("pair").notNull(), // Trading pair (EURUSD, BTCUSD, etc.)
   type: varchar("type").notNull(), // 'gain' or 'loss'
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount in currency
+  pips: decimal("pips", { precision: 8, scale: 2 }), // Pips gained/lost
   notes: text("notes").notNull(), // User's notes about the trade
   date: date("date").notNull(), // Date of the trade
   createdAt: timestamp("created_at").defaultNow(),

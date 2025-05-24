@@ -29,6 +29,7 @@ const tradingEntrySchema = z.object({
   pair: z.string().min(1, "Par de moedas é obrigatório"),
   type: z.enum(["gain", "loss"]),
   amount: z.number().min(0.01, "Valor deve ser maior que 0"),
+  pips: z.number().optional(),
   notes: z.string().min(1, "Notas são obrigatórias"),
   date: z.string().min(1, "Data é obrigatória"),
 });
@@ -142,6 +143,31 @@ export default function Profile() {
   const winRate = tradingEntries.length > 0 
     ? (tradingEntries.filter((entry: any) => entry.type === "gain").length / tradingEntries.length * 100).toFixed(1)
     : 0;
+
+  // Calcular pips do mês atual (baseado na data de ativação do plano)
+  const now = new Date();
+  const planActivationDay = user?.subscriptionExpiry ? new Date(user.subscriptionExpiry).getDate() : now.getDate();
+  
+  // Data de início do mês de contagem atual
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), planActivationDay);
+  if (currentMonthStart > now) {
+    currentMonthStart.setMonth(currentMonthStart.getMonth() - 1);
+  }
+
+  const monthlyEntries = tradingEntries.filter((entry: any) => {
+    const entryDate = new Date(entry.date);
+    return entryDate >= currentMonthStart;
+  });
+
+  const monthlyPipsGain = monthlyEntries
+    .filter((entry: any) => entry.type === "gain")
+    .reduce((sum: number, entry: any) => sum + (entry.pips || 0), 0);
+
+  const monthlyPipsLoss = monthlyEntries
+    .filter((entry: any) => entry.type === "loss")
+    .reduce((sum: number, entry: any) => sum + (entry.pips || 0), 0);
+
+  const netMonthlyPips = monthlyPipsGain - monthlyPipsLoss;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
@@ -257,13 +283,23 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={tradingForm.handleSubmit(onTradingSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="pair" className="text-white">Par de Moedas</Label>
                         <Input
                           {...tradingForm.register("pair")}
                           className="bg-gray-700 border-gray-600 text-white"
                           placeholder="Ex: EURUSD, BTCUSD"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="pips" className="text-white">Pips (opcional)</Label>
+                        <Input
+                          {...tradingForm.register("pips", { valueAsNumber: true })}
+                          type="number"
+                          step="0.1"
+                          className="bg-gray-700 border-gray-600 text-white"
+                          placeholder="Ex: 25.5"
                         />
                       </div>
                       <div>
@@ -338,6 +374,48 @@ export default function Profile() {
                       {addTradingEntryMutation.isPending ? "Registrando..." : "Registrar Entrada"}
                     </Button>
                   </form>
+                </CardContent>
+              </Card>
+
+              {/* Contador de Pips do Mês Atual */}
+              <Card className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-500/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Pips do Mês Atual
+                  </CardTitle>
+                  <CardDescription className="text-gray-300">
+                    Contador baseado na data de ativação do seu plano (dia {planActivationDay})
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-400 mb-2">
+                        +{monthlyPipsGain.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-300">Pips Ganhos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-red-400 mb-2">
+                        -{monthlyPipsLoss.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-300">Pips Perdidos</div>
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-3xl font-bold mb-2 ${
+                        netMonthlyPips >= 0 ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {netMonthlyPips >= 0 ? '+' : ''}{netMonthlyPips.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-300">Saldo Líquido</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-600">
+                    <p className="text-center text-sm text-gray-400">
+                      Período: {currentMonthStart.toLocaleDateString()} - {now.toLocaleDateString()}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
