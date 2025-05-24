@@ -255,37 +255,69 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
                 name="allowedPlans"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Planos Permitidos</FormLabel>
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-gray-800/50 rounded-lg">
+                    <FormLabel className="text-white">Planos Permitidos</FormLabel>
+                    <div className="grid grid-cols-2 gap-4 p-6 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm">
                       {[
-                        { id: "free", label: "Free Trial", description: "Usuários em período gratuito" },
-                        { id: "basic", label: "Básico", description: "Plano básico (R$ 47)" },
-                        { id: "premium", label: "Premium", description: "Plano premium (R$ 97)" },
-                        { id: "vip", label: "VIP", description: "Plano VIP (R$ 197)" }
+                        { 
+                          id: "free", 
+                          label: "Free Trial", 
+                          description: "Usuários em período gratuito",
+                          color: "from-gray-600 to-gray-700"
+                        },
+                        { 
+                          id: "basic", 
+                          label: "Básico", 
+                          description: "Plano básico (R$ 47)",
+                          color: "from-blue-600 to-blue-700"
+                        },
+                        { 
+                          id: "premium", 
+                          label: "Premium", 
+                          description: "Plano premium (R$ 97)",
+                          color: "from-purple-600 to-purple-700"
+                        },
+                        { 
+                          id: "vip", 
+                          label: "VIP", 
+                          description: "Plano VIP (R$ 197)",
+                          color: "from-yellow-600 to-yellow-700"
+                        }
                       ].map((plan) => (
-                        <div key={plan.id} className="flex items-start space-x-3">
-                          <Checkbox
-                            id={plan.id}
-                            checked={field.value?.includes(plan.id)}
-                            onCheckedChange={(checked) => {
-                              const updatedPlans = checked
-                                ? [...(field.value || []), plan.id]
-                                : (field.value || []).filter((p) => p !== plan.id);
-                              field.onChange(updatedPlans);
-                            }}
-                          />
-                          <div className="space-y-1">
-                            <Label 
-                              htmlFor={plan.id} 
-                              className="text-sm font-medium text-white cursor-pointer"
-                            >
-                              {plan.label}
-                            </Label>
-                            <p className="text-xs text-gray-400">{plan.description}</p>
+                        <div key={plan.id} className="group">
+                          <div className={`flex items-start space-x-3 p-4 rounded-lg border transition-all duration-200 ${
+                            field.value?.includes(plan.id) 
+                              ? `bg-gradient-to-r ${plan.color} border-white/20 shadow-lg` 
+                              : 'bg-gray-800/40 border-gray-600/50 hover:border-gray-500/60'
+                          }`}>
+                            <Checkbox
+                              id={plan.id}
+                              checked={field.value?.includes(plan.id)}
+                              onCheckedChange={(checked) => {
+                                const updatedPlans = checked
+                                  ? [...(field.value || []), plan.id]
+                                  : (field.value || []).filter((p) => p !== plan.id);
+                                field.onChange(updatedPlans);
+                              }}
+                              className="mt-1 data-[state=checked]:bg-white data-[state=checked]:border-white"
+                            />
+                            <div className="space-y-1 flex-1">
+                              <Label 
+                                htmlFor={plan.id} 
+                                className="text-sm font-semibold text-white cursor-pointer block group-hover:text-gray-100"
+                              >
+                                {plan.label}
+                              </Label>
+                              <p className="text-xs text-gray-300 group-hover:text-gray-200">
+                                {plan.description}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Selecione quais planos terão acesso a este sinal. Admin sempre tem acesso completo.
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
