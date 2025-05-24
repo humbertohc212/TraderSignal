@@ -185,6 +185,58 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Simple register endpoint
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await storage.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email já cadastrado' });
+    }
+
+    // Create new user
+    const newUser = await storage.createUser({
+      email,
+      password, // Adicionando a senha
+      firstName,
+      lastName,
+      role: 'user',
+      subscriptionStatus: 'inactive'
+    });
+
+    // Create JWT token
+    const userData = {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName
+    };
+    
+    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+    
+    // Set cookie for additional security
+    res.cookie('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
+    });
+
+    res.json({ 
+      success: true, 
+      user: userData,
+      token: token 
+    });
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Erro ao criar conta" });
+  }
+});
+
 app.get('/api/auth/user', authenticateToken, (req: any, res) => {
   res.json(req.user);
 });
