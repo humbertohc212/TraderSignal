@@ -92,7 +92,18 @@ function authenticateToken(req: any, res: any, next: any) {
 
 // Auth routes
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  console.log('=== LOGIN ENDPOINT HIT ===');
+  console.log('Request body:', req.body);
+  
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Email e senha são obrigatórios' 
+      });
+    }
   
   try {
     console.log('Login attempt for:', email);
