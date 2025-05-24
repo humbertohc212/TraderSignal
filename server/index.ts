@@ -176,9 +176,11 @@ app.post('/api/auth/login', async (req, res) => {
     }
   } catch (error) {
     console.error('Erro no login:', error);
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
     res.status(500).json({ 
       success: false,
-      message: 'Erro interno do servidor' 
+      message: 'Erro interno do servidor: ' + error.message
     });
   }
 });
