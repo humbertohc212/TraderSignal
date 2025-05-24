@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { 
   Card, 
@@ -285,71 +286,66 @@ function TradingForm() {
   );
 }
 
-// Componente para mostrar operações recentes
-function RecentTrades() {
-  const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
+// Componente para mostrar operações recentes do usuário
+function RecentTrades({ userEntries }: { userEntries: any[] }) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  const deleteOperation = (operationId: number) => {
-    const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
-    const operationToDelete = operations.find((op: any) => op.id === operationId);
-    
-    if (operationToDelete) {
-      // Reverter os valores da banca
-      const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
-      const newProgress = currentProgress - operationToDelete.profit;
-      localStorage.setItem('currentProgress', newProgress.toString());
-      
-      // Reverter os pips
-      const userPips = localStorage.getItem('userTotalPips') || '0';
-      const newTotalPips = parseInt(userPips) - operationToDelete.pips;
-      localStorage.setItem('userTotalPips', newTotalPips.toString());
-      
-      // Remover a operação
-      const updatedOperations = operations.filter((op: any) => op.id !== operationId);
-      localStorage.setItem('userOperations', JSON.stringify(updatedOperations));
-      
+  const deleteOperationMutation = useMutation({
+    mutationFn: async (entryId: number) => {
+      const response = await apiRequest("DELETE", `/api/trading-entries/${entryId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["/api/trading-entries"]);
+      queryClient.invalidateQueries(["/api/auth/user"]);
       toast({
         title: "Operação Removida!",
         description: "Banca e pips foram ajustados automaticamente",
       });
-      
-      window.location.reload();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover operação",
+        variant: "destructive",
+      });
     }
-  };
+  });
   
   return (
     <div className="space-y-3 max-h-60 overflow-y-auto">
-      {operations.length === 0 ? (
+      {userEntries.length === 0 ? (
         <p className="text-gray-400 text-center py-4">Nenhuma operação registrada</p>
       ) : (
-        operations.slice(-5).reverse().map((op: any) => (
-          <div key={op.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg group">
+        userEntries.slice(-5).reverse().map((entry: any) => (
+          <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg group">
             <div>
               <div className="font-medium text-white">
-                {op.pair} {op.direction}
-                {op.exitType && (
+                {entry.pair} {entry.direction}
+                {entry.result && (
                   <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    op.exitType === 'SL' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                    entry.result === 'SL' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
                   }`}>
-                    {op.exitType}
+                    {entry.result}
                   </span>
                 )}
               </div>
-              <div className="text-sm text-gray-400">{op.date}</div>
+              <div className="text-sm text-gray-400">{entry.date}</div>
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <div className={`font-bold ${op.pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {op.pips > 0 ? '+' : ''}{op.pips} pips
+                <div className={`font-bold ${parseFloat(entry.pips || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {parseFloat(entry.pips || 0) > 0 ? '+' : ''}{entry.pips} pips
                 </div>
-                <div className={`text-sm ${op.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  R$ {op.profit > 0 ? '+' : ''}{op.profit}
+                <div className={`text-sm ${parseFloat(entry.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  R$ {parseFloat(entry.profit || 0) > 0 ? '+' : ''}{entry.profit}
                 </div>
               </div>
               <button
-                onClick={() => deleteOperation(op.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                onClick={() => deleteOperationMutation.mutate(entry.id)}
+                disabled={deleteOperationMutation.isPending}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded disabled:opacity-50"
                 title="Excluir operação"
               >
                 <Trash2 className="h-4 w-4" />
@@ -390,25 +386,27 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-  // Função para obter dados da banca (localStorage + usuário + lucros das operações)
+  // Query para buscar operações do usuário no banco de dados
+  const { data: userTradingEntries = [] } = useQuery({
+    queryKey: ["/api/trading-entries"],
+    enabled: !!user?.id,
+  });
+
+  // Função para obter dados da banca (usuário específico + operações do banco)
   const getBankData = () => {
-    const storedConfig = localStorage.getItem('bankConfig');
-    const bankConfig = storedConfig ? JSON.parse(storedConfig) : null;
-    
-    // Calcular lucros das operações registradas
-    const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
-    const totalProfitFromOperations = operations.reduce((total: number, op: any) => {
+    // Calcular lucros das operações do usuário no banco de dados
+    const totalProfitFromOperations = userTradingEntries.reduce((total: number, op: any) => {
       return total + parseFloat(op.profit || 0);
     }, 0);
     
-    const initialBalance = parseFloat(bankConfig?.initialBalance || user?.initialBalance || "2000");
+    const initialBalance = parseFloat(user?.initialBalance || "2000");
     const currentBalance = initialBalance + totalProfitFromOperations;
     
     return {
       initialBalance,
       currentBalance,
-      monthlyGoal: parseFloat(bankConfig?.monthlyGoal || user?.monthlyGoal || "800"),
-      isConfigured: !!(bankConfig || user?.initialBalance),
+      monthlyGoal: parseFloat(user?.monthlyGoal || "800"),
+      isConfigured: !!(user?.initialBalance),
       totalProfitFromOperations
     };
   };
@@ -692,7 +690,7 @@ export default function Dashboard() {
                   <CardTitle className="text-white">Operações Recentes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RecentTrades />
+                  <RecentTrades userEntries={userTradingEntries} />
                 </CardContent>
               </Card>
             </div>
