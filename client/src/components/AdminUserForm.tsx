@@ -53,7 +53,21 @@ export default function AdminUserForm({ user, isOpen, onClose, onSuccess }: Admi
 
   const mutation = useMutation({
     mutationFn: async (data: UserFormData) => {
-      return await apiRequest("PUT", `/api/users/${user.id}`, data);
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar usuário');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });

@@ -74,9 +74,23 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
 
   const planMutation = useMutation({
     mutationFn: async (data: PlanFormData) => {
+      const token = localStorage.getItem('auth-token');
       const url = isEditing ? `/api/plans/${plan.id}` : "/api/plans";
       const method = isEditing ? "PUT" : "POST";
-      const response = await apiRequest(method, url, data);
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao salvar plano');
+      }
+      
       return response.json();
     },
     onSuccess: () => {
