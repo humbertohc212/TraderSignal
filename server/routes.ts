@@ -120,19 +120,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
+      console.log('=== USER AUTH ENDPOINT ===');
+      console.log('User ID from token:', userId);
+      
       const user = await storage.getUser(userId);
+      console.log('User found in database:', !!user);
       
       if (!user) {
         console.log('User not found in database, returning token data');
         return res.json(req.user);
       }
 
-      // Log para debug
-      console.log('User data from database:', {
+      console.log('Returning updated user data:', {
         id: user.id,
-        initialBalance: user.initialBalance,
-        monthlyGoal: user.monthlyGoal,
-        currentBalance: user.currentBalance
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
       });
 
       // Não retornar a senha

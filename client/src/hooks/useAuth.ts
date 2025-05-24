@@ -8,7 +8,7 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
-      const token = localStorage.getItem('token'); // Corrigido para usar 'token'
+      const token = localStorage.getItem('token');
       if (!token) {
         return null;
       }
@@ -39,8 +39,9 @@ export function useAuth() {
       }
     },
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 1000, // 1 segundo para atualizar rapidamente após mudanças
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5000, // Revalida a cada 5 segundos
   });
 
   const logout = async () => {
