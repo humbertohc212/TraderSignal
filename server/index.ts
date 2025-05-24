@@ -857,8 +857,20 @@ app.get('/api/stats/admin', authenticateToken, async (req: any, res) => {
   }
   
   try {
-    const adminStats = await storage.getAdminStats();
-    console.log('Admin stats from database:', adminStats);
+    // Calcular estatísticas dos sinais em memória
+    const activeSignals = signals.filter(s => s.status === 'active').length;
+    const totalUsers = users.length;
+    const totalLessons = lessons.length;
+    const monthlyRevenue = 0; // Placeholder
+    
+    const adminStats = {
+      totalUsers,
+      activeSignals,
+      totalLessons,
+      monthlyRevenue
+    };
+    
+    console.log('Admin stats calculated:', adminStats);
     
     res.json(adminStats);
   } catch (error) {
