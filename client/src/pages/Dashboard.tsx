@@ -216,11 +216,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
-                      {/* Debug: Mostrar valores atuais */}
-                      <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
-                        Debug - Banca: {user?.initialBalance || 'undefined'} | Meta: {user?.monthlyGoal || 'undefined'}
-                      </div>
-                      
+
                       {user?.initialBalance && user?.monthlyGoal ? (
                         <>
                           {/* Progresso Principal */}
