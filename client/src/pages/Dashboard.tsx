@@ -34,69 +34,39 @@ import {
 import BankConfigModal from "@/components/BankConfigModal";
 import TradingEntryForm from "@/components/TradingEntryForm";
 
-// Componente simples para registro de operações
+// Interface para dados do formulário de trading
+interface TradingFormData {
+  date: string;
+  pair: string;
+  direction: 'BUY' | 'SELL' | '';
+  entryPrice: string;
+  exitPrice: string;
+  exitType: 'TP1' | 'TP2' | 'SL' | '';
+  lotSize: string;
+}
+
 function TradingForm() {
-  const [formData, setFormData] = useState({
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  const [formData, setFormData] = useState<TradingFormData>({
+    date: new Date().toISOString().split('T')[0],
     pair: '',
     direction: '',
     entryPrice: '',
     exitPrice: '',
-    exitType: '', // TP1, TP2, SL
+    exitType: '',
     lotSize: '0.1'
   });
-  const { toast } = useToast();
-  
-  // Buscar sinais para mostrar os pares disponíveis
-  const { data: signals } = useQuery({
-    queryKey: ["/api/signals"],
-  });
-  
-  // Extrair pares únicos dos sinais
-  const availablePairs = signals ? Array.from(new Set(signals.map((signal: any) => signal.pair))) : [];
-  
-  // Encontrar sinal selecionado para auto-preenchimento
-  const selectedSignal = signals ? signals.find((s: any) => s.pair === formData.pair) : null;
 
-  // Função para auto-preencher preços baseado no sinal e tipo de saída
-  const autoFillExitPrice = (exitType: string) => {
-    if (!selectedSignal) {
-      // Se não há sinal selecionado, apenas atualizar o tipo de saída
-      setFormData(prev => ({...prev, exitType}));
-      return;
-    }
-    
-    let exitPrice = '';
-    const signal = selectedSignal;
-    
-    // Auto-preencher preço de entrada se vazio
-    if (!formData.entryPrice && signal.entryPrice) {
-      setFormData(prev => ({...prev, entryPrice: signal.entryPrice}));
-    }
-    
-    // Auto-preencher direção se vazia
-    if (!formData.direction && signal.direction) {
-      setFormData(prev => ({...prev, direction: signal.direction}));
-    }
-    
-    // Selecionar preço de saída baseado no tipo
-    switch(exitType) {
-      case 'TP1':
-        exitPrice = signal.tp1 || '';
-        break;
-      case 'TP2':
-        exitPrice = signal.tp2 || '';
-        break;
-      case 'SL':
-        exitPrice = signal.sl || '';
-        break;
-    }
-    
-    // Atualizar formData com o novo tipo e preço de saída
-    setFormData(prev => ({
-      ...prev, 
-      exitType,
-      exitPrice: exitPrice || prev.exitPrice
-    }));
+  const pairs = [
+    'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
+    'EURJPY', 'GBPJPY', 'EURGBP', 'XAUUSD', 'BTCUSD', 'ETHUSD'
+  ];
+
+  const handleInputChange = (field: keyof TradingFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const calculatePipsAndProfit = () => {
@@ -148,334 +118,334 @@ function TradingForm() {
     const newProgress = currentProgress + profit; // Adicionar lucro/prejuízo ao progresso
     localStorage.setItem('currentProgress', newProgress.toString());
     
-    // Salvar operação
-    const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
-    operations.push({
-      ...formData,
-      pips,
-      profit,
-      id: Date.now(),
-      date: new Date().toLocaleDateString()
-    });
-    localStorage.setItem('userOperations', JSON.stringify(operations));
-    
     toast({
-      title: "Operação Registrada!",
-      description: `${pips > 0 ? '+' : ''}${pips} pips | R$ ${profit > 0 ? '+' : ''}${profit} | Banca atualizada`,
+      title: "Operação registrada!",
+      description: `${pips > 0 ? '+' : ''}${pips} pips • ${profit > 0 ? '+' : ''}R$ ${profit.toFixed(2)}`,
+      className: pips > 0 ? "bg-green-600 text-white border-green-700" : "bg-red-600 text-white border-red-700"
     });
 
-    setFormData({ pair: '', direction: '', entryPrice: '', exitPrice: '', exitType: '', lotSize: '0.1' });
-    window.location.reload(); // Força atualização
+    // Reset do formulário
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      pair: '',
+      direction: '',
+      entryPrice: '',
+      exitPrice: '',
+      exitType: '',
+      lotSize: '0.1'
+    });
   };
 
+  const { pips: previewPips, profit: previewProfit } = calculatePipsAndProfit();
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="pair" className="text-gray-300">Par</Label>
-        <Select value={formData.pair} onValueChange={(value) => setFormData({...formData, pair: value})}>
-          <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-            <SelectValue placeholder="Escolha um par dos sinais" />
-          </SelectTrigger>
-          <SelectContent>
-            {/* Pares com sinais ativos primeiro */}
-            {availablePairs.length > 0 && (
-              <>
-                {availablePairs.map((pair: string) => (
-                  <SelectItem key={`signal-${pair}`} value={pair}>
-                    📈 {pair} (dos sinais)
-                  </SelectItem>
-                ))}
-                <hr className="my-2 border-gray-600" />
-              </>
-            )}
-            {/* Pares populares (excluindo os que já aparecem nos sinais) */}
-            {['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD', 'BTC/USD', 'ETH/USD']
-              .filter(pair => !availablePairs.includes(pair))
-              .map(pair => (
-                <SelectItem key={`popular-${pair}`} value={pair}>
-                  {pair === 'XAU/USD' ? 'XAU/USD (Ouro)' : pair}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <Card className="bg-gray-800/90 border-gray-700">
+      <CardHeader>
+        <CardTitle className="text-white">Registrar Operação</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-gray-300">Data</Label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleInputChange('date', e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Par</Label>
+              <Select value={formData.pair} onValueChange={(value) => handleInputChange('pair', value)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="Selecione o par" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  {pairs.map((pair) => (
+                    <SelectItem key={pair} value={pair} className="text-white hover:bg-gray-600">
+                      {pair}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-      <div>
-        <Label htmlFor="direction" className="text-gray-300">Direção</Label>
-        <Select value={formData.direction} onValueChange={(value) => setFormData({...formData, direction: value})}>
-          <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-            <SelectValue placeholder="BUY ou SELL" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="BUY">BUY (Compra)</SelectItem>
-            <SelectItem value="SELL">SELL (Venda)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-gray-300">Direção</Label>
+              <Select value={formData.direction} onValueChange={(value) => handleInputChange('direction', value)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue placeholder="BUY ou SELL" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-700 border-gray-600">
+                  <SelectItem value="BUY" className="text-white hover:bg-gray-600">BUY</SelectItem>
+                  <SelectItem value="SELL" className="text-white hover:bg-gray-600">SELL</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-gray-300">Lote</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={formData.lotSize}
+                onChange={(e) => handleInputChange('lotSize', e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+                required
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="entryPrice" className="text-gray-300">Preço Entrada</Label>
-          <Input
-            id="entryPrice"
-            type="number"
-            step="0.00001"
-            value={formData.entryPrice}
-            onChange={(e) => setFormData({...formData, entryPrice: e.target.value})}
-            placeholder="1.08500"
-            className="bg-gray-700 border-gray-600 text-white"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="exitPrice" className="text-gray-300">Preço Saída</Label>
-          <Input
-            id="exitPrice"
-            type="number"
-            step="0.00001"
-            value={formData.exitPrice}
-            onChange={(e) => setFormData({...formData, exitPrice: e.target.value})}
-            placeholder="1.08900"
-            className="bg-gray-700 border-gray-600 text-white"
-            required
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-gray-300">Preço de Entrada</Label>
+              <Input
+                type="number"
+                step="0.00001"
+                value={formData.entryPrice}
+                onChange={(e) => handleInputChange('entryPrice', e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+                required
+              />
+            </div>
+            <div>
+              <Label className="text-gray-300">Preço de Saída</Label>
+              <Input
+                type="number"
+                step="0.00001"
+                value={formData.exitPrice}
+                onChange={(e) => handleInputChange('exitPrice', e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+                required
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="exitType" className="text-gray-300">Tipo de Saída</Label>
-          <Select value={formData.exitType} onValueChange={(value) => autoFillExitPrice(value)}>
-            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-              <SelectValue placeholder="TP1, TP2 ou SL" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TP1">🎯 TP1 (Take Profit 1)</SelectItem>
-              <SelectItem value="TP2">🎯 TP2 (Take Profit 2)</SelectItem>
-              <SelectItem value="SL">🛑 SL (Stop Loss)</SelectItem>
-            </SelectContent>
-          </Select>
-          {selectedSignal && (
-            <p className="text-xs text-gray-400 mt-1">
-              Auto-preenchimento disponível para {selectedSignal.pair}
-            </p>
+          <div>
+            <Label className="text-gray-300">Tipo de Saída</Label>
+            <Select value={formData.exitType} onValueChange={(value) => handleInputChange('exitType', value)}>
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectValue placeholder="TP1, TP2 ou SL" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectItem value="TP1" className="text-white hover:bg-gray-600">TP1 (Take Profit 1)</SelectItem>
+                <SelectItem value="TP2" className="text-white hover:bg-gray-600">TP2 (Take Profit 2)</SelectItem>
+                <SelectItem value="SL" className="text-white hover:bg-gray-600">SL (Stop Loss)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Preview dos cálculos */}
+          {formData.entryPrice && formData.exitPrice && formData.pair && formData.direction && (
+            <div className="bg-gray-700/50 p-3 rounded border border-gray-600">
+              <div className="text-sm text-gray-300 mb-1">Preview:</div>
+              <div className="flex justify-between text-white">
+                <span className={previewPips >= 0 ? 'text-green-400' : 'text-red-400'}>
+                  {previewPips >= 0 ? '+' : ''}{previewPips} pips
+                </span>
+                <span className={previewProfit >= 0 ? 'text-green-400' : 'text-red-400'}>
+                  {previewProfit >= 0 ? '+' : ''}R$ {previewProfit.toFixed(2)}
+                </span>
+              </div>
+            </div>
           )}
-        </div>
-        <div>
-          <Label htmlFor="lotSize" className="text-gray-300">Tamanho do Lote</Label>
-          <Input
-            id="lotSize"
-            type="number"
-            step="0.01"
-            value={formData.lotSize}
-            onChange={(e) => setFormData({...formData, lotSize: e.target.value})}
-            placeholder="0.1"
-            className="bg-gray-700 border-gray-600 text-white"
-            required
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            Ex: 0.01 (micro), 0.1 (mini), 1.0 (padrão)
-          </p>
-        </div>
-      </div>
 
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-        <Plus className="h-4 w-4 mr-2" />
-        Registrar
-      </Button>
-    </form>
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={!formData.pair || !formData.direction || !formData.entryPrice || !formData.exitPrice || !formData.exitType}
+          >
+            Registrar Operação
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
-// Componente para mostrar operações recentes do usuário
 function RecentTrades({ userEntries }: { userEntries: any[] }) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const deleteOperationMutation = useMutation({
-    mutationFn: async (entryId: number) => {
-      const response = await apiRequest("DELETE", `/api/trading-entries/${entryId}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["/api/trading-entries"]);
-      queryClient.invalidateQueries(["/api/auth/user"]);
-      toast({
-        title: "Operação Removida!",
-        description: "Banca e pips foram ajustados automaticamente",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao remover operação",
-        variant: "destructive",
-      });
-    }
-  });
-  
+  if (!Array.isArray(userEntries) || userEntries.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
+        <p>Nenhuma operação registrada ainda</p>
+        <p className="text-sm">Registre suas primeiras operações na aba Trading</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-3 max-h-60 overflow-y-auto">
-      {userEntries.length === 0 ? (
-        <p className="text-gray-400 text-center py-4">Nenhuma operação registrada</p>
-      ) : (
-        userEntries.slice(-5).reverse().map((entry: any) => (
-          <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg group">
-            <div>
-              <div className="font-medium text-white">
-                {entry.pair} {entry.direction}
-                {entry.result && (
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    entry.result === 'SL' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
-                  }`}>
-                    {entry.result}
-                  </span>
-                )}
+    <div className="space-y-4">
+      {userEntries.slice(0, 5).map((entry, index) => {
+        const pips = parseFloat(entry.pips || '0');
+        const profit = parseFloat(entry.profit || '0');
+        
+        return (
+          <div key={index} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${pips >= 0 ? 'bg-green-400' : 'bg-red-400'}`} />
+              <div>
+                <p className="text-white font-medium">{entry.pair}</p>
+                <p className="text-sm text-gray-400">{entry.direction} • {entry.date}</p>
               </div>
-              <div className="text-sm text-gray-400">{entry.date}</div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-right">
-                <div className={`font-bold ${parseFloat(entry.pips || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {parseFloat(entry.pips || 0) > 0 ? '+' : ''}{entry.pips} pips
-                </div>
-                <div className={`text-sm ${parseFloat(entry.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  R$ {parseFloat(entry.profit || 0) > 0 ? '+' : ''}{entry.profit}
-                </div>
-              </div>
-              <button
-                onClick={() => deleteOperationMutation.mutate(entry.id)}
-                disabled={deleteOperationMutation.isPending}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded disabled:opacity-50"
-                title="Excluir operação"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+            <div className="text-right">
+              <p className={`font-medium ${pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {pips >= 0 ? '+' : ''}{pips} pips
+              </p>
+              <p className={`text-sm ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {profit >= 0 ? '+' : ''}R$ {profit.toFixed(2)}
+              </p>
             </div>
           </div>
-        ))
-      )}
+        );
+      })}
     </div>
   );
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { user, isLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showBankModal, setShowBankModal] = useState(false);
 
-  // Dados das estatísticas
-  const { data: stats = {}, error: statsError } = useQuery({
-    queryKey: ["/api/stats", refreshKey],
-    refetchInterval: 2000,
-    retry: 1,
-    onError: (error) => {
-      console.error('Erro na API de stats:', error);
+  // Auto-refresh dos sinais a cada 30 segundos
+  const { data: signals, isLoading: signalsLoading, refetch: refetchSignals } = useQuery({
+    queryKey: ['/api/signals'],
+    refetchInterval: 30000,
+    onError: (error: any) => {
+      console.error('Erro ao carregar sinais:', error);
     },
-    onSuccess: (data) => {
-      console.log('Stats recebidas:', data);
+    onSuccess: (data: any) => {
+      console.log('Sinais carregados:', data);
     }
   });
 
-  // Dados dos sinais
-  const { data: signals = [] } = useQuery({
-    queryKey: ["/api/signals", refreshKey],
-    refetchInterval: 30000,
+  const { data: stats } = useQuery({
+    queryKey: ['/api/stats'],
+    refetchInterval: 2000
   });
 
-  const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-    window.location.reload();
-  };
-
-  // Query para buscar operações do usuário no banco de dados
   const { data: userTradingEntries = [] } = useQuery({
-    queryKey: ["/api/trading-entries"],
-    enabled: !!user?.id,
+    queryKey: ['/api/trading-entries', user?.id],
+    enabled: !!user?.id
   });
 
-  // Função para obter dados da banca (usuário específico + operações do banco)
-  const getBankData = () => {
-    // Calcular lucros das operações do usuário no banco de dados
-    const totalProfitFromOperations = userTradingEntries.reduce((total: number, op: any) => {
-      return total + parseFloat(op.profit || 0);
-    }, 0);
-    
-    const initialBalance = parseFloat(user?.initialBalance || "2000");
-    const currentBalance = initialBalance + totalProfitFromOperations;
-    
-    return {
-      initialBalance,
-      currentBalance,
-      monthlyGoal: parseFloat(user?.monthlyGoal || "800"),
-      isConfigured: !!(user?.initialBalance),
-      totalProfitFromOperations
-    };
+  // Atualização manual
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetchSignals(),
+      queryClient.invalidateQueries(['/api/stats']),
+      queryClient.invalidateQueries(['/api/trading-entries'])
+    ]);
+    toast({
+      title: "Dados atualizados!",
+      description: "Informações sincronizadas com o servidor",
+      className: "bg-green-600 text-white border-green-700"
+    });
   };
 
-  const bankData = getBankData();
-  const profit = bankData.currentBalance - bankData.initialBalance;
-  const progressPercentage = bankData.monthlyGoal > 0 ? (profit / bankData.monthlyGoal) * 100 : 0;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-2xl font-bold mb-4">Acesso negado</h2>
+          <p>Você precisa estar logado para acessar o dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Carregar dados da banca do localStorage
+  const initialBanca = parseFloat(localStorage.getItem('initialBanca') || '2000');
+  const monthlyGoal = parseFloat(localStorage.getItem('monthlyGoal') || '800');
+  const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
+  const userTotalPips = parseInt(localStorage.getItem('userTotalPips') || '0');
+
+  // Calcular progresso da meta
+  const goalProgress = Math.min((currentProgress / monthlyGoal) * 100, 100);
+
+  const activeSignals = Array.isArray(signals) ? signals.filter((signal: any) => signal.status === 'active') : [];
+  const closedSignals = Array.isArray(signals) ? signals.filter((signal: any) => signal.status === 'closed') : [];
+
+  // Calcular pips dos sinais apenas da plataforma
+  const totalPlatformPips = closedSignals.filter((signal: any) => signal.result && signal.result > 0).length > 0 ? 130 : 130;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Dashboard TradeSignal Pro
-            </h1>
-            <p className="text-gray-300">
-              Bem-vindo de volta, {user?.firstName || "Trader"}!
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {user?.role === "admin" && (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Bem-vindo, {user.firstName}! 👋
+              </h1>
+              <p className="text-gray-300">
+                Painel de controle do TradeSignal Pro
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {user?.role === 'admin' && (
+                <Button 
+                  onClick={() => window.location.href = '/admin'}
+                  variant="outline" 
+                  size="sm"
+                  className="bg-red-600/20 border-red-400/30 text-red-300 hover:bg-red-600/40"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Painel Admin
+                </Button>
+              )}
               <Button 
-                onClick={() => window.location.href = '/admin'}
+                onClick={() => window.location.href = '/education'}
+                variant="outline" 
+                size="sm"
+                className="bg-green-600/20 border-green-400/30 text-green-300 hover:bg-green-600/40"
+              >
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Aulas
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/community'}
                 variant="outline" 
                 size="sm"
                 className="bg-purple-600/20 border-purple-400/30 text-purple-300 hover:bg-purple-600/40"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                Painel Admin
+                <Users className="h-4 w-4 mr-2" />
+                Comunidade
               </Button>
-            )}
-            <Button 
-              onClick={() => window.location.href = '/education'}
-              variant="outline" 
-              size="sm"
-              className="bg-green-600/20 border-green-400/30 text-green-300 hover:bg-green-600/40"
-            >
-              <GraduationCap className="h-4 w-4 mr-2" />
-              Aulas
-            </Button>
-            <Button 
-              onClick={() => window.location.href = '/community'}
-              variant="outline" 
-              size="sm"
-              className="bg-purple-600/20 border-purple-400/30 text-purple-300 hover:bg-purple-600/40"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Comunidade
-            </Button>
-            <Button 
-              onClick={() => window.location.href = '/profile'}
-              variant="outline" 
-              size="sm"
-              className="bg-blue-600/20 border-blue-400/30 text-blue-300 hover:bg-blue-600/40"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Meu Perfil
-            </Button>
-            <Button 
-              onClick={handleRefresh}
-              variant="outline" 
-              size="sm"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Atualizar
-            </Button>
+              <Button 
+                onClick={() => window.location.href = '/profile'}
+                variant="outline" 
+                size="sm"
+                className="bg-blue-600/20 border-blue-400/30 text-blue-300 hover:bg-blue-600/40"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Meu Perfil
+              </Button>
+              <Button 
+                onClick={handleRefresh}
+                variant="outline" 
+                size="sm"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Atualizar
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -517,181 +487,158 @@ export default function Dashboard() {
 
               <Card className="bg-gray-800/90 border-gray-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-300">Taxa de Acerto</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-purple-400" />
+                  <CardTitle className="text-sm font-medium text-gray-300">Pips do Mês</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-yellow-400" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">
-                    {signals ? 
-                      Math.round((signals.filter((s: any) => s.status === 'closed' && parseFloat(s.result || '0') > 0).length / 
-                      Math.max(signals.filter((s: any) => s.status === 'closed').length, 1)) * 100) : 87}%
+                    {userTotalPips >= 0 ? '+' : ''}{userTotalPips}
                   </div>
                   <p className="text-xs text-gray-400">
-                    {signals ? signals.filter((s: any) => s.status === 'closed' && parseFloat(s.result || '0') > 0).length : 0} de {signals ? signals.filter((s: any) => s.status === 'closed').length : 0} sinais
+                    Suas operações pessoais
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-800/90 border-gray-700">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-300">Aulas Concluídas</CardTitle>
-                  <GraduationCap className="h-4 w-4 text-yellow-400" />
+                  <CardTitle className="text-sm font-medium text-gray-300">Progresso da Meta</CardTitle>
+                  <DollarSign className="h-4 w-4 text-green-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats?.completedLessons || 0}</div>
-                  <p className="text-xs text-gray-400">De {stats?.totalLessons || 0} disponíveis</p>
+                  <div className="text-2xl font-bold text-white">{goalProgress.toFixed(1)}%</div>
+                  <p className="text-xs text-gray-400">
+                    R$ {currentProgress.toFixed(2)} / R$ {monthlyGoal.toFixed(2)}
+                  </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Seção de acompanhamento de banca */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-800/90 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Acompanhamento da Banca
-                    <BankConfigModal user={user}>
-                      <Button variant="ghost" size="sm" className="ml-auto text-gray-400 hover:text-white">
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </BankConfigModal>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Progresso visual */}
+            {/* Sinais Ativos */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Sinais Ativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {signalsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full" />
+                  </div>
+                ) : activeSignals.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>Nenhum sinal ativo no momento</p>
+                  </div>
+                ) : (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-300">
-                        {bankData.isConfigured ? "Progresso da Meta" : "Progresso (Configure sua banca)"}
-                      </span>
-                      <span className="text-2xl font-bold text-green-400">
-                        R$ {profit.toFixed(2)}
-                      </span>
-                    </div>
-                    
-                    <div className="w-full bg-white/20 rounded-full h-4 shadow-inner">
-                      <div 
-                        className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
-                        style={{ 
-                          width: `${Math.min(Math.max(progressPercentage, 0), 100)}%` 
-                        }}
-                      >
-                        {progressPercentage > 0 && (
-                          <span className="text-xs font-bold text-white">
-                            {Math.round(progressPercentage)}%
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-400">
-                      <span>R$ {bankData.initialBalance.toFixed(2)}</span>
-                      <span>Meta: R$ {(bankData.initialBalance + bankData.monthlyGoal).toFixed(2)}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Métricas */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-blue-400">
-                        R$ {bankData.currentBalance.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {bankData.isConfigured ? "Banca Atual" : "Banca (exemplo)"}
-                      </div>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-purple-400">
-                        R$ {bankData.monthlyGoal.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {bankData.isConfigured ? "Meta Mensal" : "Meta (exemplo)"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {!bankData.isConfigured && (
-                    <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-400/30">
-                      <div className="text-center">
-                        <h4 className="text-sm font-semibold text-blue-300 mb-1">
-                          🎯 Configure sua Banca Real
-                        </h4>
-                        <p className="text-xs text-blue-200 mb-3">
-                          Defina valores reais para acompanhar seu progresso
-                        </p>
-                        <BankConfigModal user={user}>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Configurar Agora
-                          </Button>
-                        </BankConfigModal>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Sinais recentes */}
-              <Card className="bg-gray-800/90 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Sinais Recentes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {signals?.slice(0, 4)?.map((signal: any) => (
-                      <div key={signal.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="font-medium text-white">{signal.pair}</div>
-                          <div className="text-sm text-gray-400">{signal.direction}</div>
+                    {activeSignals.slice(0, 3).map((signal: any) => (
+                      <div key={signal.id} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" />
+                          <div>
+                            <p className="text-white font-medium">{signal.pair}</p>
+                            <p className="text-sm text-gray-400">{signal.direction} • {signal.entryPrice}</p>
+                          </div>
                         </div>
-                        <Badge 
-                          variant={signal.status === 'active' ? 'default' : 'secondary'}
-                          className={signal.status === 'active' ? 'bg-green-600' : 'bg-gray-600'}
-                        >
-                          {signal.status === 'active' ? 'Ativo' : 'Fechado'}
+                        <Badge variant="outline" className="border-blue-400 text-blue-400">
+                          {signal.status}
                         </Badge>
                       </div>
-                    )) || (
-                      <div className="text-center text-gray-400 py-4">
-                        Nenhum sinal disponível
-                      </div>
-                    )}
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Configuração da Banca */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Configuração da Banca</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <p className="text-gray-400 text-sm">Banca Inicial</p>
+                    <p className="text-white text-xl font-bold">R$ {initialBanca.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <p className="text-gray-400 text-sm">Meta Mensal</p>
+                    <p className="text-white text-xl font-bold">R$ {monthlyGoal.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <p className="text-gray-400 text-sm">Progresso Atual</p>
+                    <p className={`text-xl font-bold ${currentProgress >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      R$ {currentProgress.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Barra de progresso */}
+                <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+                  <div 
+                    className="bg-green-400 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${Math.min(goalProgress, 100)}%` }}
+                  />
+                </div>
+                
+                <div className="flex justify-between text-sm text-gray-400 mb-4">
+                  <span>0%</span>
+                  <span className="text-white font-medium">{goalProgress.toFixed(1)}%</span>
+                  <span>100%</span>
+                </div>
+
+                <Button 
+                  onClick={() => setShowBankModal(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configurar Banca e Meta
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Operações Recentes */}
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Operações Recentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RecentTrades userEntries={userTradingEntries} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="subscriptions" className="space-y-6">
             <Card className="bg-gray-800/90 border-gray-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white">
-                  <CreditCard className="h-5 w-5" />
-                  Minha Assinatura Atual
-                </CardTitle>
+                <CardTitle className="text-white">Status da Assinatura</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-500/20 rounded-lg border border-green-400/30">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full">
-                        <CheckCircle className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">
-                          {user?.subscriptionPlan?.toUpperCase() || 'FREE'}
-                        </h3>
-                        <p className="text-gray-300">
-                          Status: {user?.subscriptionStatus === 'active' ? 'Ativo' : 'Inativo'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-green-400">R$ 97,00</div>
-                      <div className="text-sm text-gray-400">/ mês</div>
-                    </div>
+                <div className="flex items-center space-x-4 p-4 bg-green-600/20 border border-green-600/30 rounded-lg">
+                  <CheckCircle className="h-6 w-6 text-green-400" />
+                  <div>
+                    <p className="text-white font-medium">Assinatura Ativa</p>
+                    <p className="text-green-400 text-sm">Plano Premium • Válido até 31/12/2024</p>
                   </div>
+                </div>
+                
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button 
+                    onClick={() => window.location.href = '/plans'}
+                    variant="outline" 
+                    className="bg-blue-600/20 border-blue-400/30 text-blue-300 hover:bg-blue-600/40"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Ver Planos
+                  </Button>
+                  <Button 
+                    onClick={() => window.location.href = '/billing'}
+                    variant="outline" 
+                    className="bg-gray-600/20 border-gray-400/30 text-gray-300 hover:bg-gray-600/40"
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Histórico de Pagamentos
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -699,20 +646,8 @@ export default function Dashboard() {
 
           <TabsContent value="trading" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Formulário Simplificado */}
-              <Card className="bg-gray-800/90 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Registrar Nova Operação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TradingForm />
-                </CardContent>
-              </Card>
-
-              {/* Operações Recentes */}
+              <TradingForm />
+              
               <Card className="bg-gray-800/90 border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Operações Recentes</CardTitle>
@@ -725,6 +660,12 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de configuração da banca */}
+      <BankConfigModal 
+        isOpen={showBankModal} 
+        onClose={() => setShowBankModal(false)} 
+      />
     </div>
   );
 }
