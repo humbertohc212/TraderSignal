@@ -34,6 +34,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple login endpoint (temporary until Replit Auth is fixed)
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // For now, only allow the admin credentials
+      if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
+        // Create a simple session
+        (req as any).session.userId = 'admin-user-id';
+        res.json({ success: true, role: 'admin' });
+      } else {
+        res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Erro no servidor" });
+    }
+  });
+
+  // Simple register endpoint
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email já cadastrado' });
+      }
+
+      // Create new user
+      const newUser = await storage.createUser({
+        email,
+        firstName,
+        lastName,
+        role: 'user',
+        subscriptionStatus: 'inactive'
+      });
+
+      // Create session
+      (req as any).session.userId = newUser.id;
+      res.json({ success: true, user: newUser });
+    } catch (error) {
+      console.error("Register error:", error);
+      res.status(500).json({ message: "Erro ao criar conta" });
+    }
+  });
+
   // Signals routes
   app.get("/api/signals", isAuthenticated, async (req, res) => {
     try {

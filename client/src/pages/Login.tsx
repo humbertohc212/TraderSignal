@@ -188,15 +188,7 @@ export default function Login() {
                   </Button>
                 </form>
 
-                <div className="mt-4 p-3 bg-gray-700/30 rounded-lg">
-                  <p className="text-sm text-gray-300 mb-1">
-                    <strong>Conta de teste:</strong>
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Email: homercavalcanti@gmail.com<br />
-                    Senha: Betinho21@
-                  </p>
-                </div>
+
               </TabsContent>
 
               <TabsContent value="register">
