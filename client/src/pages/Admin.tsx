@@ -268,7 +268,7 @@ export default function Admin() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Receita Mensal</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {statsLoading ? "..." : `R$ ${adminStats?.monthlyRevenue || 0}k`}
+                      {statsLoading ? "..." : `R$ ${adminStats?.monthlyRevenue || 0}`}
                     </p>
                   </div>
                 </div>
