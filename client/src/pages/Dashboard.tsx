@@ -133,9 +133,9 @@ function TradingForm() {
     const newTotalPips = parseInt(userPips) + pips; // Pips podem ser negativos
     localStorage.setItem('userTotalPips', newTotalPips.toString());
     
-    // Atualizar progresso da banca
+    // Atualizar progresso da banca (aceita tanto ganhos quanto perdas)
     const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
-    const newProgress = currentProgress + profit; // Adicionar lucro ao progresso
+    const newProgress = currentProgress + profit; // Adicionar lucro/prejuízo ao progresso
     localStorage.setItem('currentProgress', newProgress.toString());
     
     // Salvar operação
@@ -276,6 +276,35 @@ function TradingForm() {
 // Componente para mostrar operações recentes
 function RecentTrades() {
   const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
+  const { toast } = useToast();
+  
+  const deleteOperation = (operationId: number) => {
+    const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
+    const operationToDelete = operations.find((op: any) => op.id === operationId);
+    
+    if (operationToDelete) {
+      // Reverter os valores da banca
+      const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
+      const newProgress = currentProgress - operationToDelete.profit;
+      localStorage.setItem('currentProgress', newProgress.toString());
+      
+      // Reverter os pips
+      const userPips = localStorage.getItem('userTotalPips') || '0';
+      const newTotalPips = parseInt(userPips) - operationToDelete.pips;
+      localStorage.setItem('userTotalPips', newTotalPips.toString());
+      
+      // Remover a operação
+      const updatedOperations = operations.filter((op: any) => op.id !== operationId);
+      localStorage.setItem('userOperations', JSON.stringify(updatedOperations));
+      
+      toast({
+        title: "Operação Removida!",
+        description: "Banca e pips foram ajustados automaticamente",
+      });
+      
+      window.location.reload();
+    }
+  };
   
   return (
     <div className="space-y-3 max-h-60 overflow-y-auto">
@@ -283,7 +312,7 @@ function RecentTrades() {
         <p className="text-gray-400 text-center py-4">Nenhuma operação registrada</p>
       ) : (
         operations.slice(-5).reverse().map((op: any) => (
-          <div key={op.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+          <div key={op.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg group">
             <div>
               <div className="font-medium text-white">
                 {op.pair} {op.direction}
@@ -297,13 +326,22 @@ function RecentTrades() {
               </div>
               <div className="text-sm text-gray-400">{op.date}</div>
             </div>
-            <div className="text-right">
-              <div className={`font-bold ${op.pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {op.pips > 0 ? '+' : ''}{op.pips} pips
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <div className={`font-bold ${op.pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {op.pips > 0 ? '+' : ''}{op.pips} pips
+                </div>
+                <div className={`text-sm ${op.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  R$ {op.profit > 0 ? '+' : ''}{op.profit}
+                </div>
               </div>
-              <div className={`text-sm ${op.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                R$ {op.profit > 0 ? '+' : ''}{op.profit}
-              </div>
+              <button
+                onClick={() => deleteOperation(op.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                title="Excluir operação"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           </div>
         ))
