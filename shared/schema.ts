@@ -32,6 +32,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  password: varchar("password"), // Campo para senha
   role: varchar("role").notNull().default("user"), // 'admin' or 'user'
   subscriptionPlan: varchar("subscription_plan").default("free"), // 'free', 'basic', 'premium', 'vip'
   subscriptionStatus: varchar("subscription_status").default("inactive"), // 'active', 'inactive', 'cancelled'
