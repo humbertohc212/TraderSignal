@@ -283,6 +283,41 @@ app.delete('/api/plans/:id', authenticateToken, (req: any, res) => {
   res.json({ success: true });
 });
 
+// STATISTICS ROUTES
+app.get('/api/stats/admin', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const activeSignals = signals.filter(s => s.status === 'active').length;
+  const totalUsers = users.length;
+  const totalLessons = lessons.length;
+  const monthlyRevenue = 2500; // Placeholder revenue
+  
+  res.json({
+    totalUsers,
+    activeSignals,
+    totalLessons,
+    monthlyRevenue
+  });
+});
+
+app.get('/api/stats/user', authenticateToken, (req: any, res) => {
+  const activeSignals = signals.filter(s => s.status === 'active').length;
+  const totalUsers = users.length;
+  const completedLessons = 0; // User-specific data would go here
+  const winRate = 85; // Placeholder win rate
+  const totalProfit = 1250; // Placeholder profit
+  
+  res.json({
+    totalUsers,
+    activeSignals,
+    completedLessons,
+    winRate,
+    totalProfit
+  });
+});
+
 // USERS CRUD
 app.get('/api/users', authenticateToken, (req: any, res) => {
   if (req.user.role !== 'admin') {
