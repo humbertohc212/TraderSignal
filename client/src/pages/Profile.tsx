@@ -74,17 +74,24 @@ export default function Profile() {
   // Mutation para atualizar perfil
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileFormData) => {
-      const requestData = {
-        ...data,
-        userId: user?.id
-      };
-      const response = await apiRequest("PUT", "/api/profile", requestData);
+      console.log('Enviando dados do perfil:', data);
+      console.log('User ID:', user?.id);
+      
+      const response = await apiRequest("PUT", "/api/profile", data);
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
-        return response.json();
+        const result = await response.json();
+        console.log('Success response:', result);
+        return result;
+      } else {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(errorText || 'Erro ao atualizar perfil');
       }
-      throw new Error('Erro ao atualizar perfil');
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Profile updated successfully:', data);
       toast({
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
@@ -92,9 +99,10 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: any) => {
+      console.error('Profile update error:', error);
       toast({
         title: "Erro ao atualizar",
-        description: "Falha ao salvar alterações. Tente novamente.",
+        description: error.message || "Falha ao salvar alterações. Tente novamente.",
         variant: "destructive",
       });
     },
