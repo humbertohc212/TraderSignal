@@ -165,5 +165,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========== ROTAS DO PERFIL ==========
+  
+  // Atualizar dados do perfil
+  app.put('/api/profile', async (req, res) => {
+    try {
+      const { userId, firstName, lastName, phone, bio } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+      }
+
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        phone,
+        bio
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Perfil atualizado com sucesso',
+        user: updatedUser 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Buscar entradas de trading do usuário
+  app.get('/api/trading-entries/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+      }
+
+      const entries = await storage.getTradingEntriesByUser(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error('Erro ao buscar entradas de trading:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Criar nova entrada de trading
+  app.post('/api/trading-entries', async (req, res) => {
+    try {
+      const { userId, pair, type, amount, notes, date } = req.body;
+      
+      if (!userId || !pair || !type || !amount || !notes || !date) {
+        return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
+      }
+
+      const newEntry = await storage.createTradingEntry({
+        userId,
+        pair,
+        type,
+        amount: amount.toString(),
+        notes,
+        date
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Entrada de trading criada com sucesso',
+        entry: newEntry 
+      });
+    } catch (error) {
+      console.error('Erro ao criar entrada de trading:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Atualizar entrada de trading
+  app.put('/api/trading-entries/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { pair, type, amount, notes, date } = req.body;
+      
+      const updatedEntry = await storage.updateTradingEntry(parseInt(id), {
+        pair,
+        type,
+        amount: amount?.toString(),
+        notes,
+        date
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Entrada de trading atualizada com sucesso',
+        entry: updatedEntry 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar entrada de trading:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
+  // Deletar entrada de trading
+  app.delete('/api/trading-entries/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteTradingEntry(parseInt(id));
+
+      res.json({ 
+        success: true, 
+        message: 'Entrada de trading removida com sucesso'
+      });
+    } catch (error) {
+      console.error('Erro ao deletar entrada de trading:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
+
   return server;
 }

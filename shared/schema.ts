@@ -9,6 +9,7 @@ import {
   integer,
   decimal,
   boolean,
+  date,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -171,7 +172,7 @@ export const tradingEntries = pgTable("trading_entries", {
   userId: varchar("user_id").notNull().references(() => users.id),
   pair: varchar("pair").notNull(), // Trading pair (EURUSD, BTCUSD, etc.)
   type: varchar("type").notNull(), // 'gain' or 'loss'
-  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(), // Amount in currency
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount in currency
   notes: text("notes").notNull(), // User's notes about the trade
   date: date("date").notNull(), // Date of the trade
   createdAt: timestamp("created_at").defaultNow(),
@@ -234,3 +235,12 @@ export type InsertUserLesson = z.infer<typeof insertUserLessonSchema>;
 export type UserLesson = typeof userLessons.$inferSelect;
 export type InsertSubscriptionRequest = z.infer<typeof insertSubscriptionRequestSchema>;
 export type SubscriptionRequest = typeof subscriptionRequests.$inferSelect;
+
+export const insertTradingEntrySchema = createInsertSchema(tradingEntries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTradingEntry = z.infer<typeof insertTradingEntrySchema>;
+export type TradingEntry = typeof tradingEntries.$inferSelect;

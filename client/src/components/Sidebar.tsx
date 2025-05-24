@@ -22,6 +22,7 @@ export default function Sidebar() {
     { path: "/signals", icon: Signal, label: "Sinais Ativos", id: "signals" },
     { path: "/", icon: TrendingUp, label: "Performance", id: "performance" },
     { path: "/education", icon: GraduationCap, label: "Educação", id: "education" },
+    { path: "/profile", icon: Settings, label: "Meu Perfil", id: "profile" },
     { path: "/plans", icon: Crown, label: "Minha Assinatura", id: "subscription" },
   ];
 
