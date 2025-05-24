@@ -718,12 +718,14 @@ app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
     }
     
     // Atualizar o sinal para fechado
-    signals[signalIndex] = {
+    const updatedSignal = {
       ...signals[signalIndex],
       status: 'closed',
       result: result,
       closedAt: new Date().toISOString()
     };
+    
+    signals[signalIndex] = updatedSignal;
     
     console.log(`Sinal ${signalId} fechado com sucesso. Status: ${signals[signalIndex].status}`);
     
