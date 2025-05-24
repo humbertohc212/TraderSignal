@@ -45,7 +45,7 @@ export default function Checkout() {
 
 Enviarei o comprovante do PIX em seguida.`;
     
-    const whatsappUrl = `https://wa.me/5581920327778?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/5581992032778?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -171,7 +171,7 @@ Enviarei o comprovante do PIX em seguida.`;
                 </Button>
                 
                 <p className="text-xs text-gray-400">
-                  WhatsApp: (81) 92032778
+                  WhatsApp: (81) 9.9203.2778
                 </p>
               </div>
             </div>
