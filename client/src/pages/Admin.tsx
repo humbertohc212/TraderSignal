@@ -80,8 +80,11 @@ export default function Admin() {
       return await apiRequest("POST", `/api/signals/${signalId}/close`, { result, type });
     },
     onSuccess: () => {
+      // Force refresh of all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
+      queryClient.refetchQueries({ queryKey: ["/api/signals"] });
+      queryClient.refetchQueries({ queryKey: ["/api/stats/admin"] });
       toast({
         title: "Sucesso",
         description: "Sinal fechado com sucesso!",

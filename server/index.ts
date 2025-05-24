@@ -727,9 +727,10 @@ app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
     
     signals[signalIndex] = updatedSignal;
     
-    console.log(`Sinal ${signalId} fechado com sucesso. Status: ${signals[signalIndex].status}`);
+    console.log(`Sinal ${signalId} fechado com sucesso. Status: ${updatedSignal.status}`);
+    console.log('Sinal atualizado:', JSON.stringify(updatedSignal, null, 2));
     
-    res.json(signals[signalIndex]);
+    res.json(updatedSignal);
   } catch (error) {
     console.error('Erro ao fechar sinal:', error);
     res.status(500).json({ message: 'Erro interno do servidor' });
