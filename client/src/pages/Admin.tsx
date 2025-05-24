@@ -746,6 +746,7 @@ export default function Admin() {
                         <TableHead>ID</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Nome</TableHead>
+                        <TableHead>Papel</TableHead>
                         <TableHead>Plano</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Cadastro</TableHead>
@@ -762,6 +763,11 @@ export default function Admin() {
                               ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
                               : 'Não informado'
                             }
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                              {user.role === 'admin' ? '👑 ADMIN' : 'USUÁRIO'}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant={
