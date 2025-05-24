@@ -590,7 +590,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-white">
-                    {userTotalPips >= 0 ? '+' : ''}{userTotalPips}
+                    {parseInt(localStorage.getItem('userTotalPips') || '0') >= 0 ? '+' : ''}{parseInt(localStorage.getItem('userTotalPips') || '0')}
                   </div>
                   <p className="text-xs text-gray-400">
                     Suas operações pessoais
@@ -761,6 +761,7 @@ export default function Dashboard() {
                     localStorage.removeItem('tradingEntries');
                     localStorage.removeItem('userTotalPips');
                     localStorage.removeItem('userTotalProfit');
+                    localStorage.setItem('currentProgress', '0');
                     window.location.reload();
                   }}
                   variant="outline"
