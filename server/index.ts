@@ -938,14 +938,29 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
       lastName: updatedUser.lastName
     }, JWT_SECRET, { expiresIn: '24h' });
 
-    console.log('New token generated with updated user data');
+    console.log('New token generated with updated user data:', newToken ? 'YES' : 'NO');
+    console.log('Token contains firstName:', newToken ? jwt.decode(newToken) : 'NO TOKEN');
 
-    res.json({
+    const response = {
       success: true,
       message: 'Perfil atualizado com sucesso',
       user: updatedUser,
       token: newToken
-    });
+    };
+    
+    console.log('Sending response with token:', !!response.token);
+    
+    // GARANTIR que o token está sendo retornado
+    response.token = jwt.sign({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName
+    }, JWT_SECRET, { expiresIn: '24h' });
+    
+    console.log('FINAL TOKEN ADDED:', !!response.token);
+    res.json(response);
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({
