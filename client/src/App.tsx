@@ -12,6 +12,7 @@ import AdminDashboard from "@/components/AdminDashboard";
 import AdminReports from "@/pages/AdminReports";
 import Signals from "@/pages/Signals";
 import Education from "@/pages/Education";
+import Community from "@/pages/Community";
 import Plans from "@/pages/Plans";
 import Admin from "@/pages/Admin";
 import Demo from "@/pages/Demo";
@@ -48,6 +49,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/signals" component={Signals} />
           <Route path="/education" component={Education} />
+          <Route path="/community" component={Community} />
           <Route path="/plans" component={Plans} />
           <Route path="/checkout" component={Checkout} />
           <Route path="/profile" component={Profile} />

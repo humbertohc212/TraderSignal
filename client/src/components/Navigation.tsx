@@ -12,7 +12,8 @@ export default function Navigation() {
   const navLinks = [
     { path: "/", label: "Dashboard", id: "dashboard" },
     { path: "/signals", label: "Sinais", id: "signals" },
-    { path: "/education", label: "Educação", id: "education" },
+    { path: "/education", label: "Aulas", id: "education" },
+    { path: "/community", label: "Comunidade", id: "community" },
     { path: "/plans", label: "Planos", id: "plans" },
     ...(user?.role === "admin" ? [{ path: "/admin", label: "Admin", id: "admin" }] : []),
   ];
