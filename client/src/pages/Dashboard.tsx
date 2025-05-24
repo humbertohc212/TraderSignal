@@ -23,7 +23,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/stats/user"],
+    queryKey: ["/api/stats/admin"],
+    staleTime: 0, // Always get fresh data
+    cacheTime: 0, // Don't cache
   });
 
   const { data: signals, isLoading: signalsLoading } = useQuery({
