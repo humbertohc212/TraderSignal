@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { getUserByEmail } from "../db/config";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -95,8 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: user.id,
           email: user.email,
           role: user.role,
-          firstName: user.first_name,
-          lastName: user.last_name
+          firstName: user.firstName,
+          lastName: user.lastName
         };
       }
       

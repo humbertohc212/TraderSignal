@@ -13,10 +13,13 @@ export const db = drizzle(sql);
 // Funções auxiliares para operações com usuários
 export async function getUserByEmail(email: string) {
   try {
-    const users = await db.select()
-      .from(schema.users)
-      .where(eq(schema.users.email, email.toLowerCase()));
-    return users[0] || null;
+    const result = await sql`
+      SELECT id, email, password, first_name as "firstName", last_name as "lastName", role, subscription_status as "subscriptionStatus", created_at as "createdAt", updated_at as "updatedAt"
+      FROM users 
+      WHERE LOWER(email) = LOWER(${email})
+    `;
+    
+    return result[0] || null;
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
     throw error;
