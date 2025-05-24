@@ -1,463 +1,311 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import Navigation from "@/components/Navigation";
-import Sidebar from "@/components/Sidebar";
-import BankConfigModal from "@/components/BankConfigModal";
-import TradingEntryForm from "@/components/TradingEntryForm";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
-  TrendingUp, 
+  BarChart3, 
   Signal, 
-  Percent, 
+  TrendingUp, 
   GraduationCap,
-  ArrowUp,
-  ArrowDown,
-  CreditCard,
-  Calendar,
-  CheckCircle,
-  XCircle,
   DollarSign,
-  Target,
   Settings,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  CheckCircle,
+  Clock,
+  Users
 } from "lucide-react";
+import BankConfigModal from "@/components/BankConfigModal";
+import TradingEntryForm from "@/components/TradingEntryForm";
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["/api/stats/admin"],
-    staleTime: 0, // Always get fresh data
-    gcTime: 0, // Don't cache (updated property name)
+  const { user, refetch: refetchUser } = useAuth();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Dados das estatísticas
+  const { data: stats = {} } = useQuery({
+    queryKey: ["/api/stats", refreshKey],
+    refetchInterval: 2000,
   });
 
-  const { data: signals, isLoading: signalsLoading } = useQuery({
-    queryKey: ["/api/signals"],
+  // Dados dos sinais
+  const { data: signals = [] } = useQuery({
+    queryKey: ["/api/signals", refreshKey],
+    refetchInterval: 30000,
   });
 
-  const recentSignals = signals?.slice(0, 3) || [];
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    refetchUser();
+  };
+
+  // Função para obter dados da banca (localStorage + usuário)
+  const getBankData = () => {
+    const storedConfig = localStorage.getItem('bankConfig');
+    const bankConfig = storedConfig ? JSON.parse(storedConfig) : null;
+    
+    return {
+      initialBalance: parseFloat(bankConfig?.initialBalance || user?.initialBalance || "2000"),
+      currentBalance: parseFloat(bankConfig?.currentBalance || user?.currentBalance || bankConfig?.initialBalance || user?.initialBalance || "2000"),
+      monthlyGoal: parseFloat(bankConfig?.monthlyGoal || user?.monthlyGoal || "800"),
+      isConfigured: !!(bankConfig || user?.initialBalance)
+    };
+  };
+
+  const bankData = getBankData();
+  const profit = bankData.currentBalance - bankData.initialBalance;
+  const progressPercentage = bankData.monthlyGoal > 0 ? (profit / bankData.monthlyGoal) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      
-      <div className="flex">
-        <Sidebar />
-        
-        <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-2 text-gray-600">
-              Bem-vindo de volta, {user?.firstName || 'Trader'}! Aqui está um resumo da sua atividade.
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Dashboard TradeSignal Pro
+            </h1>
+            <p className="text-gray-300">
+              Bem-vindo de volta, {user?.firstName || "Trader"}!
             </p>
           </div>
+          <Button 
+            onClick={handleRefresh}
+            variant="outline" 
+            size="sm"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Atualizar
+          </Button>
+        </div>
 
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="subscriptions">Minhas Assinaturas</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="subscriptions">Assinatura</TabsTrigger>
+            <TabsTrigger value="trading">Trading</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="overview" className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Lucro Total</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      +{stats?.totalPips || 0} pips
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Cards de estatísticas */}
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-300">Total de Pips</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{stats?.totalPips || 0}</div>
+                  <p className="text-xs text-gray-400">+20% desde o último mês</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-300">Sinais Ativos</CardTitle>
+                  <Signal className="h-4 w-4 text-blue-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{stats?.activeSignals || 0}</div>
+                  <p className="text-xs text-gray-400">Sinais em andamento</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-300">Taxa de Acerto</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-purple-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{stats?.winRate || 0}%</div>
+                  <p className="text-xs text-gray-400">Média mensal</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-300">Aulas Concluídas</CardTitle>
+                  <GraduationCap className="h-4 w-4 text-yellow-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{stats?.completedLessons || 0}</div>
+                  <p className="text-xs text-gray-400">De {stats?.totalLessons || 0} disponíveis</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Seção de acompanhamento de banca */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-gray-800/90 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Acompanhamento da Banca
+                    <BankConfigModal user={user}>
+                      <Button variant="ghost" size="sm" className="ml-auto text-gray-400 hover:text-white">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </BankConfigModal>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Progresso visual */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-300">
+                        {bankData.isConfigured ? "Progresso da Meta" : "Progresso (Configure sua banca)"}
+                      </span>
+                      <span className="text-2xl font-bold text-green-400">
+                        R$ {profit.toFixed(2)}
+                      </span>
                     </div>
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
-                      <ArrowUp className="h-3 w-3 text-green-500" />
-                      <span>+12% desde o mês passado</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Sinais Ativos</CardTitle>
-                    <Signal className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {stats?.activeSignals || 0}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Sinais em andamento
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Taxa de Acerto</CardTitle>
-                    <Percent className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {stats?.winRate || 0}%
-                    </div>
-                    <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
-                      <ArrowUp className="h-3 w-3 text-green-500" />
-                      <span>+2% esta semana</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {stats?.completedLessons || 0}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      de 24 disponíveis
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recent Signals */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Sinais Recentes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {signalsLoading ? (
-                        <div className="space-y-3">
-                          {[1, 2, 3].map((i) => (
-                            <div key={i} className="animate-pulse">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                                  <div className="space-y-2">
-                                    <div className="h-4 w-20 bg-gray-300 rounded"></div>
-                                    <div className="h-3 w-32 bg-gray-300 rounded"></div>
-                                  </div>
-                                </div>
-                                <div className="h-6 w-16 bg-gray-300 rounded"></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {recentSignals.map((signal: any) => (
-                            <div key={signal.id} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <div className={`w-3 h-3 rounded-full ${
-                                  signal.status === 'active' 
-                                    ? 'bg-blue-500 animate-pulse' 
-                                    : signal.result && parseFloat(signal.result) > 0
-                                    ? 'bg-green-500'
-                                    : 'bg-red-500'
-                                }`}></div>
-                                <div>
-                                  <p className="font-medium text-gray-900">
-                                    {signal.pair} - {signal.direction}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    TP: {signal.takeProfitPrice} | SL: {signal.stopLossPrice}
-                                  </p>
-                                </div>
-                              </div>
-                              <Badge variant={
-                                signal.status === 'active' 
-                                  ? 'default'
-                                  : signal.result && parseFloat(signal.result) > 0
-                                  ? 'secondary'
-                                  : 'destructive'
-                              }>
-                                {signal.status === 'active' 
-                                  ? 'Em andamento'
-                                  : signal.result 
-                                  ? `${signal.result > 0 ? '+' : ''}${signal.result} pips`
-                                  : 'Fechado'
-                                }
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Progresso Mensal</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-semibold text-gray-800">Progresso da Banca</h3>
-                        <div className="flex gap-2">
-                          <BankConfigModal user={user}>
-                            <Button variant="outline" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </BankConfigModal>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              queryClient.invalidateQueries({ queryKey: ["user"] });
-                              queryClient.refetchQueries({ queryKey: ["user"] });
-                            }}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
-                          <TradingEntryForm user={user}>
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                              + Operação
-                            </Button>
-                          </TradingEntryForm>
-                        </div>
-                      </div>
-                      
-
-                      <div className="space-y-6">
-                        {/* Exemplo visual motivacional */}
-                        <div className="mb-6">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                              {user?.initialBalance ? "Progresso da Meta" : "Seu Progresso (Configure sua banca)"}
-                            </span>
-                            <span className="text-2xl font-bold text-green-600">
-                              {user?.initialBalance ? 
-                                `R$ ${(parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")).toFixed(2)}` :
-                                "R$ 0,00"
-                              }
-                            </span>
-                          </div>
-                          
-                          <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
-                            <div 
-                              className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
-                              style={{ 
-                                width: user?.initialBalance ? 
-                                  `${Math.min(Math.max(
-                                    (parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")) / parseFloat(user?.monthlyGoal || "1") * 100, 
-                                    0
-                                  ), 100)}%` : 
-                                  "2%"
-                              }}
-                            >
-                              {(user?.initialBalance || !user?.initialBalance) && (
-                                <span className="text-xs font-bold text-white">
-                                  {user?.initialBalance ? 
-                                    Math.round((parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")) / parseFloat(user?.monthlyGoal || "1") * 100) :
-                                    0
-                                  }%
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-                            <span>
-                              {user?.initialBalance ? 
-                                `R$ ${parseFloat(user?.initialBalance || "0").toFixed(2)}` :
-                                "R$ 1.000,00 (exemplo)"
-                              }
-                            </span>
-                            <span>
-                              {user?.initialBalance ? 
-                                `Meta: R$ ${(parseFloat(user?.initialBalance || "0") + parseFloat(user?.monthlyGoal || "0")).toFixed(2)}` :
-                                "Meta: R$ 1.500,00 (exemplo)"
-                              }
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white/60 rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-blue-600">
-                              {user?.initialBalance ? 
-                                `R$ ${parseFloat(user?.currentBalance || user?.initialBalance || "0").toFixed(2)}` :
-                                "R$ 1.000,00"
-                              }
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {user?.initialBalance ? "Banca Atual" : "Banca Inicial (exemplo)"}
-                            </div>
-                          </div>
-                          <div className="bg-white/60 rounded-lg p-3 text-center">
-                            <div className="text-lg font-bold text-purple-600">
-                              {user?.initialBalance ? 
-                                `R$ ${parseFloat(user?.monthlyGoal || "0").toFixed(2)}` :
-                                "R$ 500,00"
-                              }
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {user?.initialBalance ? "Meta Mensal" : "Meta Mensal (exemplo)"}
-                            </div>
-                          </div>
-                        </div>
-
-                        {!user?.initialBalance && (
-                          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="text-center">
-                              <h4 className="text-sm font-semibold text-blue-800 mb-1">🎯 Configure sua Banca Real</h4>
-                              <p className="text-xs text-blue-600 mb-3">
-                                Defina valores reais para acompanhar seu progresso personalizado
-                              </p>
-                              <BankConfigModal user={user}>
-                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                                  <Settings className="h-4 w-4 mr-2" />
-                                  Configurar Agora
-                                </Button>
-                              </BankConfigModal>
-                            </div>
-                          </div>
+                    
+                    <div className="w-full bg-white/20 rounded-full h-4 shadow-inner">
+                      <div 
+                        className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                        style={{ 
+                          width: `${Math.min(Math.max(progressPercentage, 0), 100)}%` 
+                        }}
+                      >
+                        {progressPercentage > 0 && (
+                          <span className="text-xs font-bold text-white">
+                            {Math.round(progressPercentage)}%
+                          </span>
                         )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="subscriptions" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Minha Assinatura Atual
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full">
-                          <CheckCircle className="h-6 w-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">Premium</h3>
-                          <p className="text-gray-600">R$ 97,00 / mês</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-green-500">Ativo</Badge>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span>R$ {bankData.initialBalance.toFixed(2)}</span>
+                      <span>Meta: R$ {(bankData.initialBalance + bankData.monthlyGoal).toFixed(2)}</span>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-500">Próxima cobrança</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 mt-1">24 Jun 2025</p>
+                  </div>
+                  
+                  {/* Métricas */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-blue-400">
+                        R$ {bankData.currentBalance.toFixed(2)}
                       </div>
-                      
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Signal className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-500">Sinais por semana</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 mt-1">84 sinais</p>
-                      </div>
-                      
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-500">Dias restantes</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 mt-1">30 dias</p>
+                      <div className="text-xs text-gray-400">
+                        {bankData.isConfigured ? "Banca Atual" : "Banca (exemplo)"}
                       </div>
                     </div>
-
-                    <div className="pt-4 border-t">
-                      <h4 className="font-semibold text-gray-900 mb-2">Benefícios inclusos:</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">12 sinais por dia</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Análises detalhadas</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Suporte prioritário</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Acesso educacional</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Suporte WhatsApp</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span className="text-sm">Relatórios detalhados</span>
-                        </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-lg font-bold text-purple-400">
+                        R$ {bankData.monthlyGoal.toFixed(2)}
                       </div>
-                    </div>
-
-                    <div className="pt-4 border-t">
-                      <div className="flex space-x-3">
-                        <Button variant="outline" className="flex-1">
-                          Alterar Plano
-                        </Button>
-                        <Button variant="outline" className="flex-1">
-                          Cancelar Assinatura
-                        </Button>
+                      <div className="text-xs text-gray-400">
+                        {bankData.isConfigured ? "Meta Mensal" : "Meta (exemplo)"}
                       </div>
                     </div>
                   </div>
+
+                  {!bankData.isConfigured && (
+                    <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-400/30">
+                      <div className="text-center">
+                        <h4 className="text-sm font-semibold text-blue-300 mb-1">
+                          🎯 Configure sua Banca Real
+                        </h4>
+                        <p className="text-xs text-blue-200 mb-3">
+                          Defina valores reais para acompanhar seu progresso
+                        </p>
+                        <BankConfigModal user={user}>
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                            <Settings className="h-4 w-4 mr-2" />
+                            Configurar Agora
+                          </Button>
+                        </BankConfigModal>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Histórico de Pagamentos */}
-              <Card>
+              {/* Sinais recentes */}
+              <Card className="bg-gray-800/90 border-gray-700">
                 <CardHeader>
-                  <CardTitle>Histórico de Pagamentos</CardTitle>
+                  <CardTitle className="text-white">Sinais Recentes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">Plano Premium</p>
-                        <p className="text-sm text-gray-600">24 Mai 2025</p>
+                    {signals?.slice(0, 4)?.map((signal: any) => (
+                      <div key={signal.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                        <div>
+                          <div className="font-medium text-white">{signal.pair}</div>
+                          <div className="text-sm text-gray-400">{signal.direction}</div>
+                        </div>
+                        <Badge 
+                          variant={signal.status === 'active' ? 'default' : 'secondary'}
+                          className={signal.status === 'active' ? 'bg-green-600' : 'bg-gray-600'}
+                        >
+                          {signal.status === 'active' ? 'Ativo' : 'Fechado'}
+                        </Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">R$ 97,00</p>
-                        <Badge variant="secondary" className="text-xs">Pago</Badge>
+                    )) || (
+                      <div className="text-center text-gray-400 py-4">
+                        Nenhum sinal disponível
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">Plano Premium</p>
-                        <p className="text-sm text-gray-600">24 Abr 2025</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">R$ 97,00</p>
-                        <Badge variant="secondary" className="text-xs">Pago</Badge>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="subscriptions" className="space-y-6">
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <CreditCard className="h-5 w-5" />
+                  Minha Assinatura Atual
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-green-500/20 rounded-lg border border-green-400/30">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full">
+                        <CheckCircle className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          {user?.subscriptionPlan?.toUpperCase() || 'FREE'}
+                        </h3>
+                        <p className="text-gray-300">
+                          Status: {user?.subscriptionStatus === 'active' ? 'Ativo' : 'Inativo'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-green-400">R$ 97,00</div>
+                      <div className="text-sm text-gray-400">/ mês</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="trading" className="space-y-6">
+            <Card className="bg-gray-800/90 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Registrar Nova Operação</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TradingEntryForm user={user} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

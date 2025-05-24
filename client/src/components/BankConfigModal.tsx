@@ -55,20 +55,23 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
     mutationFn: async (data: BankConfigFormData) => {
       return await apiRequest("PUT", "/api/user/bank-config", data);
     },
-    onSuccess: async () => {
-      // Limpar todo o cache relacionado ao usuário
-      queryClient.clear();
-      
-      // Forçar refetch imediato dos dados do usuário
-      await queryClient.refetchQueries({ queryKey: ["user"] });
-      
+    onSuccess: async (data) => {
       toast({
         title: "Configurações Salvas!",
         description: "Sua banca e meta foram configuradas com sucesso.",
       });
       setOpen(false);
       
-      // Recarregar página imediatamente para garantir atualização
+      // Salvar no localStorage para uso imediato
+      const configData = {
+        initialBalance: updateBankConfigMutation.variables?.initialBalance,
+        currentBalance: updateBankConfigMutation.variables?.initialBalance,
+        monthlyGoal: updateBankConfigMutation.variables?.monthlyGoal,
+        defaultLotSize: updateBankConfigMutation.variables?.defaultLotSize
+      };
+      localStorage.setItem('bankConfig', JSON.stringify(configData));
+      
+      // Recarregar página para mostrar dados atualizados
       window.location.reload();
     },
     onError: () => {

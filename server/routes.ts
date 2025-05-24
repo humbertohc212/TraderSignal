@@ -177,18 +177,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
       }
 
-      // Usar storage para atualizar
-      const updatedUser = await storage.updateUser(userId, {
+      // Atualizar usando o storage corretamente
+      const user = await storage.updateUser(userId, {
         initialBalance: initialBalance.toString(),
-        currentBalance: initialBalance.toString(),
+        currentBalance: initialBalance.toString(), 
         monthlyGoal: monthlyGoal.toString(),
-        defaultLotSize: defaultLotSize.toString(),
+        defaultLotSize: defaultLotSize.toString()
       });
-
-      console.log('User updated successfully:', updatedUser);
+      
+      console.log('User updated successfully:', {
+        id: user.id,
+        initialBalance: user.initialBalance,
+        currentBalance: user.currentBalance,
+        monthlyGoal: user.monthlyGoal
+      });
+      
       res.json({ 
         message: 'Configurações da banca atualizadas com sucesso',
-        user: updatedUser
+        user: user
       });
     } catch (error) {
       console.error('Erro ao atualizar configurações da banca:', error);
