@@ -263,13 +263,19 @@ app.put('/api/plans/:id', authenticateToken, (req: any, res) => {
   }
   
   const id = parseInt(req.params.id);
+  console.log('Updating plan with ID:', id, 'Data:', req.body);
+  
   const index = plans.findIndex(p => p.id === id);
   
   if (index === -1) {
+    console.log('Plan not found with ID:', id);
     return res.status(404).json({ message: 'Plano não encontrado' });
   }
   
-  plans[index] = { ...plans[index], ...req.body };
+  const oldPlan = plans[index];
+  plans[index] = { ...oldPlan, ...req.body };
+  console.log('Plan updated successfully:', plans[index]);
+  
   res.json(plans[index]);
 });
 

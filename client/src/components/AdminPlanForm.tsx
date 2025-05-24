@@ -78,6 +78,8 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
       const url = isEditing ? `/api/plans/${plan.id}` : "/api/plans";
       const method = isEditing ? "PUT" : "POST";
       
+      console.log('Sending plan data:', { url, method, data, isEditing, planId: plan?.id });
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -87,11 +89,17 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
         body: JSON.stringify(data),
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error('Falha ao salvar plano');
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('Success response:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
