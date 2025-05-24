@@ -374,10 +374,9 @@ export default function Dashboard() {
   const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '0');
   const userTotalPips = parseInt(localStorage.getItem('userTotalPips') || '0');
 
-  // Zerar progresso se ainda não houve movimentação
-  if (localStorage.getItem('currentProgress') === null) {
-    localStorage.setItem('currentProgress', '0');
-  }
+  // Zerar progresso atual para começar do zero
+  localStorage.setItem('currentProgress', '0');
+  localStorage.setItem('userTotalPips', '0');
 
   // Calcular progresso da meta (lucro/prejuízo em relação à meta)
   const goalProgress = monthlyGoal > 0 ? Math.max(0, (currentProgress / monthlyGoal) * 100) : 0;
