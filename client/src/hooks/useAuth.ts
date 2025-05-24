@@ -24,6 +24,7 @@ export function useAuth() {
         if (!response.ok) {
           if (response.status === 401) {
             localStorage.removeItem('auth-token');
+            setLocation('/login');
           }
           return null;
         }
@@ -33,6 +34,7 @@ export function useAuth() {
       } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('auth-token');
+        setLocation('/login');
         return null;
       }
     },
@@ -42,14 +44,26 @@ export function useAuth() {
   });
 
   const logout = async () => {
-    // Clear local storage immediately
-    localStorage.removeItem('auth-token');
-    
-    // Clear React Query cache
-    queryClient.clear();
-    
-    // Force immediate redirect to login page
-    window.location.href = '/login';
+    try {
+      // Primeiro limpa os dados locais
+      localStorage.removeItem('auth-token');
+      await queryClient.clear();
+      
+      // Depois faz a chamada para o servidor
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        console.error('Erro ao fazer logout no servidor');
+      }
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      // Sempre redireciona para login, mesmo se houver erro
+      setLocation('/login');
+    }
   };
 
   return {
