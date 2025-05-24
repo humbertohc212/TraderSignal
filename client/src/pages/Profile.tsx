@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { User, Settings, TrendingUp, TrendingDown, Plus, Calendar, DollarSign } from "lucide-react";
+import { User, Settings, TrendingUp, TrendingDown, Plus, Calendar, DollarSign, Target } from "lucide-react";
 
 // Schema para atualização de perfil
 const profileSchema = z.object({

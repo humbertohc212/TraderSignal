@@ -214,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Criar nova entrada de trading
   app.post('/api/trading-entries', async (req, res) => {
     try {
-      const { userId, pair, type, amount, notes, date } = req.body;
+      const { userId, pair, type, amount, pips, notes, date } = req.body;
       
       if (!userId || !pair || !type || !amount || !notes || !date) {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
@@ -225,6 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pair,
         type,
         amount: amount.toString(),
+        pips: pips ? pips.toString() : null,
         notes,
         date
       });
