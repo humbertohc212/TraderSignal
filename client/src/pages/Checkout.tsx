@@ -148,11 +148,46 @@ Enviarei o comprovante do PIX em seguida.`;
               
               {/* QR Code do WhatsApp */}
               <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                <img 
-                  src="/attached_assets/WhatsApp Image 2025-05-24 at 03.32.03.jpeg" 
-                  alt="QR Code WhatsApp" 
-                  className="w-32 h-32 mx-auto"
-                />
+                <div className="w-32 h-32 mx-auto flex items-center justify-center">
+                  <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="128" height="128" fill="white"/>
+                    {/* QR Code Pattern for WhatsApp */}
+                    <rect x="4" y="4" width="20" height="20" fill="black"/>
+                    <rect x="8" y="8" width="12" height="12" fill="white"/>
+                    <rect x="12" y="12" width="4" height="4" fill="black"/>
+                    
+                    <rect x="104" y="4" width="20" height="20" fill="black"/>
+                    <rect x="108" y="8" width="12" height="12" fill="white"/>
+                    <rect x="112" y="12" width="4" height="4" fill="black"/>
+                    
+                    <rect x="4" y="104" width="20" height="20" fill="black"/>
+                    <rect x="8" y="108" width="12" height="12" fill="white"/>
+                    <rect x="12" y="112" width="4" height="4" fill="black"/>
+                    
+                    {/* Data pattern */}
+                    <rect x="32" y="8" width="4" height="4" fill="black"/>
+                    <rect x="40" y="8" width="4" height="4" fill="black"/>
+                    <rect x="48" y="8" width="4" height="4" fill="black"/>
+                    <rect x="56" y="8" width="4" height="4" fill="black"/>
+                    <rect x="64" y="8" width="4" height="4" fill="black"/>
+                    <rect x="72" y="8" width="4" height="4" fill="black"/>
+                    <rect x="80" y="8" width="4" height="4" fill="black"/>
+                    <rect x="88" y="8" width="4" height="4" fill="black"/>
+                    <rect x="96" y="8" width="4" height="4" fill="black"/>
+                    
+                    {/* More pattern */}
+                    <rect x="32" y="16" width="4" height="4" fill="black"/>
+                    <rect x="48" y="16" width="4" height="4" fill="black"/>
+                    <rect x="64" y="16" width="4" height="4" fill="black"/>
+                    <rect x="80" y="16" width="4" height="4" fill="black"/>
+                    <rect x="96" y="16" width="4" height="4" fill="black"/>
+                    
+                    {/* Center pattern */}
+                    <rect x="56" y="56" width="16" height="16" fill="black"/>
+                    <rect x="60" y="60" width="8" height="8" fill="white"/>
+                    <rect x="64" y="64" width="4" height="4" fill="black"/>
+                  </svg>
+                </div>
                 <p className="text-xs text-gray-600 mt-2">Escaneie para contato direto</p>
               </div>
               
