@@ -76,15 +76,28 @@ export default function Dashboard() {
               Bem-vindo de volta, {user?.firstName || "Trader"}!
             </p>
           </div>
-          <Button 
-            onClick={handleRefresh}
-            variant="outline" 
-            size="sm"
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-3">
+            {user?.role === "admin" && (
+              <Button 
+                onClick={() => window.location.href = '/admin'}
+                variant="outline" 
+                size="sm"
+                className="bg-purple-600/20 border-purple-400/30 text-purple-300 hover:bg-purple-600/40"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Painel Admin
+              </Button>
+            )}
+            <Button 
+              onClick={handleRefresh}
+              variant="outline" 
+              size="sm"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">

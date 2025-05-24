@@ -162,7 +162,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calcular total de pips dos sinais fechados
       const totalPips = closedSignals.reduce((sum, signal) => {
-        const pips = parseFloat(signal.result || "0");
+        const result = parseFloat(signal.result || "0");
+        // Converter valores altos em pips (assumindo que valores > 1000 são valores monetários)
+        const pips = result > 1000 ? Math.round(result / 100) : result;
         return sum + (pips > 0 ? pips : 0); // Só contar pips positivos
       }, 0);
       
