@@ -53,8 +53,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
+      // Clean the data before validation
+      const cleanBody = { ...req.body };
+      if (cleanBody.takeProfit2Price === "" || cleanBody.takeProfit2Price === null) {
+        delete cleanBody.takeProfit2Price;
+      }
+      
       const signalData = insertSignalSchema.parse({
-        ...req.body,
+        ...cleanBody,
         createdBy: userId,
       });
       

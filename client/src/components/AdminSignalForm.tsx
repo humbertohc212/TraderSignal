@@ -51,16 +51,22 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
 
   const createSignalMutation = useMutation({
     mutationFn: async (data: SignalFormData) => {
-      return await apiRequest("POST", "/api/signals", {
-        ...data,
-        status: "active"
-      });
+      if (signal?.id) {
+        // Edit existing signal
+        return await apiRequest("PUT", `/api/signals/${signal.id}`, data);
+      } else {
+        // Create new signal
+        return await apiRequest("POST", "/api/signals", {
+          ...data,
+          status: "active"
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
       toast({
         title: "Sucesso!",
-        description: "Sinal criado com sucesso!",
+        description: signal?.id ? "Sinal editado com sucesso!" : "Sinal criado com sucesso!",
       });
       onSuccess();
       onClose();
@@ -68,14 +74,19 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
     onError: () => {
       toast({
         title: "Erro",
-        description: "Falha ao criar sinal",
+        description: signal?.id ? "Falha ao editar sinal" : "Falha ao criar sinal",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: SignalFormData) => {
-    createSignalMutation.mutate(data);
+    // Convert empty strings to undefined for optional numeric fields
+    const cleanedData = {
+      ...data,
+      takeProfit2Price: data.takeProfit2Price?.trim() === "" ? undefined : data.takeProfit2Price,
+    };
+    createSignalMutation.mutate(cleanedData);
   };
 
   const currencies = [
