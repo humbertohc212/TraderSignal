@@ -90,8 +90,8 @@ function authenticateToken(req: any, res: any, next: any) {
   });
 }
 
-// Auth routes
-app.post('/api/auth/login', async (req, res) => {
+// Custom login route (avoiding conflicts)
+app.post('/api/custom-login', async (req, res) => {
   console.log('=== LOGIN ENDPOINT HIT ===');
   console.log('Request body:', req.body);
   

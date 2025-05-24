@@ -60,7 +60,7 @@ export default function Login() {
     try {
       console.log('Attempting login with:', data);
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/custom-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
