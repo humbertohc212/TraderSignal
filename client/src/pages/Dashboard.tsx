@@ -26,7 +26,8 @@ import {
   CheckCircle,
   Clock,
   Users,
-  Plus
+  Plus,
+  Trash2
 } from "lucide-react";
 import BankConfigModal from "@/components/BankConfigModal";
 import TradingEntryForm from "@/components/TradingEntryForm";
