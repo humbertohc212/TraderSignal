@@ -493,6 +493,7 @@ let signals = [
     takeProfitPrice: "1.0900",
     stopLossPrice: "1.0800",
     status: "active",
+    result: null,
     analysis: "Breakout acima da resistência de 1.0830. RSI mostra momentum bullish.",
     tradingViewLink: "https://tradingview.com/chart",
     allowedPlans: ["basic", "premium", "vip"], // Sinal exclusivo para planos pagos
@@ -506,6 +507,7 @@ let signals = [
     takeProfitPrice: "1.2600",
     stopLossPrice: "1.2700",
     status: "active",
+    result: null,
     analysis: "Padrão de reversão formado. MACD divergente no H4.",
     tradingViewLink: "https://tradingview.com/chart",
     allowedPlans: ["free", "basic", "premium", "vip"], // Sinal disponível para todos
@@ -694,6 +696,42 @@ app.delete('/api/signals/:id', authenticateToken, (req: any, res) => {
   const id = parseInt(req.params.id);
   signals = signals.filter(s => s.id !== id);
   res.json({ success: true });
+});
+
+// Close signal with TP1/TP2/SL
+app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  try {
+    const signalId = parseInt(req.params.id);
+    const { result, type } = req.body;
+    
+    console.log(`Fechando sinal ${signalId} com tipo ${type} e resultado ${result} pips`);
+    
+    // Encontrar o sinal
+    const signalIndex = signals.findIndex(s => s.id === signalId);
+    
+    if (signalIndex === -1) {
+      return res.status(404).json({ message: 'Sinal não encontrado' });
+    }
+    
+    // Atualizar o sinal para fechado
+    signals[signalIndex] = {
+      ...signals[signalIndex],
+      status: 'closed',
+      result: result,
+      closedAt: new Date().toISOString()
+    };
+    
+    console.log(`Sinal ${signalId} fechado com sucesso. Status: ${signals[signalIndex].status}`);
+    
+    res.json(signals[signalIndex]);
+  } catch (error) {
+    console.error('Erro ao fechar sinal:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
 });
 
 // LESSONS CRUD

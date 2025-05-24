@@ -77,7 +77,7 @@ export default function Admin() {
   // Close signal mutation
   const closeSignalMutation = useMutation({
     mutationFn: async ({ signalId, result, type }: { signalId: number, result: number, type: string }) => {
-      return await apiRequest("POST", `/api/signals/${signalId}/close`, { result });
+      return await apiRequest("POST", `/api/signals/${signalId}/close`, { result, type });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
