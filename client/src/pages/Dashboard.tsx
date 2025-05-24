@@ -252,9 +252,11 @@ export default function Dashboard() {
                   <TrendingUp className="h-4 w-4 text-green-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats?.totalPips || 130}</div>
+                  <div className="text-2xl font-bold text-white">
+                    {(parseInt(localStorage.getItem('userTotalPips') || '0') + 130)}
+                  </div>
                   <p className="text-xs text-gray-400">
-                    {stats?.userPips || 0} suas + {stats?.signalPips || 130} sinais
+                    {localStorage.getItem('userTotalPips') || 0} suas + 130 sinais
                   </p>
                 </CardContent>
               </Card>
