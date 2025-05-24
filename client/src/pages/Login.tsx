@@ -71,12 +71,20 @@ export default function Login() {
         throw new Error('Credenciais inválidas');
       }
 
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Redirecionando para o dashboard...",
-      });
+      const result = await response.json();
       
-      window.location.href = "/";
+      if (result.success && result.token) {
+        // Store token in localStorage
+        localStorage.setItem('auth-token', result.token);
+        console.log('Token stored in localStorage:', result.token);
+
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para o dashboard...",
+        });
+        
+        window.location.href = "/";
+      }
       
     } catch (error: any) {
       toast({

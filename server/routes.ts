@@ -36,11 +36,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // JWT-based auth check
+  // JWT-based auth check with Authorization header
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const token = req.cookies['auth-token'];
-      console.log('Auth check - Token:', token ? 'present' : 'missing');
+      // Check Authorization header first
+      const authHeader = req.headers.authorization;
+      let token = null;
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+        console.log('Token from Authorization header:', token ? 'present' : 'missing');
+      } else {
+        // Fallback to cookie
+        token = req.cookies['auth-token'];
+        console.log('Token from cookie:', token ? 'present' : 'missing');
+      }
       
       if (!token) {
         console.log('No token found, returning 401');
@@ -58,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // JWT-based login endpoint 
+  // Simple login endpoint that returns token for localStorage
   app.post('/api/auth/login', (req, res) => {
     console.log('Login attempt:', req.body);
     
@@ -78,21 +88,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create JWT token
         const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
         
-        // Set token as httpOnly cookie
-        res.cookie('auth-token', token, {
-          httpOnly: true,
-          secure: false,
-          maxAge: 24 * 60 * 60 * 1000,
-          sameSite: 'lax'
-        });
+        console.log('Token created for localStorage:', token);
         
-        console.log('Token created and set:', token);
-        
-        // Return immediately with JSON
+        // Return token for frontend to store in localStorage
         res.setHeader('Content-Type', 'application/json');
         return res.status(200).json({ 
           success: true, 
-          user: userData
+          user: userData,
+          token: token
         });
       } else {
         res.setHeader('Content-Type', 'application/json');
@@ -154,7 +157,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // JWT auth middleware
   const jwtAuth = (req: any, res: any, next: any) => {
     try {
-      const token = req.cookies['auth-token'];
+      // Check Authorization header first
+      const authHeader = req.headers.authorization;
+      let token = null;
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      } else {
+        // Fallback to cookie
+        token = req.cookies['auth-token'];
+      }
+      
       if (!token) {
         return res.status(401).json({ message: "Unauthorized" });
       }
