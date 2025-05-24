@@ -125,7 +125,7 @@ export default function AdminUserForm({ user, isOpen, onClose, onSuccess }: Admi
                 <SelectValue placeholder="Selecione o plano" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
+                <SelectItem value="free">Gratuito</SelectItem>
                 <SelectItem value="basic">Básico</SelectItem>
                 <SelectItem value="premium">Premium</SelectItem>
                 <SelectItem value="vip">VIP</SelectItem>
@@ -143,10 +143,10 @@ export default function AdminUserForm({ user, isOpen, onClose, onSuccess }: Admi
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhum</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="inactive">Inativo</SelectItem>
+                <SelectItem value="active">Ativo</SelectItem>
                 <SelectItem value="expired">Expirado</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
