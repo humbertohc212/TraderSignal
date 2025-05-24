@@ -1,79 +1,32 @@
-import type { Express, Request, Response } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { getUserByEmail } from "../db/config";
-import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertSignalSchema, insertLessonSchema, insertPlanSchema } from "@shared/schema";
 import { z } from "zod";
 import "./types";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-key';
 
-// Store WebSocket connections
-const wsClients = new Set<WebSocket>();
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Skip the complex auth setup for now to avoid conflicts
-  // await setupAuth(app);
+  const server = createServer(app);
 
   // Debug middleware
   app.use('/api', (req: any, res, next) => {
-    console.log('Session debug:', {
-      sessionID: req.sessionID,
-      hasSession: !!req.session,
-      sessionUser: req.session?.user,
-      cookies: req.headers.cookie
+    console.log('Debug da requisição:', {
+      path: req.path,
+      method: req.method,
+      headers: req.headers,
+      cookies: req.cookies,
+      body: req.body
     });
     next();
   });
 
-  // JWT-based auth check with Authorization header
-  app.get('/api/auth/user', async (req: any, res) => {
-    try {
-      // Check Authorization header first
-      const authHeader = req.headers.authorization;
-      let token = null;
-      
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-        console.log('Token from Authorization header:', token ? 'present' : 'missing');
-      } else {
-        // Fallback to cookie
-        token = req.cookies['auth-token'];
-        console.log('Token from cookie:', token ? 'present' : 'missing');
-      }
-      
-      if (!token) {
-        console.log('No token found, returning 401');
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
-      // Verify JWT token
-      const userData = jwt.verify(token, JWT_SECRET) as any;
-      console.log('Token verified, user:', userData);
-      
-      res.json(userData);
-    } catch (error) {
-      console.error("Token verification error:", error);
-      res.status(401).json({ message: "Unauthorized" });
-    }
-  });
-
-  // Simple and direct login endpoint
+  // Rota de login
   app.post('/api/auth/login', async (req, res) => {
     console.log('=== LOGIN ENDPOINT HIT ===');
     console.log('Request body:', req.body);
-    
-    // Ensure content type is application/json
-    const contentType = req.headers['content-type'];
-    if (!contentType || !contentType.includes('application/json')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Content-Type must be application/json'
-      });
-    }
     
     try {
       const { email, password } = req.body;
@@ -89,51 +42,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await getUserByEmail(email);
       console.log('Usuário encontrado:', user);
       
-      let userData = null;
-      
-      if (user && user.password === password) {
-        userData = {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          firstName: user.firstName,
-          lastName: user.lastName
-        };
-      }
-      
-      console.log('Login attempt for:', email);
-      console.log('Login result:', userData ? 'SUCCESS' : 'FAILED');
-      
-      if (userData) {
-        // Create JWT token
-        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
-        
-        // Set cookie for additional security
-        res.cookie('auth-token', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          maxAge: 24 * 60 * 60 * 1000, // 24 hours
-          path: '/'
-        });
-        
-        const response = { 
-          success: true, 
-          user: userData,
-          token: token
-        };
-        
-        console.log('Login successful, sending response:', response);
-        return res.status(200).json(response);
-      } else {
-        console.log('Invalid credentials attempt');
+      if (!user) {
         return res.status(401).json({ 
           success: false,
           message: 'Credenciais inválidas' 
         });
       }
+
+      // Verifica a senha diretamente (por enquanto sem bcrypt)
+      if (user.password !== password) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
+      }
+      
+      // Cria o token JWT
+      const userData = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
+      
+      const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      
+      // Define o cookie de autenticação
+      res.cookie('auth-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+        path: '/'
+      });
+      
+      return res.status(200).json({ 
+        success: true, 
+        user: userData,
+        token: token
+      });
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Erro no login:", error);
       return res.status(500).json({ 
         success: false,
         message: "Erro no servidor" 
@@ -141,761 +91,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple register endpoint
-  app.post('/api/auth/register', async (req, res) => {
+  // Middleware de autenticação JWT
+  const jwtAuth = async (req: any, res: any, next: any) => {
     try {
-      const { email, password, firstName, lastName } = req.body;
-      
-      // Check if user already exists
-      const existingUser = await storage.getUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email já cadastrado' });
-      }
-
-      // Create new user
-      const newUser = await storage.createUser({
-        email,
-        firstName,
-        lastName,
-        role: 'user',
-        subscriptionStatus: 'inactive'
-      });
-
-      // Create session
-      (req as any).session.user = {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName
-      };
-      res.json({ success: true, user: newUser });
-    } catch (error) {
-      console.error("Register error:", error);
-      res.status(500).json({ message: "Erro ao criar conta" });
-    }
-  });
-
-  // Logout endpoint
-  app.post('/api/auth/logout', (req: Request, res: Response) => {
-    try {
-      // Limpa o cookie de autenticação
-      res.clearCookie('auth-token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/'
-      });
-      
-      // Destrói a sessão se existir
-      if (req.session) {
-        req.session.destroy((err: any) => {
-          if (err) {
-            console.error('Erro ao destruir sessão:', err);
-          }
-        });
-      }
-      
-      res.json({ 
-        success: true,
-        message: 'Logout realizado com sucesso'
-      });
-    } catch (error) {
-      console.error('Erro no logout:', error);
-      res.status(500).json({ 
-        success: false,
-        message: 'Erro ao realizar logout'
-      });
-    }
-  });
-
-  // JWT auth middleware
-  const jwtAuth = (req: any, res: any, next: any) => {
-    try {
-      // Check Authorization header first
       const authHeader = req.headers.authorization;
       let token = null;
       
       if (authHeader && authHeader.startsWith('Bearer ')) {
         token = authHeader.substring(7);
       } else {
-        // Fallback to cookie
         token = req.cookies['auth-token'];
       }
       
       if (!token) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Não autorizado" });
       }
       
       const userData = jwt.verify(token, JWT_SECRET) as any;
       req.user = userData;
       return next();
     } catch (error) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Não autorizado" });
     }
   };
 
+  // Rota de verificação do usuário
+  app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
+    res.json(req.user);
+  });
 
-
-  // Download endpoint for project files
-  app.get('/download/project', (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    const filePath = path.join(process.cwd(), 'tradesignal-pro-complete.tar.gz');
+  // Rota de logout
+  app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('auth-token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    });
     
-    try {
-      if (fs.existsSync(filePath)) {
-        const stat = fs.statSync(filePath);
-        
-        res.setHeader('Content-Type', 'application/gzip');
-        res.setHeader('Content-Disposition', 'attachment; filename="tradesignal-pro-complete.tar.gz"');
-        res.setHeader('Content-Length', stat.size);
-        
-        const readStream = fs.createReadStream(filePath);
-        readStream.pipe(res);
-      } else {
-        res.status(404).send('File not found');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      res.status(500).send('Server error');
-    }
+    res.json({ 
+      success: true,
+      message: 'Logout realizado com sucesso',
+      clearStorage: true
+    });
   });
 
-  // Signals routes
-  app.get("/api/signals", jwtAuth, async (req, res) => {
-    try {
-      const signals = await storage.getSignals();
-      res.json(signals);
-    } catch (error) {
-      console.error("Error fetching signals:", error);
-      res.status(500).json({ message: "Failed to fetch signals" });
-    }
-  });
-
-  app.post("/api/signals", jwtAuth, async (req: any, res) => {
-    try {
-      const user = req.user;
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      // Clean the data before validation
-      const cleanBody = { ...req.body };
-      if (cleanBody.takeProfit2Price === "" || cleanBody.takeProfit2Price === null) {
-        delete cleanBody.takeProfit2Price;
-      }
-      
-      const signalData = insertSignalSchema.parse({
-        ...cleanBody,
-        createdBy: user.id,
-      });
-      
-      const signal = await storage.createSignal(signalData);
-      res.json(signal);
-    } catch (error) {
-      console.error("Error creating signal:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid signal data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create signal" });
-    }
-  });
-
-  app.put("/api/signals/:id", jwtAuth, async (req: any, res) => {
-    try {
-      const user = req.user;
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      const updates = req.body;
-      
-      const signal = await storage.updateSignal(id, updates);
-      res.json(signal);
-    } catch (error) {
-      console.error("Error updating signal:", error);
-      res.status(500).json({ message: "Failed to update signal" });
-    }
-  });
-
-  app.post("/api/signals/:id/close", jwtAuth, async (req: any, res) => {
-    try {
-      const user = req.user;
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      const { result } = req.body;
-      
-      const signal = await storage.closeSignal(id, result);
-      res.json(signal);
-    } catch (error) {
-      console.error("Error closing signal:", error);
-      res.status(500).json({ message: "Failed to close signal" });
-    }
-  });
-
-  app.delete("/api/signals/:id", jwtAuth, async (req: any, res) => {
-    try {
-      const user = req.user;
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      await storage.deleteSignal(id);
-      res.json({ message: "Signal deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting signal:", error);
-      res.status(500).json({ message: "Failed to delete signal" });
-    }
-  });
-
-  // Lessons routes
-  app.get("/api/lessons", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      let lessons;
-      if (user?.role === "admin") {
-        lessons = await storage.getLessons();
-      } else {
-        lessons = await storage.getPublishedLessons();
-      }
-      
-      res.json(lessons);
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-      res.status(500).json({ message: "Failed to fetch lessons" });
-    }
-  });
-
-  app.post("/api/lessons", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const lessonData = insertLessonSchema.parse({
-        ...req.body,
-        createdBy: userId,
-      });
-      
-      const lesson = await storage.createLesson(lessonData);
-      res.json(lesson);
-    } catch (error) {
-      console.error("Error creating lesson:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid lesson data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create lesson" });
-    }
-  });
-
-  app.put("/api/lessons/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      const updates = req.body;
-      
-      const lesson = await storage.updateLesson(id, updates);
-      res.json(lesson);
-    } catch (error) {
-      console.error("Error updating lesson:", error);
-      res.status(500).json({ message: "Failed to update lesson" });
-    }
-  });
-
-  app.delete("/api/lessons/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      await storage.deleteLesson(id);
-      res.json({ message: "Lesson deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting lesson:", error);
-      res.status(500).json({ message: "Failed to delete lesson" });
-    }
-  });
-
-  app.post("/api/lessons/:id/complete", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const lessonId = parseInt(req.params.id);
-      
-      const progress = await storage.markLessonCompleted(userId, lessonId);
-      res.json(progress);
-    } catch (error) {
-      console.error("Error marking lesson complete:", error);
-      res.status(500).json({ message: "Failed to mark lesson complete" });
-    }
-  });
-
-  // Plans routes
-  app.get("/api/plans", async (req, res) => {
-    try {
-      const plans = await storage.getActivePlans();
-      res.json(plans);
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-      res.status(500).json({ message: "Failed to fetch plans" });
-    }
-  });
-
-  app.post("/api/plans", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const planData = insertPlanSchema.parse(req.body);
-      const plan = await storage.createPlan(planData);
-      res.json(plan);
-    } catch (error) {
-      console.error("Error creating plan:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid plan data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create plan" });
-    }
-  });
-
-  app.put("/api/plans/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      const updates = req.body;
-      
-      const plan = await storage.updatePlan(id, updates);
-      res.json(plan);
-    } catch (error) {
-      console.error("Error updating plan:", error);
-      res.status(500).json({ message: "Failed to update plan" });
-    }
-  });
-
-  app.delete("/api/plans/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = parseInt(req.params.id);
-      await storage.deletePlan(id);
-      res.json({ message: "Plan deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting plan:", error);
-      res.status(500).json({ message: "Failed to delete plan" });
-    }
-  });
-
-  // Get all users (admin only)
-  app.get("/api/users", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const users = await storage.getUsers();
-      res.json(users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  // Update user (admin only)
-  app.put("/api/users/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const id = req.params.id;
-      const updates = req.body;
-      
-      const updatedUser = await storage.updateUser(id, updates);
-      res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ message: "Failed to update user" });
-    }
-  });
-
-  // Backup and export routes
-  app.post("/api/admin/backup-database", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      // Create a comprehensive backup with all data
-      const users = await storage.getUsers();
-      const signals = await storage.getSignals();
-      const lessons = await storage.getLessons();
-      const plans = await storage.getPlans();
-      
-      const backupData = {
-        timestamp: new Date().toISOString(),
-        version: "1.0",
-        data: {
-          users: users.length,
-          signals: signals.length,
-          lessons: lessons.length,
-          plans: plans.length
-        },
-        // Note: In production, you'd export the actual SQL
-        backup_info: "Full database backup created successfully"
-      };
-
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename=backup.json');
-      res.json(backupData);
-    } catch (error) {
-      console.error("Error creating backup:", error);
-      res.status(500).json({ message: "Failed to create backup" });
-    }
-  });
-
-  app.post("/api/admin/export-users", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const users = await storage.getUsers();
-      
-      // Convert to CSV format
-      const csvHeader = "ID,Email,Nome,Plano,Status,Cadastro\n";
-      const csvData = users.map(u => 
-        `${u.id},"${u.email || 'N/A'}","${u.firstName || ''} ${u.lastName || ''}","${u.subscriptionPlan || 'Nenhum'}","${u.subscriptionStatus || 'Inativo'}","${u.createdAt || ''}"`
-      ).join('\n');
-
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=users-export.csv');
-      res.send(csvHeader + csvData);
-    } catch (error) {
-      console.error("Error exporting users:", error);
-      res.status(500).json({ message: "Failed to export users" });
-    }
-  });
-
-  app.post("/api/admin/export-signals", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const signals = await storage.getSignals();
-      
-      // Convert to CSV format
-      const csvHeader = "ID,Par,Direção,Entrada,Take Profit,Stop Loss,Status,Resultado,Data\n";
-      const csvData = signals.map(s => 
-        `${s.id},"${s.pair}","${s.direction}","${s.entryPrice}","${s.takeProfitPrice}","${s.stopLossPrice}","${s.status}","${s.result || 'N/A'}","${s.createdAt || ''}"`
-      ).join('\n');
-
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=signals-export.csv');
-      res.send(csvHeader + csvData);
-    } catch (error) {
-      console.error("Error exporting signals:", error);
-      res.status(500).json({ message: "Failed to export signals" });
-    }
-  });
-
-  // Statistics routes
-  app.get("/api/stats/user", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const stats = await storage.getUserStats(userId);
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching user stats:", error);
-      res.status(500).json({ message: "Failed to fetch user stats" });
-    }
-  });
-
-  app.get("/api/stats/admin", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const stats = await storage.getAdminStats();
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch admin stats" });
-    }
-  });
-
-  // User progress routes
-  app.get("/api/user/progress", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const progress = await storage.getUserLessonProgress(userId);
-      res.json(progress);
-    } catch (error) {
-      console.error("Error fetching user progress:", error);
-      res.status(500).json({ message: "Failed to fetch user progress" });
-    }
-  });
-
-  // Subscription request route (for manual approval)
-  app.post("/api/subscriptions/request/:planId", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const planId = parseInt(req.params.planId);
-      
-      // Get the plan details
-      const plan = await storage.getPlanById(planId);
-      if (!plan) {
-        return res.status(404).json({ message: "Plano não encontrado" });
-      }
-
-      // Create subscription request
-      await storage.createSubscriptionRequest({
-        userId,
-        planId,
-        planName: plan.name,
-        status: 'pending',
-        requestDate: new Date(),
-      });
-
-      res.json({ 
-        success: true,
-        message: "Solicitação de assinatura enviada com sucesso" 
-      });
-    } catch (error: any) {
-      console.error("Error creating subscription request:", error);
-      res.status(500).json({ message: "Failed to create subscription request" });
-    }
-  });
-
-  // Admin route to manage subscription requests
-  app.get("/api/admin/subscription-requests", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const requests = await storage.getSubscriptionRequests();
-      res.json(requests);
-    } catch (error: any) {
-      console.error("Error fetching subscription requests:", error);
-      res.status(500).json({ message: "Failed to fetch subscription requests" });
-    }
-  });
-
-  // Admin route to approve/reject subscription requests
-  app.post("/api/admin/subscription-requests/:requestId", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const requestId = parseInt(req.params.requestId);
-      const { action } = req.body; // 'approve' or 'reject'
-
-      if (action === 'approve') {
-        const request = await storage.getSubscriptionRequest(requestId);
-        if (!request) {
-          return res.status(404).json({ message: "Request not found" });
-        }
-
-        // Update user subscription
-        await storage.updateUser(request.userId, {
-          subscriptionPlan: request.planName,
-          subscriptionStatus: 'active',
-          subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        });
-
-        // Update request status
-        await storage.updateSubscriptionRequest(requestId, {
-          status: 'approved',
-          processedDate: new Date(),
-        });
-      } else if (action === 'reject') {
-        // Update request status
-        await storage.updateSubscriptionRequest(requestId, {
-          status: 'rejected',
-          processedDate: new Date(),
-        });
-      }
-
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error("Error processing subscription request:", error);
-      res.status(500).json({ message: "Failed to process subscription request" });
-    }
-  });
-
-  // Admin reports routes
-  app.get("/api/admin/reports/revenue", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const users = await storage.getUsers();
-      const plans = await storage.getPlans();
-      
-      const activeUsers = users.filter(u => u.subscriptionStatus === 'active');
-      const monthlyRevenue = activeUsers.reduce((total, user) => {
-        const plan = plans.find(p => p.name === user.subscriptionPlan);
-        return total + (plan ? parseFloat(plan.price.toString()) : 0);
-      }, 0);
-
-      const revenueStats = {
-        monthlyRevenue,
-        activeSubscriptions: activeUsers.length,
-        averageRevenuePerUser: activeUsers.length > 0 
-          ? monthlyRevenue / activeUsers.length 
-          : 0,
-        totalUsers: users.length,
-        conversionRate: users.length > 0 
-          ? (activeUsers.length / users.length) * 100 
-          : 0
-      };
-
-      res.json(revenueStats);
-    } catch (error: any) {
-      console.error("Error fetching revenue stats:", error);
-      res.status(500).json({ message: "Failed to fetch revenue stats" });
-    }
-  });
-
-  app.get("/api/admin/reports/signals", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const signals = await storage.getSignals();
-      const closedSignals = signals.filter(s => s.status === 'closed');
-      const winningSignals = closedSignals.filter(s => s.result && parseFloat(s.result) > 0);
-      
-      const signalStats = {
-        totalSignals: signals.length,
-        activeSignals: signals.filter(s => s.status === 'active').length,
-        closedSignals: closedSignals.length,
-        winningSignals: winningSignals.length,
-        winRate: closedSignals.length > 0 
-          ? (winningSignals.length / closedSignals.length) * 100 
-          : 0,
-        totalProfit: closedSignals.reduce((total, signal) => {
-          return total + (signal.result ? parseFloat(signal.result) : 0);
-        }, 0)
-      };
-
-      res.json(signalStats);
-    } catch (error: any) {
-      console.error("Error fetching signal stats:", error);
-      res.status(500).json({ message: "Failed to fetch signal stats" });
-    }
-  });
-
-  app.get("/api/admin/reports/users", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== "admin") {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
-      const users = await storage.getUsers();
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      
-      const newUsers = users.filter(u => 
-        u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
-      );
-
-      const userStats = {
-        totalUsers: users.length,
-        newUsers: newUsers.length,
-        activeUsers: users.filter(u => u.subscriptionStatus === 'active').length,
-        adminUsers: users.filter(u => u.role === 'admin').length,
-        usersByPlan: users.reduce((acc: any, user) => {
-          const plan = user.subscriptionPlan || 'Sem plano';
-          acc[plan] = (acc[plan] || 0) + 1;
-          return acc;
-        }, {})
-      };
-
-      res.json(userStats);
-    } catch (error: any) {
-      console.error("Error fetching user stats:", error);
-      res.status(500).json({ message: "Failed to fetch user stats" });
-    }
-  });
-
-  const httpServer = createServer(app);
-  return httpServer;
+  return server;
 }
