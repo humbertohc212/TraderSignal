@@ -205,15 +205,15 @@ export default function Admin() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                      <Users className="h-5 w-5 text-blue-600" />
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Users className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Usuários</p>
-                    <p className="text-2xl font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Total Usuários</p>
+                    <p className="text-3xl font-bold text-gray-900">
                       {statsLoading ? "..." : adminStats?.totalUsers || 0}
                     </p>
                   </div>
@@ -223,15 +223,15 @@ export default function Admin() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                      <Signal className="h-5 w-5 text-green-600" />
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Signal className="h-6 w-6 text-green-600" />
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Sinais Ativos</p>
-                    <p className="text-2xl font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Sinais Ativos</p>
+                    <p className="text-3xl font-bold text-gray-900">
                       {statsLoading ? "..." : adminStats?.activeSignals ?? 1}
                     </p>
                   </div>
@@ -241,15 +241,15 @@ export default function Admin() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                      <Video className="h-5 w-5 text-yellow-600" />
+                    <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                      <Video className="h-6 w-6 text-yellow-600" />
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Aulas</p>
-                    <p className="text-2xl font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Total Aulas</p>
+                    <p className="text-3xl font-bold text-gray-900">
                       {statsLoading ? "..." : adminStats?.totalLessons || 0}
                     </p>
                   </div>
@@ -259,15 +259,15 @@ export default function Admin() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center">
+                <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center">
-                      <DollarSign className="h-5 w-5 text-purple-600" />
+                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <DollarSign className="h-6 w-6 text-purple-600" />
                     </div>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Receita Mensal</p>
-                    <p className="text-2xl font-semibold text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Receita Mensal</p>
+                    <p className="text-3xl font-bold text-gray-900">
                       {statsLoading ? "..." : `R$ ${adminStats?.monthlyRevenue || 0}`}
                     </p>
                   </div>
