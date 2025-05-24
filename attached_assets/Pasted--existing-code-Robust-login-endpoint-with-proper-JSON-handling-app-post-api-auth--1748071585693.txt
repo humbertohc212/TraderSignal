@@ -1,0 +1,71 @@
+// ... existing code ...
+  // Robust login endpoint with proper JSON handling
+  app.post('/api/auth/login', async (req, res) => {
+    console.log('=== LOGIN ENDPOINT HIT ===');
+    console.log('Request body:', req.body);
+    
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email e senha são obrigatórios' 
+        });
+      }
+      
+      // Busca o usuário no banco de dados
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        console.log('Usuário não encontrado:', email);
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
+      }
+
+      // Verifica a senha
+      if (user.password !== password) {
+        console.log('Senha incorreta para:', email);
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
+      }
+      
+      // Cria o token JWT
+      const userData = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
+      
+      const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      
+      // Define o cookie de autenticação
+      res.cookie('auth-token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        path: '/'
+      });
+      
+      console.log('Login bem sucedido:', email);
+      return res.status(200).json({ 
+        success: true, 
+        user: userData,
+        token: token
+      });
+    } catch (error) {
+      console.error("Erro no login:", error);
+      return res.status(500).json({ 
+        success: false,
+        message: "Erro no servidor" 
+      });
+    }
+  });
+// ... existing code ...
