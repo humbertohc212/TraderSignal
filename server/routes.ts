@@ -64,6 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('=== LOGIN ENDPOINT HIT ===');
     console.log('Request body:', req.body);
     console.log('Request headers:', req.headers);
+    console.log('Email from request:', JSON.stringify(req.body.email));
+    console.log('Password from request:', JSON.stringify(req.body.password));
     
     // Ensure content type is application/json
     const contentType = req.headers['content-type'];
@@ -88,6 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
+        console.log('Admin credentials matched!');
         userData = {
           id: 'admin-user-id',
           email: email,
@@ -97,6 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       // For specific user credentials
       } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
+        console.log('User credentials matched!');
         userData = {
           id: 'user-alessandra-id',
           email: email,
@@ -106,7 +110,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         console.log('Login successful for user:', email);
       } else {
-        console.log('Invalid credentials for:', email);
+        console.log('No credentials matched');
+        console.log('Expected user email: "alessandrabertoo2001@gmail.com"');
+        console.log('Received email:', JSON.stringify(email));
+        console.log('Email match:', email === 'alessandrabertoo2001@gmail.com');
+        console.log('Expected password: "1339Ale@"');
+        console.log('Received password:', JSON.stringify(password));
+        console.log('Password match:', password === '1339Ale@');
       }
       
       if (userData) {
