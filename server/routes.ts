@@ -302,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========== ROTAS DO PERFIL ==========
   
   // Atualizar dados do perfil
-  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
+  app.put('/api/update-profile', isAuthenticated, async (req: any, res) => {
     try {
       const { firstName, lastName, phone, bio } = req.body;
       const userId = req.user.claims.sub;

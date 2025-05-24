@@ -14,7 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { User, Settings, TrendingUp, TrendingDown, Plus, Calendar, DollarSign, Target } from "lucide-react";
+import { User, Settings, TrendingUp, TrendingDown, Plus, Calendar, DollarSign, Target, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 
 // Schema para atualização de perfil
 const profileSchema = z.object({
@@ -40,6 +41,7 @@ type TradingEntryData = z.infer<typeof tradingEntrySchema>;
 export default function Profile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form para perfil
@@ -77,7 +79,7 @@ export default function Profile() {
       console.log('Enviando dados do perfil:', data);
       console.log('User ID:', user?.id);
       
-      const response = await apiRequest("PUT", "/api/profile", data);
+      const response = await apiRequest("PUT", "/api/update-profile", data);
       console.log('Response status:', response.status);
       
       if (response.ok) {
@@ -197,6 +199,16 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              onClick={() => setLocation("/")}
+              variant="outline"
+              className="border-gray-600 hover:bg-gray-700 text-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar ao Dashboard
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Meu Perfil</h1>
           <p className="text-gray-300">Gerencie suas informações e acompanhe seus resultados</p>
         </div>

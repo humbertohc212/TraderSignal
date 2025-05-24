@@ -898,6 +898,39 @@ app.get('/api/stats/user', authenticateToken, async (req: any, res) => {
 
 
 
+// PROFILE UPDATE - ROTA FUNCIONAL
+app.put('/api/update-profile', authenticateToken, async (req: any, res) => {
+  try {
+    console.log('=== PROFILE UPDATE REQUEST ===');
+    console.log('Body:', req.body);
+    console.log('User:', req.user);
+
+    const { firstName, lastName, phone, bio } = req.body;
+    const userId = req.user.id;
+
+    const updatedUser = await storage.updateUser(userId, {
+      firstName: firstName || '',
+      lastName: lastName || '',
+      phone: phone || '',
+      bio: bio || ''
+    });
+
+    console.log('User updated:', updatedUser);
+
+    res.json({
+      success: true,
+      message: 'Perfil atualizado com sucesso',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao atualizar perfil'
+    });
+  }
+});
+
 // USERS CRUD
 app.get('/api/users', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
