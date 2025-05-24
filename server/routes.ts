@@ -59,13 +59,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Robust login endpoint with proper JSON handling
+  // Simple and direct login endpoint
   app.post('/api/auth/login', async (req, res) => {
     console.log('=== LOGIN ENDPOINT HIT ===');
     console.log('Request body:', req.body);
-    console.log('Request headers:', req.headers);
-    console.log('Email from request:', JSON.stringify(req.body.email));
-    console.log('Password from request:', JSON.stringify(req.body.password));
     
     // Ensure content type is application/json
     const contentType = req.headers['content-type'];
@@ -88,26 +85,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let userData = null;
       
-      // Verificação simples de credenciais
-      const validCredentials = [
-        { email: 'homercavalcanti@gmail.com', password: 'Betinho21@', role: 'admin', firstName: 'Admin', lastName: 'User' },
-        { email: 'alessandrabertoo2001@gmail.com', password: '1339Ale@', role: 'user', firstName: 'Alessandra', lastName: 'Berto' }
-      ];
-      
-      const matchedUser = validCredentials.find(u => u.email === email && u.password === password);
-      
-      if (matchedUser) {
+      // Verificação direta e simples
+      if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
         userData = {
-          id: matchedUser.role === 'admin' ? 'admin-user-id' : 'user-alessandra-id',
-          email: matchedUser.email,
-          role: matchedUser.role,
-          firstName: matchedUser.firstName,
-          lastName: matchedUser.lastName
+          id: 'admin-user-id',
+          email: 'homercavalcanti@gmail.com',
+          role: 'admin',
+          firstName: 'Admin',
+          lastName: 'User'
         };
-        console.log('Login successful for:', email);
-      } else {
-        console.log('Invalid credentials for:', email);
+      } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
+        userData = {
+          id: 'user-alessandra-id',
+          email: 'alessandrabertoo2001@gmail.com',
+          role: 'user',
+          firstName: 'Alessandra',
+          lastName: 'Berto'
+        };
       }
+      
+      console.log('Login attempt for:', email);
+      console.log('Login result:', userData ? 'SUCCESS' : 'FAILED');
       
       if (userData) {
         // Create JWT token
