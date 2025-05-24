@@ -8,10 +8,12 @@ import { storage } from "./simpleStorage";
 const app = express();
 
 // Middleware especial para interceptar login ANTES de qualquer outro processamento
-app.use('/login-user', express.json(), async (req, res, next) => {
-  if (req.method === 'POST') {
-    console.log('=== INTERCEPTED LOGIN REQUEST ===');
-    console.log('Request body:', req.body);
+app.use('/api', express.json());
+
+// Rota especifica de login que não conflita com Vite
+app.post('/api/auth/login', async (req, res) => {
+  console.log('=== API LOGIN REQUEST INTERCEPTED ===');
+  console.log('Request body:', req.body);
     
     res.setHeader('Content-Type', 'application/json');
     
@@ -118,9 +120,6 @@ app.use('/login-user', express.json(), async (req, res, next) => {
         message: 'Erro interno do servidor: ' + error.message
       });
     }
-  } else {
-    next();
-  }
 });
 
 app.use(express.json());
