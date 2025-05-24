@@ -15,6 +15,7 @@ import Plans from "@/pages/Plans";
 import Admin from "@/pages/Admin";
 import Demo from "@/pages/Demo";
 import Subscribe from "@/pages/Subscribe";
+import Checkout from "@/pages/Checkout";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/signals" component={Signals} />
           <Route path="/education" component={Education} />
           <Route path="/plans" component={Plans} />
+          <Route path="/checkout" component={Checkout} />
           <Route path="/admin" component={Admin} />
           <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/admin/reports" component={AdminReports} />

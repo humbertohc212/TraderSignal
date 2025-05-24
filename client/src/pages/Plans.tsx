@@ -40,31 +40,8 @@ export default function Plans() {
       return;
     }
 
-    try {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch(`/api/subscriptions/request/${planId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Solicitação enviada!",
-          description: `Sua solicitação para o plano ${planName} foi enviada. Entre em contato conosco para ativar.`,
-        });
-      } else {
-        throw new Error('Erro ao processar solicitação');
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar sua solicitação. Tente novamente.",
-        variant: "destructive",
-      });
-    }
+    // Redirecionar para checkout com o ID do plano
+    setLocation(`/checkout?planId=${planId}`);
   };
 
   if (isLoading) {
