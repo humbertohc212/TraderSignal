@@ -1,0 +1,107 @@
+// ... existing code ...
+
+// Subscription request route
+app.post("/api/subscriptions/request/:planId", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const planId = parseInt(req.params.planId);
+    
+    // Get the plan details
+    const plan = await storage.getPlanById(planId);
+    if (!plan) {
+      return res.status(404).json({ message: "Plano não encontrado" });
+    }
+
+    // Create subscription request
+    await storage.createSubscriptionRequest({
+      userId,
+      planId,
+      status: 'pending',
+      requestDate: new Date(),
+    });
+
+    res.json({ 
+      success: true,
+      message: "Solicitação de assinatura enviada com sucesso" 
+    });
+  } catch (error) {
+    console.error("Error creating subscription request:", error);
+    res.status(500).json({ message: "Failed to create subscription request" });
+  }
+});
+
+// Admin route to manage subscription requests
+app.get("/api/admin/subscription-requests", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    
+    if (user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const requests = await storage.getSubscriptionRequests();
+    res.json(requests);
+  } catch (error) {
+    console.error("Error fetching subscription requests:", error);
+    res.status(500).json({ message: "Failed to fetch subscription requests" });
+  }
+});
+
+// Admin route to approve/reject subscription requests
+app.post("/api/admin/subscription-requests/:requestId", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    
+    if (user?.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const requestId = parseInt(req.params.requestId);
+    const { action } = req.body; // 'approve' or 'reject'
+
+    if (action === 'approve') {
+      const request = await storage.getSubscriptionRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      const plan = await storage.getPlanById(request.planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+
+      // Update user subscription
+      await storage.updateUser(request.userId, {
+        subscriptionPlan: plan.name,
+        subscriptionStatus: 'active',
+        subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      });
+
+      // Update request status
+      await storage.updateSubscriptionRequest(requestId, {
+        status: 'approved',
+        requestDate: request.requestDate,
+      });
+    } else if (action === 'reject') {
+      const request = await storage.getSubscriptionRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      // Update request status
+      await storage.updateSubscriptionRequest(requestId, {
+        status: 'rejected',
+        requestDate: request.requestDate,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error processing subscription request:", error);
+    res.status(500).json({ message: "Failed to process subscription request" });
+  }
+});
+
+// ... existing code ...
