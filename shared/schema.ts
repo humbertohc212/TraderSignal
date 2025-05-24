@@ -41,6 +41,13 @@ export const users = pgTable("users", {
   subscriptionStatus: varchar("subscription_status").default("inactive"), // 'active', 'inactive', 'cancelled'
   subscriptionExpiry: timestamp("subscription_expiry"),
   isBanned: boolean("is_banned").default(false), // Para controle de banimento
+  
+  // Campos para progresso mensal baseado na banca
+  initialBalance: decimal("initial_balance", { precision: 10, scale: 2 }), // Banca inicial do usuário
+  currentBalance: decimal("current_balance", { precision: 10, scale: 2 }), // Banca atual
+  monthlyGoal: decimal("monthly_goal", { precision: 10, scale: 2 }), // Meta financeira mensal
+  defaultLotSize: decimal("default_lot_size", { precision: 3, scale: 2 }).default("0.01"), // Tamanho padrão do lote
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -171,11 +178,17 @@ export const subscriptionRequestsRelations = relations(subscriptionRequests, ({ 
 export const tradingEntries = pgTable("trading_entries", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").notNull().references(() => users.id),
+  signalId: integer("signal_id").references(() => signals.id), // Referência ao sinal seguido (opcional)
   pair: varchar("pair").notNull(), // Trading pair (EURUSD, BTCUSD, etc.)
-  type: varchar("type").notNull(), // 'gain' or 'loss'
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount in currency
+  direction: varchar("direction").notNull(), // BUY ou SELL
+  lotSize: decimal("lot_size", { precision: 5, scale: 2 }).notNull(), // Tamanho do lote
+  entryPrice: decimal("entry_price", { precision: 10, scale: 5 }).notNull(), // Preço de entrada
+  exitPrice: decimal("exit_price", { precision: 10, scale: 5 }), // Preço de saída
+  result: varchar("result"), // "TP1", "TP2", "SL", "manual"
   pips: decimal("pips", { precision: 8, scale: 2 }), // Pips gained/lost
-  notes: text("notes").notNull(), // User's notes about the trade
+  profit: decimal("profit", { precision: 10, scale: 2 }), // Lucro/prejuízo em valor monetário
+  notes: text("notes"), // User's notes about the trade
+  status: varchar("status").notNull().default("open"), // open, closed
   date: date("date").notNull(), // Date of the trade
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
