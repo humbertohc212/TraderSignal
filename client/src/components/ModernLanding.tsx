@@ -101,7 +101,7 @@ export default function ModernLanding() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-            <Link href="/login">
+            <Link href="/api/login">
               <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300">
                 Começar Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
