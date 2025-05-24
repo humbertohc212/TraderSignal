@@ -899,8 +899,8 @@ app.get('/api/stats/user', authenticateToken, async (req: any, res) => {
 
 
 
-// PROFILE UPDATE - ROTA FUNCIONAL
-app.put('/api/update-profile', authenticateToken, async (req: any, res) => {
+// PROFILE UPDATE - ROTA FUNCIONAL (caminho diferente para evitar Vite)
+app.put('/profile-update', authenticateToken, async (req: any, res) => {
   try {
     console.log('=== PROFILE UPDATE REQUEST ===');
     console.log('Body:', req.body);

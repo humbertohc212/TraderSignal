@@ -81,7 +81,7 @@ export default function Profile() {
       
       // Usando fetch direto para evitar interceptação do Vite
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/update-profile', {
+      const response = await fetch('/profile-update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
