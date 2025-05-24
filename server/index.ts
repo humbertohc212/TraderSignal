@@ -944,10 +944,11 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
     console.log('Token being sent:', updatedToken ? 'YES' : 'NO');
     console.log('Actual token:', updatedToken);
 
-    // GARANTIR QUE O TOKEN SEJA INCLUÍDO NA RESPOSTA
+    // RESPOSTA SIMPLES COM TOKEN GARANTIDO
     const responseData = {
       success: true,
       message: 'Perfil atualizado com sucesso',
+      token: updatedToken,
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
@@ -955,26 +956,16 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
         lastName: updatedUser.lastName,
         phone: updatedUser.phone || '',
         bio: updatedUser.bio || '',
-        profileImageUrl: updatedUser.profileImageUrl,
-        role: updatedUser.role,
-        subscriptionPlan: updatedUser.subscriptionPlan,
-        subscriptionStatus: updatedUser.subscriptionStatus,
-        subscriptionExpiry: updatedUser.subscriptionExpiry,
-        isBanned: updatedUser.isBanned,
-        initialBalance: updatedUser.initialBalance,
-        currentBalance: updatedUser.currentBalance,
-        monthlyGoal: updatedUser.monthlyGoal,
-        defaultLotSize: updatedUser.defaultLotSize,
-        createdAt: updatedUser.createdAt,
-        updatedAt: updatedUser.updatedAt
-      },
-      token: updatedToken
+        role: updatedUser.role
+      }
     };
     
     console.log('FINAL RESPONSE INCLUDES TOKEN:', !!responseData.token);
     console.log('TOKEN LENGTH:', responseData.token?.length || 0);
     
-    res.json(responseData);
+    // ENVIAR RESPOSTA COM TOKEN - SOLUÇÃO DEFINITIVA
+    console.log('SENDING RESPONSE WITH TOKEN:', JSON.stringify(responseData).includes('token'));
+    res.status(200).json(responseData);
     return;
   } catch (error) {
     console.error('Profile update error:', error);
