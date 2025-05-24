@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import jwt from "jsonwebtoken";
+import { getUserByEmail } from "../db/config";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertSignalSchema, insertLessonSchema, insertPlanSchema } from "@shared/schema";
@@ -83,24 +84,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Busca o usuário no banco de dados
+      const user = await getUserByEmail(email);
+      console.log('Usuário encontrado:', user);
+      
       let userData = null;
       
-      // Verificação direta e simples
-      if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
+      if (user && user.password === password) {
         userData = {
-          id: 'admin-user-id',
-          email: 'homercavalcanti@gmail.com',
-          role: 'admin',
-          firstName: 'Admin',
-          lastName: 'User'
-        };
-      } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
-        userData = {
-          id: 'user-alessandra-id',
-          email: 'alessandrabertoo2001@gmail.com',
-          role: 'user',
-          firstName: 'Alessandra',
-          lastName: 'Berto'
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          firstName: user.first_name,
+          lastName: user.last_name
         };
       }
       
