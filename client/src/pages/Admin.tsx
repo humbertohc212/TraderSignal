@@ -692,7 +692,11 @@ export default function Admin() {
                               <Button 
                                 className="flex-1" 
                                 variant="outline"
-                                onClick={() => handleEditPlan(plan)}
+                                onClick={() => {
+                                  console.log('Editing plan:', plan);
+                                  setEditingPlan(plan);
+                                  setShowPlanForm(true);
+                                }}
                               >
                                 <Edit className="h-3 w-3 mr-2" />
                                 Editar
