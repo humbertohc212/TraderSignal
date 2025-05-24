@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import "./types";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-key';
@@ -174,12 +177,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
       }
 
-      const updatedUser = await storage.updateUser(userId, {
-        initialBalance: initialBalance.toString(),
-        currentBalance: initialBalance.toString(),
-        monthlyGoal: monthlyGoal.toString(),
-        defaultLotSize: defaultLotSize.toString(),
-      });
+      // Usar SQL direto para garantir que os dados sejam salvos
+      await db.update(users)
+        .set({
+          initialBalance: initialBalance.toString(),
+          currentBalance: initialBalance.toString(),
+          monthlyGoal: monthlyGoal.toString(),
+          defaultLotSize: defaultLotSize.toString(),
+        })
+        .where(eq(users.id, userId));
+
+      // Buscar usuário atualizado
+      const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
 
       console.log('User updated successfully:', updatedUser);
       res.json({ 
