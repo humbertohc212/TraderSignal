@@ -39,9 +39,9 @@ export function useAuth() {
       }
     },
     retry: 1,
-    staleTime: 1000, // 1 segundo para atualizar rapidamente após mudanças
-    gcTime: 10 * 60 * 1000,
-    refetchInterval: 5000, // Revalida a cada 5 segundos
+    staleTime: 0, // Sempre buscar dados frescos
+    gcTime: 0, // Não manter cache
+    refetchInterval: 2000, // Revalida a cada 2 segundos
   });
 
   const logout = async () => {

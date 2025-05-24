@@ -123,11 +123,21 @@ export default function Profile() {
     },
     onSuccess: (data) => {
       console.log('Profile updated successfully:', data);
+      
+      // Se recebeu um novo token, atualizar no localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        console.log('Token atualizado com dados do perfil');
+      }
+      
       toast({
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      
+      // Limpar todo o cache e forçar atualização
+      queryClient.clear();
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: any) => {
       console.error('Profile update error:', error);
