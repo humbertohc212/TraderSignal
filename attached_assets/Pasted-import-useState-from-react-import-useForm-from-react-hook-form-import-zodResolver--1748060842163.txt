@@ -1,0 +1,144 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { UserPlus, LogIn } from "lucide-react";
+
+const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "Senha é obrigatória"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+export default function Login() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onLoginSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
+    try {
+      console.log('Tentando fazer login com:', { email: data.email });
+      
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      console.log('Status da resposta:', response.status);
+      
+      const responseData = await response.json();
+      console.log('Dados da resposta:', responseData);
+
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Erro no login');
+      }
+
+      if (responseData.success && responseData.token) {
+        // Armazena o token
+        localStorage.setItem('auth-token', responseData.token);
+        
+        // Força atualização dos dados do usuário
+        await queryClient.invalidateQueries({ queryKey: ["user"] });
+        
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para o dashboard...",
+        });
+        
+        // Redireciona para o dashboard
+        setLocation("/");
+      } else {
+        throw new Error(responseData.message || 'Credenciais inválidas');
+      }
+      
+    } catch (error: any) {
+      console.error('Erro durante o login:', error);
+      toast({
+        title: "Erro no login",
+        description: error.message || "Credenciais inválidas",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">TradeSignal Pro</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...loginForm.register("email")}
+                className="w-full"
+              />
+              {loginForm.formState.errors.email && (
+                <p className="text-sm text-red-500">
+                  {loginForm.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                {...loginForm.register("password")}
+                className="w-full"
+              />
+              {loginForm.formState.errors.password && (
+                <p className="text-sm text-red-500">
+                  {loginForm.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -84,16 +84,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      let userData = null;
+      
       // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
-        const userData = {
+        userData = {
           id: 'admin-user-id',
           email: email,
           role: 'admin',
           firstName: 'Admin',
           lastName: 'User'
         };
-        
+      
+      // For user credentials
+      } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
+        userData = {
+          id: 'user-alessandra-id',
+          email: email,
+          role: 'user',
+          firstName: 'Alessandra',
+          lastName: 'Berto'
+        };
+      }
+      
+      if (userData) {
         // Create JWT token
         const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
         
