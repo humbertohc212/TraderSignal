@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const signalData = insertSignalSchema.parse({
         ...cleanBody,
-        createdBy: userId,
+        createdBy: user.id,
       });
       
       const signal = await storage.createSignal(signalData);

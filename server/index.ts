@@ -7,15 +7,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session
+// Configure session - simplified for development
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
-  resave: false,
-  saveUninitialized: false,
+  secret: 'simple-dev-secret',
+  resave: true,
+  saveUninitialized: true,
   cookie: {
-    secure: false, // Set to true in production with HTTPS
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: false,
+    httpOnly: false,
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
