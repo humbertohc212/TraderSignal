@@ -229,64 +229,102 @@ export default function Dashboard() {
                       </div>
                       
 
-                      {user?.initialBalance ? (
-                        <div className="space-y-6">
-                          <div className="mb-6">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-gray-700">Progresso da Meta</span>
-                              <span className="text-2xl font-bold text-green-600">
-                                R$ {(parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")).toFixed(2)}
-                              </span>
-                            </div>
-                            
-                            <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
-                              <div 
-                                className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
-                                style={{ 
-                                  width: `${Math.min(Math.max(
+                      <div className="space-y-6">
+                        {/* Exemplo visual motivacional */}
+                        <div className="mb-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              {user?.initialBalance ? "Progresso da Meta" : "Seu Progresso (Configure sua banca)"}
+                            </span>
+                            <span className="text-2xl font-bold text-green-600">
+                              {user?.initialBalance ? 
+                                `R$ ${(parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")).toFixed(2)}` :
+                                "R$ 0,00"
+                              }
+                            </span>
+                          </div>
+                          
+                          <div className="w-full bg-white/50 rounded-full h-4 shadow-inner">
+                            <div 
+                              className="bg-gradient-to-r from-green-500 to-emerald-400 h-4 rounded-full shadow-lg transition-all duration-1000 ease-out flex items-center justify-end pr-2"
+                              style={{ 
+                                width: user?.initialBalance ? 
+                                  `${Math.min(Math.max(
                                     (parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")) / parseFloat(user?.monthlyGoal || "1") * 100, 
                                     0
-                                  ), 100)}%` 
-                                }}
-                              >
+                                  ), 100)}%` : 
+                                  "2%"
+                              }}
+                            >
+                              {(user?.initialBalance || !user?.initialBalance) && (
                                 <span className="text-xs font-bold text-white">
-                                  {Math.round((parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")) / parseFloat(user?.monthlyGoal || "1") * 100)}%
+                                  {user?.initialBalance ? 
+                                    Math.round((parseFloat(user?.currentBalance || user?.initialBalance || "0") - parseFloat(user?.initialBalance || "0")) / parseFloat(user?.monthlyGoal || "1") * 100) :
+                                    0
+                                  }%
                                 </span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-                              <span>R$ {parseFloat(user?.initialBalance || "0").toFixed(2)}</span>
-                              <span>Meta: R$ {(parseFloat(user?.initialBalance || "0") + parseFloat(user?.monthlyGoal || "0")).toFixed(2)}</span>
+                              )}
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-blue-600">R$ {parseFloat(user?.currentBalance || user?.initialBalance || "0").toFixed(2)}</div>
-                              <div className="text-xs text-gray-600">Banca Atual</div>
+                          <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                            <span>
+                              {user?.initialBalance ? 
+                                `R$ ${parseFloat(user?.initialBalance || "0").toFixed(2)}` :
+                                "R$ 1.000,00 (exemplo)"
+                              }
+                            </span>
+                            <span>
+                              {user?.initialBalance ? 
+                                `Meta: R$ ${(parseFloat(user?.initialBalance || "0") + parseFloat(user?.monthlyGoal || "0")).toFixed(2)}` :
+                                "Meta: R$ 1.500,00 (exemplo)"
+                              }
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-white/60 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-blue-600">
+                              {user?.initialBalance ? 
+                                `R$ ${parseFloat(user?.currentBalance || user?.initialBalance || "0").toFixed(2)}` :
+                                "R$ 1.000,00"
+                              }
                             </div>
-                            <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-purple-600">R$ {parseFloat(user?.monthlyGoal || "0").toFixed(2)}</div>
-                              <div className="text-xs text-gray-600">Meta Mensal</div>
+                            <div className="text-xs text-gray-600">
+                              {user?.initialBalance ? "Banca Atual" : "Banca Inicial (exemplo)"}
+                            </div>
+                          </div>
+                          <div className="bg-white/60 rounded-lg p-3 text-center">
+                            <div className="text-lg font-bold text-purple-600">
+                              {user?.initialBalance ? 
+                                `R$ ${parseFloat(user?.monthlyGoal || "0").toFixed(2)}` :
+                                "R$ 500,00"
+                              }
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {user?.initialBalance ? "Meta Mensal" : "Meta Mensal (exemplo)"}
                             </div>
                           </div>
                         </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Configure sua Banca</h3>
-                          <p className="text-gray-600 mb-4">
-                            Defina sua banca inicial e meta mensal para acompanhar seu progresso personalizado.
-                          </p>
-                          <BankConfigModal user={user}>
-                            <Button className="bg-blue-600 hover:bg-blue-700">
-                              <Settings className="h-4 w-4 mr-2" />
-                              Configurar Agora
-                            </Button>
-                          </BankConfigModal>
-                        </div>
-                      )}
+
+                        {!user?.initialBalance && (
+                          <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="text-center">
+                              <h4 className="text-sm font-semibold text-blue-800 mb-1">🎯 Configure sua Banca Real</h4>
+                              <p className="text-xs text-blue-600 mb-3">
+                                Defina valores reais para acompanhar seu progresso personalizado
+                              </p>
+                              <BankConfigModal user={user}>
+                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                  <Settings className="h-4 w-4 mr-2" />
+                                  Configurar Agora
+                                </Button>
+                              </BankConfigModal>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
