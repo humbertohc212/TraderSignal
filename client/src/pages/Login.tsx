@@ -60,7 +60,7 @@ export default function Login() {
     try {
       console.log('Attempting login with:', data);
       
-      const response = await fetch('/login-user', {
+      const response = await fetch('http://localhost:5001/login-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
