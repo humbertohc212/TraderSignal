@@ -5,60 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Copy, MessageCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
-
-interface CheckoutProps {
-  planId?: string;
-}
 
 export default function Checkout() {
   const [location] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [plan, setPlan] = useState<any>(null);
   
   // Extrair planId da URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
-  const planId = urlParams.get('planId');
+  const planId = urlParams.get('planId') || '3';
 
-  useEffect(() => {
-    if (planId) {
-      fetchPlan(planId);
-    }
-  }, [planId]);
-
-  const fetchPlan = async (id: string) => {
-    try {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch(`/api/plans/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const planData = await response.json();
-        setPlan(planData);
-      } else {
-        console.error('Erro ao buscar plano:', response.status);
-        // Fallback com dados básicos se a busca falhar
-        setPlan({
-          id: id,
-          name: 'Plano Premium',
-          price: 97.00,
-          description: 'Acesso completo aos sinais'
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao buscar plano:', error);
-      // Fallback com dados básicos se houver erro de rede
-      setPlan({
-        id: id,
-        name: 'Plano Premium',
-        price: 97.00,
-        description: 'Acesso completo aos sinais'
-      });
-    }
+  // Dados dos planos - carregamento instantâneo
+  const plansData = {
+    '1': { id: '1', name: 'Free Trial', price: 0, signalsPerWeek: 14, hasEducationalAccess: false, hasPrioritySupport: false, hasWhatsappSupport: false },
+    '2': { id: '2', name: 'Básico', price: 47, signalsPerWeek: 42, hasEducationalAccess: true, hasPrioritySupport: false, hasWhatsappSupport: false },
+    '3': { id: '3', name: 'Premium', price: 97, signalsPerWeek: 84, hasEducationalAccess: true, hasPrioritySupport: true, hasWhatsappSupport: true, isPopular: true },
+    '4': { id: '4', name: 'VIP', price: 197, signalsPerWeek: 168, hasEducationalAccess: true, hasPrioritySupport: true, hasWhatsappSupport: true }
   };
+  
+  const currentPlan = plansData[planId as keyof typeof plansData] || plansData['3'];
+  const pixKey = "homercavalcanti@gmail.com"; // Sua chave PIX
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -69,13 +35,13 @@ export default function Checkout() {
   };
 
   const sendToWhatsApp = () => {
-    if (!user || !plan) return;
+    if (!user) return;
     
-    const message = `Olá! Gostaria de ativar o plano *${plan.name}* no valor de *R$ ${plan.price}*.
+    const message = `Olá! Gostaria de ativar o plano *${currentPlan.name}* no valor de *R$ ${currentPlan.price}*.
 
 📧 Email: ${user.email}
 📱 Nome: ${user.firstName} ${user.lastName}
-💰 Plano: ${plan.name} - R$ ${plan.price}
+💰 Plano: ${currentPlan.name} - R$ ${currentPlan.price}
 
 Enviarei o comprovante do PIX em seguida.`;
     
@@ -83,20 +49,9 @@ Enviarei o comprovante do PIX em seguida.`;
     window.open(whatsappUrl, '_blank');
   };
 
-  if (!plan) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  const pixKey = "homercavalcanti@gmail.com"; // Sua chave PIX
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
-      <div className="max-w-2xl mx-auto pt-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Finalizar Assinatura</h1>
           <p className="text-gray-300">Complete seu pagamento via PIX</p>
@@ -107,37 +62,39 @@ Enviarei o comprovante do PIX em seguida.`;
           <CardHeader>
             <CardTitle className="text-white flex items-center justify-between">
               Plano Selecionado
-              {plan.isPopular && <Badge className="bg-blue-600">Popular</Badge>}
+              {currentPlan.isPopular && <Badge className="bg-blue-600">Popular</Badge>}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xl font-semibold text-white">{plan.name}</h3>
+                <h3 className="text-xl font-semibold text-white">{currentPlan.name}</h3>
                 <p className="text-gray-300">
-                  {plan.signalsPerWeek} sinais por semana
+                  {currentPlan.signalsPerWeek} sinais por semana
                 </p>
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold text-blue-400">
-                  R$ {plan.price}
+                  R$ {currentPlan.price}
                 </div>
                 <div className="text-sm text-gray-400">por mês</div>
               </div>
             </div>
             
             <div className="space-y-2">
-              <div className="flex items-center text-sm text-gray-300">
-                <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                {plan.hasEducationalAccess && "Acesso educacional"}
-              </div>
-              {plan.hasPrioritySupport && (
+              {currentPlan.hasEducationalAccess && (
+                <div className="flex items-center text-sm text-gray-300">
+                  <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                  Acesso educacional
+                </div>
+              )}
+              {currentPlan.hasPrioritySupport && (
                 <div className="flex items-center text-sm text-gray-300">
                   <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
                   Suporte prioritário
                 </div>
               )}
-              {plan.hasWhatsappSupport && (
+              {currentPlan.hasWhatsappSupport && (
                 <div className="flex items-center text-sm text-gray-300">
                   <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
                   Suporte via WhatsApp
@@ -150,51 +107,30 @@ Enviarei o comprovante do PIX em seguida.`;
         {/* Pagamento PIX */}
         <Card className="mb-6 border-green-500/20 bg-gray-800/50">
           <CardHeader>
-            <CardTitle className="text-white">💳 Pagamento via PIX</CardTitle>
+            <CardTitle className="text-white">Pagamento via PIX</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Chave PIX */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Chave PIX
-              </label>
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 p-3 bg-gray-700 rounded-lg font-mono text-white">
-                  {pixKey}
-                </div>
-                <Button
-                  onClick={() => copyToClipboard(pixKey)}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* QR Code Placeholder */}
-            <div className="text-center">
-              <div className="inline-block p-4 bg-white rounded-lg">
-                <div className="w-48 h-48 bg-gray-100 rounded flex items-center justify-center">
-                  <div className="text-center text-gray-600">
-                    <div className="text-2xl mb-2">📱</div>
-                    <div className="text-sm">QR Code PIX</div>
-                    <div className="text-xs mt-1">R$ {plan.price}</div>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-gray-300 mb-4">
+                  Faça o pagamento utilizando a chave PIX abaixo:
+                </p>
+                
+                <div className="bg-gray-700 p-4 rounded-lg">
+                  <p className="text-sm text-gray-400 mb-2">Chave PIX (Email):</p>
+                  <div className="flex items-center justify-between bg-gray-600 p-3 rounded">
+                    <span className="text-white font-mono">{pixKey}</span>
+                    <Button 
+                      onClick={() => copyToClipboard(pixKey)}
+                      variant="outline" 
+                      size="sm"
+                      className="ml-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Instruções */}
-            <div className="bg-gray-700/50 p-4 rounded-lg">
-              <h4 className="font-semibold text-white mb-2">📋 Instruções:</h4>
-              <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                <li>Copie a chave PIX ou escaneie o QR Code</li>
-                <li>Faça o pagamento no seu banco ou app</li>
-                <li>Tire print do comprovante</li>
-                <li>Clique no botão abaixo para enviar via WhatsApp</li>
-                <li>Aguarde a liberação do seu acesso (até 2 horas)</li>
-              </ol>
             </div>
           </CardContent>
         </Card>
