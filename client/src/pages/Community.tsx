@@ -1,13 +1,26 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Users, TrendingUp, Award, Heart, Share2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Community() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newDiscussion, setNewDiscussion] = useState({
+    title: '',
+    content: '',
+    category: ''
+  });
 
   const communityStats = [
     { icon: Users, label: "Membros Ativos", value: "2,847", color: "text-blue-500" },
@@ -70,6 +83,26 @@ export default function Community() {
     { name: "TradingAce", profit: "+10.9%", trades: 41, avatar: "TA" },
   ];
 
+  const handleCreateDiscussion = () => {
+    if (!newDiscussion.title || !newDiscussion.content || !newDiscussion.category) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Preencha todos os campos para criar a discussão.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Discussão criada!",
+      description: "Sua discussão foi publicada na comunidade.",
+      className: "bg-green-600 text-white border-green-700"
+    });
+
+    setNewDiscussion({ title: '', content: '', category: '' });
+    setIsDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <Navigation />
@@ -112,9 +145,69 @@ export default function Community() {
                     <MessageCircle className="h-5 w-5 text-blue-500" />
                     Discussões em Alta
                   </CardTitle>
-                  <Button variant="outline" size="sm" className="bg-gray-800/90 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
-                    Nova Discussão
-                  </Button>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-gray-800/90 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
+                        Nova Discussão
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-gray-800 border-gray-700 text-white">
+                      <DialogHeader>
+                        <DialogTitle className="text-white">Criar Nova Discussão</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Título da Discussão
+                          </label>
+                          <Input
+                            value={newDiscussion.title}
+                            onChange={(e) => setNewDiscussion({...newDiscussion, title: e.target.value})}
+                            placeholder="Digite o título da sua discussão..."
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Categoria
+                          </label>
+                          <Select value={newDiscussion.category} onValueChange={(value) => setNewDiscussion({...newDiscussion, category: value})}>
+                            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                              <SelectValue placeholder="Selecione uma categoria" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-700 border-gray-600">
+                              <SelectItem value="analise-tecnica">Análise Técnica</SelectItem>
+                              <SelectItem value="gestao-risco">Gestão de Risco</SelectItem>
+                              <SelectItem value="resultados">Resultados</SelectItem>
+                              <SelectItem value="iniciantes">Iniciantes</SelectItem>
+                              <SelectItem value="estrategias">Estratégias</SelectItem>
+                              <SelectItem value="geral">Discussão Geral</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Conteúdo
+                          </label>
+                          <Textarea
+                            value={newDiscussion.content}
+                            onChange={(e) => setNewDiscussion({...newDiscussion, content: e.target.value})}
+                            placeholder="Escreva o conteúdo da sua discussão..."
+                            rows={4}
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-600 text-gray-300 hover:bg-gray-700">
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleCreateDiscussion} className="bg-blue-600 hover:bg-blue-700">
+                            Publicar Discussão
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
