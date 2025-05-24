@@ -2,6 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -290,25 +291,20 @@ app.delete('/api/plans/:id', authenticateToken, (req: any, res) => {
 });
 
 // STATISTICS ROUTES
-app.get('/api/stats/admin', authenticateToken, (req: any, res) => {
+app.get('/api/stats/admin', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
   
-  const activeSignals = signals.filter(s => s.status === 'active').length;
-  const totalUsers = users.length;
-  const totalLessons = lessons.length;
-  const monthlyRevenue = 2500;
-  
-  console.log('Admin stats requested:', { activeSignals, totalUsers, totalLessons, monthlyRevenue });
-  console.log('Current signals:', signals);
-  
-  res.json({
-    totalUsers,
-    activeSignals,
-    totalLessons,
-    monthlyRevenue
-  });
+  try {
+    const adminStats = await storage.getAdminStats();
+    console.log('Admin stats from database:', adminStats);
+    
+    res.json(adminStats);
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({ message: 'Erro ao buscar estatísticas' });
+  }
 });
 
 app.get('/api/stats/user', authenticateToken, (req: any, res) => {
