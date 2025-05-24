@@ -88,35 +88,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let userData = null;
       
-      // For admin credentials
-      if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
-        console.log('Admin credentials matched!');
+      // Verificação simples de credenciais
+      const validCredentials = [
+        { email: 'homercavalcanti@gmail.com', password: 'Betinho21@', role: 'admin', firstName: 'Admin', lastName: 'User' },
+        { email: 'alessandrabertoo2001@gmail.com', password: '1339Ale@', role: 'user', firstName: 'Alessandra', lastName: 'Berto' }
+      ];
+      
+      const matchedUser = validCredentials.find(u => u.email === email && u.password === password);
+      
+      if (matchedUser) {
         userData = {
-          id: 'admin-user-id',
-          email: email,
-          role: 'admin',
-          firstName: 'Admin',
-          lastName: 'User'
+          id: matchedUser.role === 'admin' ? 'admin-user-id' : 'user-alessandra-id',
+          email: matchedUser.email,
+          role: matchedUser.role,
+          firstName: matchedUser.firstName,
+          lastName: matchedUser.lastName
         };
-      // For specific user credentials
-      } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
-        console.log('User credentials matched!');
-        userData = {
-          id: 'user-alessandra-id',
-          email: email,
-          role: 'user',
-          firstName: 'Alessandra',
-          lastName: 'Berto'
-        };
-        console.log('Login successful for user:', email);
+        console.log('Login successful for:', email);
       } else {
-        console.log('No credentials matched');
-        console.log('Expected user email: "alessandrabertoo2001@gmail.com"');
-        console.log('Received email:', JSON.stringify(email));
-        console.log('Email match:', email === 'alessandrabertoo2001@gmail.com');
-        console.log('Expected password: "1339Ale@"');
-        console.log('Received password:', JSON.stringify(password));
-        console.log('Password match:', password === '1339Ale@');
+        console.log('Invalid credentials for:', email);
       }
       
       if (userData) {
