@@ -58,6 +58,8 @@ export default function Login() {
   const onLoginSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
+      console.log('Attempting login with:', data);
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -67,23 +69,25 @@ export default function Login() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        throw new Error('Credenciais inválidas');
-      }
-
       const result = await response.json();
-      
+      console.log('Login response:', result);
+
       if (result.success && result.token) {
         // Store token in localStorage
         localStorage.setItem('auth-token', result.token);
-        console.log('Token stored in localStorage:', result.token);
+        console.log('Token stored successfully');
 
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para o dashboard...",
         });
         
-        window.location.href = "/";
+        // Small delay to ensure token is stored
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
+      } else {
+        throw new Error(result.message || 'Credenciais inválidas');
       }
       
     } catch (error: any) {

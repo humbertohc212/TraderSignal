@@ -68,22 +68,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple login endpoint that returns token for localStorage
+  // Fixed login endpoint with proper JSON response
   app.post('/api/auth/login', (req, res) => {
-    console.log('=== LOGIN ENDPOINT HIT ===');
-    console.log('Request body:', req.body);
-    console.log('Request headers:', req.headers);
-    
-    // Force JSON response immediately
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache'
-    });
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Body:', req.body);
     
     try {
       const { email, password } = req.body;
       
-      // For admin credentials
+      // Admin credentials check
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
         const userData = {
           id: 'admin-user-id',
@@ -96,27 +89,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create JWT token
         const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
         
-        const response = { 
+        console.log('Login successful, token generated');
+        
+        // Return success response
+        return res.status(200).json({ 
           success: true, 
           user: userData,
           token: token
-        };
-        
-        console.log('Sending response:', response);
-        res.end(JSON.stringify(response));
-        return;
+        });
       } else {
-        const errorResponse = { message: 'Credenciais inválidas' };
-        res.writeHead(401, {'Content-Type': 'application/json'});
-        res.end(JSON.stringify(errorResponse));
-        return;
+        console.log('Invalid credentials provided');
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
-      const errorResponse = { message: "Erro no servidor" };
-      res.writeHead(500, {'Content-Type': 'application/json'});
-      res.end(JSON.stringify(errorResponse));
-      return;
+      return res.status(500).json({ 
+        success: false,
+        message: "Erro no servidor" 
+      });
     }
   });
 
