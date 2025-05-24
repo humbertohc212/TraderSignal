@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import AdminDashboard from "@/components/AdminDashboard";
 import Signals from "@/pages/Signals";
 import Education from "@/pages/Education";
 import Plans from "@/pages/Plans";
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/education" component={Education} />
           <Route path="/plans" component={Plans} />
           <Route path="/admin" component={Admin} />
+          <Route path="/admin-dashboard" component={AdminDashboard} />
           <Route path="/demo" component={Demo} />
           <Route path="/subscribe" component={Subscribe} />
         </>
