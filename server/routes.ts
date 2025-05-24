@@ -75,6 +75,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       
+      // Set JSON response headers first
+      res.setHeader('Content-Type', 'application/json');
+      
       // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
         const userData = {
@@ -91,14 +94,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Token created for localStorage:', token);
         
         // Return token for frontend to store in localStorage
-        res.setHeader('Content-Type', 'application/json');
         return res.status(200).json({ 
           success: true, 
           user: userData,
           token: token
         });
       } else {
-        res.setHeader('Content-Type', 'application/json');
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
     } catch (error) {
