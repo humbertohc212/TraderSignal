@@ -754,8 +754,21 @@ export default function Dashboard() {
 
             {/* Operações Recentes */}
             <Card className="bg-gray-800/90 border-gray-700">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white">Operações Recentes</CardTitle>
+                <Button 
+                  onClick={() => {
+                    localStorage.removeItem('tradingEntries');
+                    localStorage.removeItem('userTotalPips');
+                    localStorage.removeItem('userTotalProfit');
+                    window.location.reload();
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                >
+                  Limpar Tudo
+                </Button>
               </CardHeader>
               <CardContent>
                 <RecentTrades refreshTrigger={refreshTrigger} />
