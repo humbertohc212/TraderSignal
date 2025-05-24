@@ -7,15 +7,17 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure session - simplified for development
+// Configure session with proper cookie settings
 app.use(session({
   secret: 'simple-dev-secret',
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
+  name: 'sessionId',
   cookie: {
     secure: false,
-    httpOnly: false,
-    maxAge: 24 * 60 * 60 * 1000
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
   }
 }));
 

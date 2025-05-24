@@ -22,21 +22,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Skip the complex auth setup for now to avoid conflicts
   // await setupAuth(app);
 
+  // Debug middleware
+  app.use('/api', (req: any, res, next) => {
+    console.log('Session debug:', {
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      sessionUser: req.session?.user,
+      cookies: req.headers.cookie
+    });
+    next();
+  });
+
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
+      console.log('Auth check - Session user:', req.session?.user);
+      
       // Check simple session first
       if (req.session?.user) {
+        console.log('User found in session:', req.session.user);
         return res.json(req.session.user);
       }
 
-      // Fallback to Replit auth if available
-      if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
-        const user = await storage.getUser(userId);
-        return res.json(user);
-      }
-
+      console.log('No user in session, returning 401');
       res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
