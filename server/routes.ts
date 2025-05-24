@@ -204,8 +204,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Logout endpoint
   app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('auth-token');
-    res.json({ success: true });
+    // Clear the auth cookie with the same options used when setting it
+    res.clearCookie('auth-token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    });
+    
+    res.json({ 
+      success: true,
+      message: 'Logout realizado com sucesso',
+      clearStorage: true
+    });
   });
 
   // Download endpoint for project files
