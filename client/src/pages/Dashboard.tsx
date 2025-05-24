@@ -57,7 +57,11 @@ function TradingForm() {
 
   // Função para auto-preencher preços baseado no sinal e tipo de saída
   const autoFillExitPrice = (exitType: string) => {
-    if (!selectedSignal) return;
+    if (!selectedSignal) {
+      // Se não há sinal selecionado, apenas atualizar o tipo de saída
+      setFormData(prev => ({...prev, exitType}));
+      return;
+    }
     
     let exitPrice = '';
     const signal = selectedSignal;
@@ -85,9 +89,12 @@ function TradingForm() {
         break;
     }
     
-    if (exitPrice) {
-      setFormData(prev => ({...prev, exitPrice, exitType}));
-    }
+    // Atualizar formData com o novo tipo e preço de saída
+    setFormData(prev => ({
+      ...prev, 
+      exitType,
+      exitPrice: exitPrice || prev.exitPrice
+    }));
   };
 
   const calculatePipsAndProfit = () => {
