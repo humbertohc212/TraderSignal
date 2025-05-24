@@ -670,24 +670,26 @@ export default function Admin() {
                             </Badge>
                           </div>
                         )}
-                        <CardHeader className="text-center">
-                          <CardTitle>{plan.name}</CardTitle>
-                          <div className="mt-4">
-                            <span className="text-3xl font-bold">R$ {plan.price}</span>
-                            <span className="text-gray-600">/mês</span>
+                        <CardHeader className="text-center pb-4">
+                          <CardTitle className="text-xl font-bold mb-3">{plan.name}</CardTitle>
+                          <div className="mb-4">
+                            <div className="text-3xl font-bold text-gray-900">R$ {plan.price}</div>
+                            <div className="text-sm text-gray-500">/mês</div>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2 text-sm">
-                            <p>• {plan.signalsPerWeek} sinais por semana</p>
-                            {plan.hasEducationalAccess && <p>• Acesso às aulas</p>}
-                            {plan.hasPrioritySupport && <p>• Suporte prioritário</p>}
-                            {plan.hasExclusiveAnalysis && <p>• Análises exclusivas</p>}
-                            {plan.hasMentoring && <p>• Mentoria em grupo</p>}
-                            {plan.hasWhatsappSupport && <p>• Suporte WhatsApp</p>}
-                            {plan.hasDetailedReports && <p>• Relatórios detalhados</p>}
+                        <CardContent className="pt-0">
+                          <div className="space-y-3 mb-6">
+                            <div className="text-sm text-gray-600 space-y-2">
+                              <p>• {plan.signalsPerWeek} sinais por semana</p>
+                              {plan.hasEducationalAccess && <p>• Acesso às aulas</p>}
+                              {plan.hasPrioritySupport && <p>• Suporte prioritário</p>}
+                              {plan.hasExclusiveAnalysis && <p>• Análises exclusivas</p>}
+                              {plan.hasMentoring && <p>• Mentoria em grupo</p>}
+                              {plan.hasWhatsappSupport && <p>• Suporte WhatsApp</p>}
+                              {plan.hasDetailedReports && <p>• Relatórios detalhados</p>}
+                            </div>
                           </div>
-                          <div className="space-y-2">
+                          <div className="flex flex-col space-y-3">
                             <div className="flex space-x-2">
                               <Button 
                                 className="flex-1" 
@@ -698,21 +700,27 @@ export default function Admin() {
                                   setShowPlanForm(true);
                                 }}
                               >
-                                <Edit className="h-3 w-3 mr-2" />
+                                <Edit className="h-4 w-4 mr-2" />
                                 Editar
                               </Button>
                               <Button 
                                 variant="outline"
+                                size="sm"
                                 onClick={() => handleDeletePlan(plan.id)}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-red-600 hover:text-red-700 px-3"
                                 disabled={deletePlanMutation.isPending}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                            <Badge variant="secondary" className="w-full justify-center">
-                              {plan.isActive ? "Ativo" : "Inativo"}
-                            </Badge>
+                            <div className="text-center">
+                              <Badge 
+                                variant={plan.isActive ? "default" : "secondary"} 
+                                className="px-4 py-1"
+                              >
+                                {plan.isActive ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
