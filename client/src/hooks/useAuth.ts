@@ -24,7 +24,6 @@ export function useAuth() {
         if (!response.ok) {
           if (response.status === 401) {
             localStorage.removeItem('auth-token');
-            setLocation('/login');
           }
           return null;
         }
@@ -34,7 +33,6 @@ export function useAuth() {
       } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('auth-token');
-        setLocation('/login');
         return null;
       }
     },
@@ -62,14 +60,14 @@ export function useAuth() {
       // Clear all queries from the cache
       await queryClient.clear();
       
-      // Redirect to login page
-      setLocation('/login');
+      // Redirect to home page
+      setLocation('/');
     } catch (error) {
       console.error('Logout error:', error);
       // Even if the API call fails, we should still clear local state
       localStorage.removeItem('auth-token');
       await queryClient.clear();
-      setLocation('/login');
+      setLocation('/');
     }
   };
 
