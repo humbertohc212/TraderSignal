@@ -21,6 +21,7 @@ export default function Signals() {
 
   const { data: signals, isLoading, refetch } = useQuery({
     queryKey: ["/api/signals"],
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
     queryFn: async () => {
       const token = localStorage.getItem('auth-token');
       const response = await fetch('/api/signals', {
