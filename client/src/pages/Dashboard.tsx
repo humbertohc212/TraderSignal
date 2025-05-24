@@ -390,16 +390,26 @@ export default function Dashboard() {
     window.location.reload();
   };
 
-  // Função para obter dados da banca (localStorage + usuário)
+  // Função para obter dados da banca (localStorage + usuário + lucros das operações)
   const getBankData = () => {
     const storedConfig = localStorage.getItem('bankConfig');
     const bankConfig = storedConfig ? JSON.parse(storedConfig) : null;
     
+    // Calcular lucros das operações registradas
+    const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
+    const totalProfitFromOperations = operations.reduce((total: number, op: any) => {
+      return total + parseFloat(op.profit || 0);
+    }, 0);
+    
+    const initialBalance = parseFloat(bankConfig?.initialBalance || user?.initialBalance || "2000");
+    const currentBalance = initialBalance + totalProfitFromOperations;
+    
     return {
-      initialBalance: parseFloat(bankConfig?.initialBalance || user?.initialBalance || "2000"),
-      currentBalance: parseFloat(bankConfig?.currentBalance || user?.currentBalance || bankConfig?.initialBalance || user?.initialBalance || "2000"),
+      initialBalance,
+      currentBalance,
       monthlyGoal: parseFloat(bankConfig?.monthlyGoal || user?.monthlyGoal || "800"),
-      isConfigured: !!(bankConfig || user?.initialBalance)
+      isConfigured: !!(bankConfig || user?.initialBalance),
+      totalProfitFromOperations
     };
   };
 
