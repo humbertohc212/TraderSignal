@@ -257,19 +257,19 @@ function TradingForm() {
         </div>
         <div>
           <Label htmlFor="lotSize" className="text-gray-300">Tamanho do Lote</Label>
-          <Select value={formData.lotSize} onValueChange={(value) => setFormData({...formData, lotSize: value})}>
-            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-              <SelectValue placeholder="Lote" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0.01">0.01 (Micro)</SelectItem>
-              <SelectItem value="0.1">0.1 (Mini)</SelectItem>
-              <SelectItem value="0.5">0.5</SelectItem>
-              <SelectItem value="1">1.0 (Padrão)</SelectItem>
-              <SelectItem value="2">2.0</SelectItem>
-              <SelectItem value="5">5.0</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            id="lotSize"
+            type="number"
+            step="0.01"
+            value={formData.lotSize}
+            onChange={(e) => setFormData({...formData, lotSize: e.target.value})}
+            placeholder="0.1"
+            className="bg-gray-700 border-gray-600 text-white"
+            required
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Ex: 0.01 (micro), 0.1 (mini), 1.0 (padrão)
+          </p>
         </div>
       </div>
 
