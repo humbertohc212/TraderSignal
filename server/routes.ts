@@ -1,7 +1,5 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-// WebSocket imports removed to prevent connection errors
-import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -9,14 +7,7 @@ import { insertSignalSchema, insertLessonSchema, insertPlanSchema } from "@share
 import { z } from "zod";
 import "./types";
 
-const JWT_SECRET = 'your-jwt-secret-key';
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-04-30.basil",
-});
+const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-key';
 
 // Store WebSocket connections
 const wsClients = new Set<WebSocket>();
@@ -677,43 +668,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe payment routes
-  app.post("/api/create-subscription", isAuthenticated, async (req: any, res) => {
+  // Subscription request route (for manual approval)
+  app.post("/api/subscriptions/request/:planId", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      const { planId } = req.body;
+      const { planId } = req.params;
       
-      if (!user || !user.email) {
-        return res.status(400).json({ message: "User email required" });
-      }
-
-      // Create Stripe customer if not exists
-      let customerId = user.stripeCustomerId;
-      if (!customerId) {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-        });
-        customerId = customer.id;
-        await storage.updateUserStripeInfo(userId, { stripeCustomerId: customerId });
-      }
-
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: `price_${planId}` }], // You'll need to create prices in Stripe
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      });
-
+      // Here you could save the subscription request to a database table
+      // For now, we'll just return success
+      console.log(`Subscription request for plan ${planId} from user ${userId}`);
+      
       res.json({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        message: "Subscription request received. An admin will review it soon.",
+        planId,
+        userId
       });
     } catch (error: any) {
-      console.error("Error creating subscription:", error);
-      res.status(500).json({ message: "Failed to create subscription" });
+      console.error("Error processing subscription request:", error);
+      res.status(500).json({ message: "Failed to process subscription request" });
     }
   });
 

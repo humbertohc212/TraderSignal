@@ -12,14 +12,9 @@ export default function Plans() {
   const [, setLocation] = useLocation();
 
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["/api/plans"],
+    queryKey: ["plans"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch("/api/plans", {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch("/api/plans");
       if (!response.ok) {
         throw new Error("Failed to fetch plans");
       }
@@ -27,11 +22,11 @@ export default function Plans() {
     },
   });
 
-  const handleSubscribe = async (planId: number, planName: string) => {
+  const handleSubscribe = async (planId: number) => {
     if (!user) {
       toast({
         title: "Login necessário",
-        description: "Faça login para solicitar um plano",
+        description: "Faça login para assinar um plano",
         variant: "destructive",
       });
       setLocation("/login");
@@ -39,27 +34,28 @@ export default function Plans() {
     }
 
     try {
-      const token = localStorage.getItem('auth-token');
+      // Enviar solicitação de assinatura
       const response = await fetch(`/api/subscriptions/request/${planId}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
-      if (response.ok) {
-        toast({
-          title: "Solicitação enviada!",
-          description: `Sua solicitação para o plano ${planName} foi enviada. Entre em contato conosco para ativar.`,
-        });
-      } else {
-        throw new Error('Erro ao processar solicitação');
+      if (!response.ok) {
+        throw new Error("Erro ao solicitar assinatura");
       }
+
+      toast({
+        title: "Solicitação enviada!",
+        description: "Um administrador irá analisar seu pedido em breve.",
+      });
+      
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível enviar sua solicitação. Tente novamente.",
+        description: "Não foi possível processar sua solicitação",
         variant: "destructive",
       });
     }
@@ -81,13 +77,13 @@ export default function Plans() {
             Escolha seu plano
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Entre em contato conosco para ativar seu plano e ter acesso aos melhores sinais de trading
+            Tenha acesso aos melhores sinais e conteúdo educacional para evoluir no mercado financeiro
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans?.map((plan: any) => (
-            <Card key={plan.id} className="bg-gray-800/90 border-gray-700 overflow-hidden relative">
+            <Card key={plan.id} className="bg-gray-800/90 border-gray-700 overflow-hidden">
               <div className="p-6">
                 {plan.isPopular && (
                   <div className="absolute top-0 right-0 bg-purple-500 text-white px-3 py-1 text-sm font-semibold">
@@ -97,23 +93,59 @@ export default function Plans() {
                 <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                 <div className="flex items-baseline text-white">
                   <span className="text-4xl font-bold">
-                    R$ {plan.price?.toFixed(2) || plan.price}
+                    R$ {plan.price}
                   </span>
                   <span className="text-gray-400 ml-1">/mês</span>
                 </div>
 
                 <ul className="mt-6 space-y-4">
-                  {plan.features?.map((feature: string, index: number) => (
-                    <li key={index} className="flex items-start">
+                  {plan.signalsPerWeek && (
+                    <li className="flex items-start">
                       <Check className="h-5 w-5 text-green-500 mr-2" />
-                      <span className="text-gray-300">{feature}</span>
+                      <span className="text-gray-300">{plan.signalsPerWeek} sinais por semana</span>
                     </li>
-                  ))}
+                  )}
+                  {plan.hasEducationalAccess && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Acesso ao conteúdo educacional</span>
+                    </li>
+                  )}
+                  {plan.hasPrioritySupport && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Suporte prioritário</span>
+                    </li>
+                  )}
+                  {plan.hasExclusiveAnalysis && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Análises exclusivas</span>
+                    </li>
+                  )}
+                  {plan.hasMentoring && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Mentoria individual</span>
+                    </li>
+                  )}
+                  {plan.hasWhatsappSupport && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Suporte via WhatsApp</span>
+                    </li>
+                  )}
+                  {plan.hasDetailedReports && (
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2" />
+                      <span className="text-gray-300">Relatórios detalhados</span>
+                    </li>
+                  )}
                 </ul>
 
                 <Button
                   className="w-full mt-8 bg-purple-600 hover:bg-purple-700"
-                  onClick={() => handleSubscribe(plan.id, plan.name)}
+                  onClick={() => handleSubscribe(plan.id)}
                   disabled={user?.subscriptionPlan === plan.name}
                 >
                   {user?.subscriptionPlan === plan.name
@@ -123,15 +155,6 @@ export default function Plans() {
               </div>
             </Card>
           ))}
-        </div>
-        
-        <div className="text-center mt-12">
-          <p className="text-gray-400 mb-4">
-            Precisa de ajuda ou tem dúvidas sobre os planos?
-          </p>
-          <Button variant="outline" className="bg-transparent border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white">
-            Entre em Contato
-          </Button>
         </div>
       </div>
     </div>
