@@ -143,13 +143,8 @@ function TradingForm() {
       className: pips > 0 ? "bg-green-600 text-white border-green-700" : "bg-red-600 text-white border-red-700"
     });
 
-    // Forçar atualização imediata dos componentes RecentTrades
-    window.dispatchEvent(new Event('tradingEntriesUpdated'));
-    
-    // Também forçar re-render da interface
-    setTimeout(() => {
-      window.dispatchEvent(new Event('tradingEntriesUpdated'));
-    }, 100);
+    // Recarregar página para garantir atualização
+    window.location.reload();
 
     // Reset do formulário
     setFormData({
@@ -385,6 +380,7 @@ function RecentTrades({ refreshTrigger }: { refreshTrigger?: number }) {
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
   const { toast } = useToast();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const queryClient = useQueryClient();
   const [showBankModal, setShowBankModal] = useState(false);
 
@@ -745,7 +741,7 @@ export default function Dashboard() {
                 <CardTitle className="text-white">Operações Recentes</CardTitle>
               </CardHeader>
               <CardContent>
-                <RecentTrades />
+                <RecentTrades refreshTrigger={refreshTrigger} />
               </CardContent>
             </Card>
           </TabsContent>
