@@ -64,9 +64,9 @@ export default function Demo() {
   ];
 
   const performanceStats = [
-    { label: "Taxa de Acerto", value: "73.2%", trend: "up", icon: Target },
-    { label: "Traders Ativos", value: "2.847", trend: "up", icon: Users },
-    { label: "Sinais por Semana", value: "8-12", trend: "neutral", icon: Activity },
+    { label: "Taxa de Acerto", value: "87%", trend: "up", icon: Target },
+    { label: "Traders Ativos", value: "325", trend: "up", icon: Users },
+    { label: "Sinais por Semana", value: "8-17", trend: "neutral", icon: Activity },
     { label: "Tempo Médio", value: "6.3h", trend: "neutral", icon: Clock }
   ];
 
@@ -261,8 +261,8 @@ export default function Demo() {
               ))}
               <div className="pt-4 border-t border-white/10">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-1">73.2%</div>
-                  <div className="text-purple-400 text-sm">Taxa média dos últimos 6 meses</div>
+                  <div className="text-2xl font-bold text-white mb-1">87%</div>
+                  <div className="text-blue-400 text-sm">Taxa média dos últimos 6 meses</div>
                 </div>
               </div>
             </CardContent>
@@ -347,11 +347,11 @@ export default function Demo() {
                 </div>
                 <div className="flex items-center justify-center">
                   <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
-                  <span className="text-gray-300">73.2% de assertividade</span>
+                  <span className="text-gray-300">87% de assertividade</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
-                  <span className="text-gray-300">2.847 traders ativos</span>
+                  <span className="text-gray-300">325 traders ativos</span>
                 </div>
               </div>
             </div>
