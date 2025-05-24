@@ -105,11 +105,24 @@ export const userLessons = pgTable("user_lessons", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Subscription requests for manual approval
+export const subscriptionRequests = pgTable("subscription_requests", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  planId: integer("plan_id").notNull().references(() => plans.id),
+  planName: varchar("plan_name").notNull(),
+  status: varchar("status").notNull().default("pending"), // pending, approved, rejected
+  requestDate: timestamp("request_date").defaultNow(),
+  processedDate: timestamp("processed_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   signals: many(signals),
   lessons: many(lessons),
   userLessons: many(userLessons),
+  subscriptionRequests: many(subscriptionRequests),
 }));
 
 export const signalsRelations = relations(signals, ({ one }) => ({
@@ -135,6 +148,17 @@ export const userLessonsRelations = relations(userLessons, ({ one }) => ({
   lesson: one(lessons, {
     fields: [userLessons.lessonId],
     references: [lessons.id],
+  }),
+}));
+
+export const subscriptionRequestsRelations = relations(subscriptionRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptionRequests.userId],
+    references: [users.id],
+  }),
+  plan: one(plans, {
+    fields: [subscriptionRequests.planId],
+    references: [plans.id],
   }),
 }));
 
@@ -169,6 +193,11 @@ export const insertUserLessonSchema = createInsertSchema(userLessons).omit({
   createdAt: true,
 });
 
+export const insertSubscriptionRequestSchema = createInsertSchema(subscriptionRequests).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -180,3 +209,5 @@ export type InsertPlan = z.infer<typeof insertPlanSchema>;
 export type Plan = typeof plans.$inferSelect;
 export type InsertUserLesson = z.infer<typeof insertUserLessonSchema>;
 export type UserLesson = typeof userLessons.$inferSelect;
+export type InsertSubscriptionRequest = z.infer<typeof insertSubscriptionRequestSchema>;
+export type SubscriptionRequest = typeof subscriptionRequests.$inferSelect;

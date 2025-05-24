@@ -4,6 +4,7 @@ import {
   lessons,
   plans,
   userLessons,
+  subscriptionRequests,
   type User,
   type UpsertUser,
   type Signal,
@@ -14,6 +15,8 @@ import {
   type InsertPlan,
   type UserLesson,
   type InsertUserLesson,
+  type SubscriptionRequest,
+  type InsertSubscriptionRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, count, sql, desc } from "drizzle-orm";
@@ -72,6 +75,12 @@ export interface IStorage {
   
   // User management for admin
   getUsers(): Promise<User[]>;
+  
+  // Subscription request operations
+  createSubscriptionRequest(request: InsertSubscriptionRequest): Promise<SubscriptionRequest>;
+  getSubscriptionRequests(): Promise<SubscriptionRequest[]>;
+  getSubscriptionRequest(id: number): Promise<SubscriptionRequest | undefined>;
+  updateSubscriptionRequest(id: number, updates: Partial<InsertSubscriptionRequest>): Promise<SubscriptionRequest>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -356,6 +365,36 @@ export class DatabaseStorage implements IStorage {
 
   async getUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  // Subscription request operations
+  async createSubscriptionRequest(request: InsertSubscriptionRequest): Promise<SubscriptionRequest> {
+    const [subscriptionRequest] = await db
+      .insert(subscriptionRequests)
+      .values(request)
+      .returning();
+    return subscriptionRequest;
+  }
+
+  async getSubscriptionRequests(): Promise<SubscriptionRequest[]> {
+    return await db.select().from(subscriptionRequests).orderBy(desc(subscriptionRequests.requestDate));
+  }
+
+  async getSubscriptionRequest(id: number): Promise<SubscriptionRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(subscriptionRequests)
+      .where(eq(subscriptionRequests.id, id));
+    return request;
+  }
+
+  async updateSubscriptionRequest(id: number, updates: Partial<InsertSubscriptionRequest>): Promise<SubscriptionRequest> {
+    const [updated] = await db
+      .update(subscriptionRequests)
+      .set(updates)
+      .where(eq(subscriptionRequests.id, id))
+      .returning();
+    return updated;
   }
 }
 
