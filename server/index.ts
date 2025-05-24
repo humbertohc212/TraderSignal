@@ -95,8 +95,11 @@ app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   
   try {
+    console.log('Login attempt for:', email);
+    
     // Primeiro, verifica se o usuário já existe no banco
     let user = await storage.getUserByEmail(email);
+    console.log('User found in database:', user ? 'Yes' : 'No');
     
     if (user) {
       // Usuário existe, verifica a senha
@@ -126,6 +129,7 @@ app.post('/api/auth/login', async (req, res) => {
       });
     } else {
       // Usuário não existe, cria automaticamente com a senha fornecida
+      console.log('Creating new user for:', email);
       const hashedPassword = await bcrypt.hash(password, 12);
       
       // Define role baseado no email
@@ -135,6 +139,14 @@ app.post('/api/auth/login', async (req, res) => {
       const emailPrefix = email.split('@')[0];
       const firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
       
+      console.log('Attempting to create user with data:', {
+        id: `user_${Date.now()}`,
+        email: email,
+        role: role,
+        firstName: firstName,
+        lastName: 'User'
+      });
+      
       const newUser = await storage.createUser({
         id: `user_${Date.now()}`,
         email: email,
@@ -143,6 +155,8 @@ app.post('/api/auth/login', async (req, res) => {
         firstName: firstName,
         lastName: 'User'
       });
+      
+      console.log('User created successfully:', newUser.id);
       
       const userData = {
         id: newUser.id,
