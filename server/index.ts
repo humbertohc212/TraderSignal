@@ -941,32 +941,16 @@ app.put('/profile-update', authenticateToken, async (req: any, res) => {
     console.log('=== TOKEN GENERATION ===');
     console.log('Updated token generated successfully');
     console.log('Token includes Alexandre:', updatedToken.includes('Alexandre'));
-    console.log('Sending token in response:', !!updatedToken);
 
-    // RESPOSTA FINAL COM TOKEN ATUALIZADO
-    res.json({
+    // Remove senha para segurança
+    const userResponse = { ...updatedUser };
+    delete userResponse.password;
+    
+    // RESPOSTA COM TOKEN ATUALIZADO
+    return res.json({
       success: true,
       message: 'Perfil atualizado com sucesso',
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        phone: updatedUser.phone,
-        bio: updatedUser.bio,
-        profileImageUrl: updatedUser.profileImageUrl,
-        role: updatedUser.role,
-        subscriptionPlan: updatedUser.subscriptionPlan,
-        subscriptionStatus: updatedUser.subscriptionStatus,
-        subscriptionExpiry: updatedUser.subscriptionExpiry,
-        isBanned: updatedUser.isBanned,
-        initialBalance: updatedUser.initialBalance,
-        currentBalance: updatedUser.currentBalance,
-        monthlyGoal: updatedUser.monthlyGoal,
-        defaultLotSize: updatedUser.defaultLotSize,
-        createdAt: updatedUser.createdAt,
-        updatedAt: updatedUser.updatedAt
-      },
+      user: userResponse,
       token: updatedToken
     });
   } catch (error) {
