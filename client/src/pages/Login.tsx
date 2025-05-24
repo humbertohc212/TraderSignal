@@ -79,8 +79,24 @@ export default function Login() {
         throw new Error(`Login failed: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log('Login response:', result);
+      // Adiciona logs detalhados para debug
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText.substring(0, 200));
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Login response:', result);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        console.error('Response was:', responseText.substring(0, 500));
+        toast({
+          title: "Erro no servidor",
+          description: "Resposta inválida do servidor",
+          variant: "destructive",
+        });
+        return;
+      }
 
       if (result.success && result.token) {
         // Store token in localStorage
