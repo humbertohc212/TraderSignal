@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, type User } from '@shared/schema';
+import { users, signals, lessons, type User } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export const storage = {
@@ -68,6 +68,38 @@ export const storage = {
     } catch (error) {
       console.error('Erro ao remover usuário:', error);
       throw error;
+    }
+  },
+
+  async getAdminStats() {
+    try {
+      const totalUsersResult = await db.select().from(users);
+      const activeSignalsResult = await db.select().from(signals).where(eq(signals.status, 'active'));
+      const totalLessonsResult = await db.select().from(lessons);
+      
+      return {
+        totalUsers: totalUsersResult.length,
+        activeSignals: activeSignalsResult.length,
+        totalLessons: totalLessonsResult.length,
+        monthlyRevenue: 0
+      };
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas admin:', error);
+      return {
+        totalUsers: 0,
+        activeSignals: 0,
+        totalLessons: 0,
+        monthlyRevenue: 0
+      };
+    }
+  },
+
+  async getUsers() {
+    try {
+      return await db.select().from(users);
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      return [];
     }
   }
 };
