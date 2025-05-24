@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
@@ -21,11 +21,13 @@ import {
   XCircle,
   DollarSign,
   Target,
-  Settings
+  Settings,
+  RefreshCw
 } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/admin"],
@@ -208,6 +210,16 @@ export default function Dashboard() {
                               <Settings className="h-4 w-4" />
                             </Button>
                           </BankConfigModal>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              queryClient.invalidateQueries({ queryKey: ["user"] });
+                              queryClient.refetchQueries({ queryKey: ["user"] });
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
                           <TradingEntryForm user={user}>
                             <Button size="sm" className="bg-green-600 hover:bg-green-700">
                               + Operação

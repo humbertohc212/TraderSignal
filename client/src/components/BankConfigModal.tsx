@@ -56,6 +56,7 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
       return await apiRequest("PUT", "/api/user/bank-config", data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
