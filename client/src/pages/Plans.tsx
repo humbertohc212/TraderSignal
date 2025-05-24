@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
 
 export default function Plans() {
   const { user } = useAuth();
@@ -14,12 +15,7 @@ export default function Plans() {
   const { data: plans, isLoading } = useQuery({
     queryKey: ["/api/plans"],
     queryFn: async () => {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch("/api/plans", {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch("/api/plans");
       if (!response.ok) {
         throw new Error("Failed to fetch plans");
       }
@@ -55,6 +51,16 @@ export default function Plans() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-12 px-4">
       <div className="max-w-7xl mx-auto">
+        {/* Botão Home */}
+        <div className="mb-8">
+          <Link href="/">
+            <Button variant="outline" className="bg-transparent border-gray-600 text-white hover:bg-gray-700">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+          </Link>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
             Escolha seu plano
