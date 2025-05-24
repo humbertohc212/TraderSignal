@@ -28,7 +28,8 @@ import {
   Clock,
   Users,
   Plus,
-  Trash2
+  Trash2,
+  User
 } from "lucide-react";
 import BankConfigModal from "@/components/BankConfigModal";
 import TradingEntryForm from "@/components/TradingEntryForm";
@@ -439,6 +440,15 @@ export default function Dashboard() {
                 Painel Admin
               </Button>
             )}
+            <Button 
+              onClick={() => window.location.href = '/profile'}
+              variant="outline" 
+              size="sm"
+              className="bg-blue-600/20 border-blue-400/30 text-blue-300 hover:bg-blue-600/40"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Meu Perfil
+            </Button>
             <Button 
               onClick={handleRefresh}
               variant="outline" 
