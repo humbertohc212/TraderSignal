@@ -36,8 +36,10 @@ function TradingForm() {
   const [formData, setFormData] = useState({
     pair: '',
     direction: '',
-    pips: '',
-    profit: ''
+    entryPrice: '',
+    exitPrice: '',
+    exitType: '', // TP1, TP2, SL
+    lotSize: '0.1'
   });
   const { toast } = useToast();
   
@@ -49,18 +51,56 @@ function TradingForm() {
   // Extrair pares únicos dos sinais
   const availablePairs = signals ? Array.from(new Set(signals.map((signal: any) => signal.pair))) : [];
 
+  const calculatePipsAndProfit = () => {
+    const entry = parseFloat(formData.entryPrice || '0');
+    const exit = parseFloat(formData.exitPrice || '0');
+    const lot = parseFloat(formData.lotSize || '0.1');
+    
+    if (!entry || !exit || !lot) return { pips: 0, profit: 0 };
+    
+    // Calcular pips baseado na direção
+    let pips = 0;
+    if (formData.direction === 'BUY') {
+      pips = (exit - entry) * 10000; // Para pares como EUR/USD
+    } else if (formData.direction === 'SELL') {
+      pips = (entry - exit) * 10000;
+    }
+    
+    // Ajustar para pares específicos
+    if (formData.pair.includes('JPY')) {
+      pips = pips / 100; // JPY tem 2 decimais, não 4
+    }
+    
+    // Se foi SL, pips deve ser negativo
+    if (formData.exitType === 'SL') {
+      pips = -Math.abs(pips);
+    }
+    
+    // Calcular lucro: pip value * pips * lotes
+    const pipValue = formData.pair.includes('JPY') ? 0.01 : 0.0001;
+    const lotUnits = lot >= 1 ? 100000 : 10000; // Lote padrão ou mini
+    const dollarPerPip = pipValue * lotUnits * lot;
+    const profit = pips * dollarPerPip;
+    
+    return { pips: Math.round(pips), profit: Math.round(profit * 100) / 100 };
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const { pips, profit } = calculatePipsAndProfit();
+    
     // Salvar no localStorage
     const userPips = localStorage.getItem('userTotalPips') || '0';
-    const newTotalPips = parseInt(userPips) + Math.abs(parseInt(formData.pips || '0'));
+    const newTotalPips = parseInt(userPips) + pips; // Pips podem ser negativos
     localStorage.setItem('userTotalPips', newTotalPips.toString());
     
     // Salvar operação
     const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
     operations.push({
       ...formData,
+      pips,
+      profit,
       id: Date.now(),
       date: new Date().toLocaleDateString()
     });
@@ -68,10 +108,10 @@ function TradingForm() {
     
     toast({
       title: "Operação Registrada!",
-      description: `+${Math.abs(parseInt(formData.pips || '0'))} pips adicionados`,
+      description: `${pips > 0 ? '+' : ''}${pips} pips | R$ ${profit > 0 ? '+' : ''}${profit}`,
     });
 
-    setFormData({ pair: '', direction: '', pips: '', profit: '' });
+    setFormData({ pair: '', direction: '', entryPrice: '', exitPrice: '', exitType: '', lotSize: '0.1' });
     window.location.reload(); // Força atualização
   };
 
@@ -107,40 +147,74 @@ function TradingForm() {
         <Label htmlFor="direction" className="text-gray-300">Direção</Label>
         <Select value={formData.direction} onValueChange={(value) => setFormData({...formData, direction: value})}>
           <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-            <SelectValue placeholder="Selecione" />
+            <SelectValue placeholder="BUY ou SELL" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="BUY">BUY</SelectItem>
-            <SelectItem value="SELL">SELL</SelectItem>
+            <SelectItem value="BUY">BUY (Compra)</SelectItem>
+            <SelectItem value="SELL">SELL (Venda)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div>
-        <Label htmlFor="pips" className="text-gray-300">Pips</Label>
-        <Input
-          id="pips"
-          type="number"
-          value={formData.pips}
-          onChange={(e) => setFormData({...formData, pips: e.target.value})}
-          placeholder="40, 25..."
-          className="bg-gray-700 border-gray-600 text-white"
-          required
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="entryPrice" className="text-gray-300">Preço Entrada</Label>
+          <Input
+            id="entryPrice"
+            type="number"
+            step="0.00001"
+            value={formData.entryPrice}
+            onChange={(e) => setFormData({...formData, entryPrice: e.target.value})}
+            placeholder="1.08500"
+            className="bg-gray-700 border-gray-600 text-white"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="exitPrice" className="text-gray-300">Preço Saída</Label>
+          <Input
+            id="exitPrice"
+            type="number"
+            step="0.00001"
+            value={formData.exitPrice}
+            onChange={(e) => setFormData({...formData, exitPrice: e.target.value})}
+            placeholder="1.08900"
+            className="bg-gray-700 border-gray-600 text-white"
+            required
+          />
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="profit" className="text-gray-300">Lucro (R$)</Label>
-        <Input
-          id="profit"
-          type="number"
-          step="0.01"
-          value={formData.profit}
-          onChange={(e) => setFormData({...formData, profit: e.target.value})}
-          placeholder="400.00..."
-          className="bg-gray-700 border-gray-600 text-white"
-          required
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label htmlFor="exitType" className="text-gray-300">Tipo de Saída</Label>
+          <Select value={formData.exitType} onValueChange={(value) => setFormData({...formData, exitType: value})}>
+            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <SelectValue placeholder="TP1, TP2 ou SL" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TP1">🎯 TP1 (Take Profit 1)</SelectItem>
+              <SelectItem value="TP2">🎯 TP2 (Take Profit 2)</SelectItem>
+              <SelectItem value="SL">🛑 SL (Stop Loss)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="lotSize" className="text-gray-300">Tamanho do Lote</Label>
+          <Select value={formData.lotSize} onValueChange={(value) => setFormData({...formData, lotSize: value})}>
+            <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+              <SelectValue placeholder="Lote" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0.01">0.01 (Micro)</SelectItem>
+              <SelectItem value="0.1">0.1 (Mini)</SelectItem>
+              <SelectItem value="0.5">0.5</SelectItem>
+              <SelectItem value="1">1.0 (Padrão)</SelectItem>
+              <SelectItem value="2">2.0</SelectItem>
+              <SelectItem value="5">5.0</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -163,12 +237,25 @@ function RecentTrades() {
         operations.slice(-5).reverse().map((op: any) => (
           <div key={op.id} className="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
             <div>
-              <div className="font-medium text-white">{op.pair} {op.direction}</div>
+              <div className="font-medium text-white">
+                {op.pair} {op.direction}
+                {op.exitType && (
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                    op.exitType === 'SL' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+                  }`}>
+                    {op.exitType}
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-400">{op.date}</div>
             </div>
             <div className="text-right">
-              <div className="font-bold text-green-400">+{op.pips} pips</div>
-              <div className="text-sm text-green-400">R$ +{op.profit}</div>
+              <div className={`font-bold ${op.pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {op.pips > 0 ? '+' : ''}{op.pips} pips
+              </div>
+              <div className={`text-sm ${op.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                R$ {op.profit > 0 ? '+' : ''}{op.profit}
+              </div>
             </div>
           </div>
         ))
