@@ -10,24 +10,25 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
 // Simple auth middleware
 function authenticateToken(req: any, res: any, next: any) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.headers.authorization?.split(' ')[1] || req.headers['x-auth-token'];
   
   if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
+    return res.status(401).json({ message: 'No token provided' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = user;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
     next();
-  });
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
 }
 
-// Auth routes
+// Login endpoint
 app.post('/api/auth/login', (req, res) => {
+  console.log('Login attempt:', req.body);
+  
   const { email, password } = req.body;
   
   if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
@@ -54,47 +55,27 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
+// User endpoint
 app.get('/api/auth/user', authenticateToken, (req: any, res) => {
   res.json(req.user);
 });
 
-// Basic protected routes
+// Protected example
 app.get('/api/signals', authenticateToken, (req, res) => {
-  res.json([
-    {
-      id: 1,
-      pair: "EUR/USD",
-      direction: "BUY",
-      entryPrice: "1.0850",
-      takeProfitPrice: "1.0900",
-      stopLossPrice: "1.0800",
-      status: "active",
-      createdAt: new Date().toISOString()
-    }
-  ]);
-});
-
-app.get('/api/lessons', authenticateToken, (req, res) => {
   res.json([]);
 });
 
-app.get('/api/plans', authenticateToken, (req, res) => {
-  res.json([]);
-});
-
-// Create HTTP server
 const httpServer = createServer(app);
 
-// Start server
 (async () => {
-  if (process.env.NODE_ENV === "development") {
+  if (app.get("env") === "development") {
     await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
 
   const port = process.env.PORT || 5000;
-  httpServer.listen(port, '0.0.0.0', () => {
-    log(`TradeSignal Pro server running on port ${port}`);
+  httpServer.listen(port, () => {
+    log(`serving on port ${port}`);
   });
 })();
