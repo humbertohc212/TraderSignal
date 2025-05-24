@@ -23,14 +23,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // Check simple session first
+      if (req.session?.user) {
+        return res.json(req.session.user);
+      }
+
+      // Fallback to Replit auth if available
+      if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
+        return res.json(user);
+      }
+
+      res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      res.status(401).json({ message: "Unauthorized" });
     }
   });
 
@@ -41,9 +51,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For now, only allow the admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
-        // Create a simple session
-        (req as any).session.userId = 'admin-user-id';
-        res.json({ success: true, role: 'admin' });
+        // Create a simple session with user data
+        (req as any).session.user = {
+          id: 'admin-user-id',
+          email: email,
+          role: 'admin',
+          firstName: 'Admin',
+          lastName: 'User'
+        };
+        res.json({ 
+          success: true, 
+          user: {
+            id: 'admin-user-id',
+            email: email,
+            role: 'admin',
+            firstName: 'Admin',
+            lastName: 'User'
+          }
+        });
       } else {
         res.status(401).json({ message: 'Credenciais inválidas' });
       }
@@ -74,12 +99,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create session
-      (req as any).session.userId = newUser.id;
+      (req as any).session.user = {
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName
+      };
       res.json({ success: true, user: newUser });
     } catch (error) {
       console.error("Register error:", error);
       res.status(500).json({ message: "Erro ao criar conta" });
     }
+  });
+
+  // Logout endpoint
+  app.post('/api/auth/logout', (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        return res.status(500).json({ message: "Erro ao fazer logout" });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    });
   });
 
   // Signals routes
