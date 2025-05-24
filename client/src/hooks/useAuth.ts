@@ -42,25 +42,14 @@ export function useAuth() {
   });
 
   const logout = async () => {
-    // Always clear local state first
+    // Clear local storage immediately
     localStorage.removeItem('auth-token');
-    await queryClient.clear();
     
-    try {
-      // Try to call logout endpoint, but don't fail if it doesn't work
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-    } catch (error) {
-      console.log('Logout endpoint failed, but continuing with local cleanup');
-    }
+    // Clear React Query cache
+    queryClient.clear();
     
-    // Always redirect to login page
-    setLocation('/login');
+    // Force immediate redirect to login page
+    window.location.href = '/login';
   };
 
   return {
