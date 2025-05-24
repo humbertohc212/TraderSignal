@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Navigation from "@/components/Navigation";
 import Sidebar from "@/components/Sidebar";
@@ -40,6 +40,7 @@ import {
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("users");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -83,15 +84,22 @@ export default function AdminDashboard() {
   });
 
   // Funções de CRUD
-  const handleCreate = async (type, data) => {
+  const handleCreate = async (type: string, data: any) => {
     try {
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`/api/${type}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) throw new Error(`Failed to create ${type}`);
+
+      // Invalidar cache para atualizar a lista
+      queryClient.invalidateQueries({ queryKey: [`/api/${type}`] });
 
       toast({
         title: "Sucesso",
@@ -99,7 +107,7 @@ export default function AdminDashboard() {
       });
 
       setIsDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
         description: error.message,
@@ -133,21 +141,29 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDelete = async (type, id) => {
+  const handleDelete = async (type: string, id: number) => {
     if (!confirm("Tem certeza que deseja excluir este item?")) return;
 
     try {
+      const token = localStorage.getItem('auth-token');
       const response = await fetch(`/api/${type}/${id}`, {
         method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) throw new Error(`Failed to delete ${type}`);
+
+      // Invalidar cache para atualizar a lista
+      queryClient.invalidateQueries({ queryKey: [`/api/${type}`] });
 
       toast({
         title: "Sucesso",
         description: `${type} excluído com sucesso`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
         description: error.message,
