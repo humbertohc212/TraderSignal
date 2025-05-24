@@ -12,18 +12,62 @@ export default function Plans() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: plans, isLoading } = useQuery({
-    queryKey: ["/api/plans"],
-    queryFn: async () => {
-      const response = await fetch("/api/plans");
-      if (!response.ok) {
-        throw new Error("Failed to fetch plans");
-      }
-      return response.json();
+  // Planos fixos temporariamente até resolvermos a API
+  const plans = [
+    {
+      id: 4,
+      name: "Free Trial",
+      price: 0,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "21 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
     },
-    staleTime: 0, // Sempre buscar dados frescos
-    refetchOnMount: true, // Recarregar ao montar
-  });
+    {
+      id: 1,
+      name: "Básico", 
+      price: 47,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "5 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
+    },
+    {
+      id: 2,
+      name: "Premium",
+      price: 97,
+      currency: "BRL", 
+      isPopular: true,
+      features: [
+        "15 sinais por semana",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário",
+        "Análises exclusivas"
+      ]
+    },
+    {
+      id: 3,
+      name: "VIP",
+      price: 197,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "Sinais ilimitados",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário", 
+        "Análises exclusivas",
+        "Mentoria personalizada",
+        "Suporte via WhatsApp",
+        "Relatórios detalhados"
+      ]
+    }
+  ];
+  
+  const isLoading = false;
 
   const handleSubscribe = async (planId: number, planName: string) => {
     if (!user) {
