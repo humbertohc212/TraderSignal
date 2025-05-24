@@ -25,6 +25,8 @@ export default function Plans() {
       }
       return response.json();
     },
+    staleTime: 0, // Sempre buscar dados frescos
+    refetchOnMount: true, // Recarregar ao montar
   });
 
   const handleSubscribe = async (planId: number, planName: string) => {
