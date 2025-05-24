@@ -31,6 +31,8 @@ export const users = pgTable("users", {
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  phone: varchar("phone"),
+  bio: text("bio"),
   profileImageUrl: varchar("profile_image_url"),
   password: varchar("password"), // Campo para senha
   role: varchar("role").notNull().default("user"), // 'admin' or 'user'
@@ -160,6 +162,26 @@ export const subscriptionRequestsRelations = relations(subscriptionRequests, ({ 
   plan: one(plans, {
     fields: [subscriptionRequests.planId],
     references: [plans.id],
+  }),
+}));
+
+// Trading entries table for user's personal trading diary
+export const tradingEntries = pgTable("trading_entries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  pair: varchar("pair").notNull(), // Trading pair (EURUSD, BTCUSD, etc.)
+  type: varchar("type").notNull(), // 'gain' or 'loss'
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(), // Amount in currency
+  notes: text("notes").notNull(), // User's notes about the trade
+  date: date("date").notNull(), // Date of the trade
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const tradingEntriesRelations = relations(tradingEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [tradingEntries.userId],
+    references: [users.id],
   }),
 }));
 
