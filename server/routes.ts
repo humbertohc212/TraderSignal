@@ -53,7 +53,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Simple login endpoint 
-  app.post('/api/auth/login', async (req, res) => {
+  app.post('/api/auth/login', (req, res) => {
+    console.log('Login attempt:', req.body);
+    
     try {
       const { email, password } = req.body;
       
@@ -69,25 +71,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Set session data
         (req as any).session.user = userData;
+        console.log('User set in session:', userData);
         
-        // Save session explicitly
-        (req as any).session.save((err: any) => {
-          if (err) {
-            console.error('Session save error:', err);
-            return res.status(500).json({ message: 'Erro ao salvar sessão' });
-          }
-          
-          res.json({ 
-            success: true, 
-            user: userData
-          });
+        // Return immediately with JSON
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(200).json({ 
+          success: true, 
+          user: userData
         });
       } else {
-        res.status(401).json({ message: 'Credenciais inválidas' });
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(401).json({ message: 'Credenciais inválidas' });
       }
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ message: "Erro no servidor" });
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json({ message: "Erro no servidor" });
     }
   });
 
