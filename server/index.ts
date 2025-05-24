@@ -6,6 +6,123 @@ import { createServer } from "http";
 import { storage } from "./simpleStorage";
 
 const app = express();
+
+// Middleware especial para interceptar login ANTES de qualquer outro processamento
+app.use('/login-user', express.json(), async (req, res, next) => {
+  if (req.method === 'POST') {
+    console.log('=== INTERCEPTED LOGIN REQUEST ===');
+    console.log('Request body:', req.body);
+    
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email e senha são obrigatórios' 
+        });
+      }
+      
+      console.log('=== LOGIN ATTEMPT ===');
+      console.log('Email:', email);
+      console.log('Password provided:', !!password);
+      
+      // Primeiro, verifica se o usuário já existe no banco
+      console.log('Checking database for user...');
+      let user = await storage.getUserByEmail(email);
+      console.log('User found in database:', user ? 'Yes' : 'No');
+      if (user) {
+        console.log('User details:', { id: user.id, email: user.email, role: user.role });
+      }
+      
+      if (user) {
+        // Usuário existe, verifica a senha
+        const isValidPassword = await bcrypt.compare(password, user.password || '');
+        console.log('Password validation:', isValidPassword ? 'SUCCESS' : 'FAILED');
+        
+        if (!isValidPassword) {
+          return res.status(401).json({ 
+            success: false,
+            message: 'Credenciais inválidas' 
+          });
+        }
+        
+        const userData = {
+          id: user.id,
+          email: user.email,
+          role: user.role || 'user',
+          firstName: user.firstName,
+          lastName: user.lastName
+        };
+        
+        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+        
+        return res.json({ 
+          success: true, 
+          user: userData,
+          token: token
+        });
+      } else {
+        // Usuário não existe, cria automaticamente com a senha fornecida
+        console.log('Creating new user for:', email);
+        const hashedPassword = await bcrypt.hash(password, 12);
+        
+        // Define role baseado no email
+        const role = email === 'homercavalcanti@gmail.com' ? 'admin' : 'user';
+        
+        // Extrai nome do email
+        const emailPrefix = email.split('@')[0];
+        const firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+        
+        console.log('Attempting to create user with data:', {
+          email: email,
+          role: role,
+          firstName: firstName,
+          lastName: 'User'
+        });
+        
+        const newUser = await storage.createUser({
+          email: email,
+          password: hashedPassword,
+          role: role,
+          firstName: firstName,
+          lastName: 'User'
+        });
+        
+        console.log('User created successfully:', newUser.id);
+        
+        const userData = {
+          id: newUser.id,
+          email: newUser.email,
+          role: newUser.role || 'user',
+          firstName: newUser.firstName,
+          lastName: newUser.lastName
+        };
+        
+        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+        
+        return res.json({ 
+          success: true, 
+          user: userData,
+          token: token
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro no login:', error);
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erro interno do servidor: ' + error.message
+      });
+    }
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 
 // IMPORTANTE: Rotas de API devem vir ANTES do Vite para evitar interceptação
@@ -761,16 +878,20 @@ app.delete('/api/users/:id', authenticateToken, (req: any, res) => {
 // Create HTTP server
 const httpServer = createServer(app);
 
-// Start server
+// Start server - reorganized to avoid Vite conflicts
 (async () => {
+  const port = process.env.PORT || 5000;
+  
+  // First start the server
+  httpServer.listen(port, '0.0.0.0', () => {
+    log(`TradeSignal Pro server running on port ${port}`);
+    log(`Login endpoint available at: /login-user`);
+  });
+  
+  // Then setup Vite AFTER the server is listening
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
-
-  const port = process.env.PORT || 5000;
-  httpServer.listen(port, '0.0.0.0', () => {
-    log(`TradeSignal Pro server running on port ${port}`);
-  });
 })();
