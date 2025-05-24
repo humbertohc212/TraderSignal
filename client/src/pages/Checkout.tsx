@@ -38,9 +38,25 @@ export default function Checkout() {
       if (response.ok) {
         const planData = await response.json();
         setPlan(planData);
+      } else {
+        console.error('Erro ao buscar plano:', response.status);
+        // Fallback com dados básicos se a busca falhar
+        setPlan({
+          id: id,
+          name: 'Plano Premium',
+          price: 97.00,
+          description: 'Acesso completo aos sinais'
+        });
       }
     } catch (error) {
       console.error('Erro ao buscar plano:', error);
+      // Fallback com dados básicos se houver erro de rede
+      setPlan({
+        id: id,
+        name: 'Plano Premium',
+        price: 97.00,
+        description: 'Acesso completo aos sinais'
+      });
     }
   };
 
@@ -63,7 +79,7 @@ export default function Checkout() {
 
 Enviarei o comprovante do PIX em seguida.`;
     
-    const whatsappUrl = `https://wa.me/5585999887766?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/5581920327778?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -193,17 +209,31 @@ Enviarei o comprovante do PIX em seguida.`;
               <p className="text-gray-300 mb-4 text-sm">
                 Após fazer o pagamento, envie o comprovante para liberar seu acesso
               </p>
-              <Button
-                onClick={sendToWhatsApp}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
-                size="lg"
-              >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Enviar Comprovante via WhatsApp
-              </Button>
-              <p className="text-xs text-gray-400 mt-2">
-                WhatsApp: (85) 99988-7766
-              </p>
+              
+              {/* QR Code do WhatsApp */}
+              <div className="bg-white p-4 rounded-lg inline-block mb-4">
+                <img 
+                  src="/attached_assets/WhatsApp Image 2025-05-24 at 03.32.03.jpeg" 
+                  alt="QR Code WhatsApp" 
+                  className="w-32 h-32 mx-auto"
+                />
+                <p className="text-xs text-gray-600 mt-2">Escaneie para contato direto</p>
+              </div>
+              
+              <div className="space-y-3">
+                <Button
+                  onClick={sendToWhatsApp}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 w-full"
+                  size="lg"
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Enviar Comprovante via WhatsApp
+                </Button>
+                
+                <p className="text-xs text-gray-400">
+                  WhatsApp: (81) 92032778
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
