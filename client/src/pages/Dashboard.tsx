@@ -25,7 +25,7 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/admin"],
     staleTime: 0, // Always get fresh data
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (updated property name)
   });
 
   const { data: signals, isLoading: signalsLoading } = useQuery({
@@ -65,7 +65,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      +{stats?.totalProfit || 0} pips
+                      +{stats?.totalPips || 0} pips
                     </div>
                     <div className="flex items-center space-x-1 text-xs text-muted-foreground mt-1">
                       <ArrowUp className="h-3 w-3 text-green-500" />
