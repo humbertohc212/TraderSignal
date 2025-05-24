@@ -268,7 +268,7 @@ export default function Demo() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-xl border border-blue-500/30">
+          <Card className="bg-gray-800/90 backdrop-blur-xl border border-gray-700">
             <CardHeader>
               <CardTitle className="text-white text-xl flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
@@ -304,10 +304,10 @@ export default function Demo() {
         </div>
 
         {/* Transparency Section */}
-        <Card className="bg-gradient-to-br from-slate-600/20 to-gray-600/20 backdrop-blur-xl border border-slate-500/30 mb-12">
+        <Card className="bg-gray-800/90 backdrop-blur-xl border border-gray-700 mb-12">
           <CardHeader>
             <CardTitle className="text-white text-xl flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-slate-400" />
+              <CheckCircle className="h-5 w-5 mr-2 text-blue-400" />
               Transparência Total
             </CardTitle>
           </CardHeader>
@@ -331,7 +331,7 @@ export default function Demo() {
         </Card>
 
         {/* CTA Section */}
-        <Card className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-xl border border-purple-500/30 text-center">
+        <Card className="bg-gray-800/90 backdrop-blur-xl border border-gray-700 text-center">
           <CardContent className="p-8">
             <h2 className="text-3xl font-bold text-white mb-4">
               Comece Sua Jornada no Trading
@@ -339,7 +339,7 @@ export default function Demo() {
             <p className="text-gray-300 mb-6 text-lg">
               Dados reais e verificados. Transparência total em cada operação.
             </p>
-            <div className="bg-white/5 rounded-lg p-4 mb-8">
+            <div className="bg-gray-700/50 rounded-lg p-4 mb-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center justify-center">
                   <CheckCircle className="h-4 w-4 text-green-400 mr-2" />
