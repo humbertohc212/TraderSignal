@@ -177,18 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
       }
 
-      // Usar SQL direto para garantir que os dados sejam salvos
-      await db.update(users)
-        .set({
-          initialBalance: initialBalance.toString(),
-          currentBalance: initialBalance.toString(),
-          monthlyGoal: monthlyGoal.toString(),
-          defaultLotSize: defaultLotSize.toString(),
-        })
-        .where(eq(users.id, userId));
-
-      // Buscar usuário atualizado
-      const [updatedUser] = await db.select().from(users).where(eq(users.id, userId));
+      // Usar storage para atualizar
+      const updatedUser = await storage.updateUser(userId, {
+        initialBalance: initialBalance.toString(),
+        currentBalance: initialBalance.toString(),
+        monthlyGoal: monthlyGoal.toString(),
+        defaultLotSize: defaultLotSize.toString(),
+      });
 
       console.log('User updated successfully:', updatedUser);
       res.json({ 
