@@ -61,23 +61,35 @@ export default function TradingEntryForm({ user, children }: TradingEntryFormPro
 
   const createTradingEntryMutation = useMutation({
     mutationFn: async (data: TradingEntryFormData) => {
-      // Calcular pips e lucro baseado no resultado
-      const pips = Math.abs(data.exitPrice - data.entryPrice) * 10000; // Para pares principais
-      let profit = 0;
+      // Calcular pips corretamente
+      const pipDifference = Math.abs(data.exitPrice - data.entryPrice);
+      const pipsValue = data.pair.includes("JPY") ? pipDifference * 100 : pipDifference * 10000;
       
-      // Cálculo simplificado de lucro (seria mais complexo na realidade)
-      if (data.result === "TP1" || data.result === "TP2") {
-        profit = pips * data.lotSize * 10; // Valor aproximado por pip
-      } else if (data.result === "SL") {
-        profit = -pips * data.lotSize * 10; // Perda
+      // Determinar se foi lucro ou prejuízo baseado na direção
+      let actualPips = 0;
+      if (data.direction === "BUY") {
+        actualPips = data.exitPrice > data.entryPrice ? pipsValue : -pipsValue;
+      } else { // SELL
+        actualPips = data.exitPrice < data.entryPrice ? pipsValue : -pipsValue;
       }
+      
+      // Ajustar sinal baseado no resultado
+      if (data.result === "SL") {
+        actualPips = -Math.abs(actualPips); // Stop Loss sempre é negativo
+      } else if (data.result === "TP1" || data.result === "TP2") {
+        actualPips = Math.abs(actualPips); // Take Profit sempre é positivo
+      }
+      
+      // Calcular valor do pip: pip * lote * unidades da moeda base
+      // Lote padrão = 100.000 unidades, mini lote = 10.000 unidades
+      const lotUnits = data.lotSize >= 1 ? 100000 : 10000; // Lote padrão ou mini lote
+      const pipValue = 0.0001 * data.lotSize * lotUnits;
+      const profit = actualPips * pipValue;
 
       const entryData = {
         ...data,
         userId: user.id,
-        pips: data.direction === "BUY" ? 
-          (data.exitPrice > data.entryPrice ? pips : -pips) :
-          (data.exitPrice < data.entryPrice ? pips : -pips),
+        pips: actualPips,
         profit,
         status: "closed",
         date: new Date().toISOString().split('T')[0],
@@ -111,12 +123,33 @@ export default function TradingEntryForm({ user, children }: TradingEntryFormPro
 
   // Calcular preview dos resultados
   const calculatePreview = () => {
-    if (!watchedValues.entryPrice || !watchedValues.exitPrice || !watchedValues.lotSize) return null;
+    if (!watchedValues.entryPrice || !watchedValues.exitPrice || !watchedValues.lotSize || !watchedValues.direction) return null;
     
-    const pips = Math.abs(watchedValues.exitPrice - watchedValues.entryPrice) * 10000;
-    const profit = watchedValues.result === "SL" ? -pips * watchedValues.lotSize * 10 : pips * watchedValues.lotSize * 10;
+    // Calcular pips corretamente
+    const pipDifference = Math.abs(watchedValues.exitPrice - watchedValues.entryPrice);
+    const pipsValue = watchedValues.pair?.includes("JPY") ? pipDifference * 100 : pipDifference * 10000;
     
-    return { pips, profit };
+    // Determinar se foi lucro ou prejuízo baseado na direção
+    let actualPips = 0;
+    if (watchedValues.direction === "BUY") {
+      actualPips = watchedValues.exitPrice > watchedValues.entryPrice ? pipsValue : -pipsValue;
+    } else { // SELL
+      actualPips = watchedValues.exitPrice < watchedValues.entryPrice ? pipsValue : -pipsValue;
+    }
+    
+    // Ajustar sinal baseado no resultado
+    if (watchedValues.result === "SL") {
+      actualPips = -Math.abs(actualPips);
+    } else if (watchedValues.result === "TP1" || watchedValues.result === "TP2") {
+      actualPips = Math.abs(actualPips);
+    }
+    
+    // Calcular valor do pip: pip * lote * unidades da moeda base
+    const lotUnits = watchedValues.lotSize >= 1 ? 100000 : 10000;
+    const pipValue = 0.0001 * watchedValues.lotSize * lotUnits;
+    const profit = actualPips * pipValue;
+    
+    return { pips: actualPips, profit };
   };
 
   const preview = calculatePreview();
