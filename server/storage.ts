@@ -91,21 +91,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    try {
+      const result = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
+      return result[0] || undefined;
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      throw error;
+    }
   }
 
   async createUser(userData: Partial<UpsertUser>): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values({
-        id: `user_${Date.now()}`,
-        ...userData,
+    try {
+      const [newUser] = await db.insert(users).values({
+        id: userData.id || `user_${Date.now()}`,
+        email: userData.email?.toLowerCase(),
+        password: userData.password,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role || 'user',
+        subscriptionStatus: userData.subscriptionStatus || 'inactive',
         createdAt: new Date(),
         updatedAt: new Date(),
-      })
-      .returning();
-    return user;
+      }).returning();
+
+      console.log('Novo usuário criado:', newUser.email);
+      return newUser;
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      throw error;
+    }
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
