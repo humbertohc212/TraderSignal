@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-import { UserPlus, LogIn } from "lucide-react";
+import { useLocation, Link } from "wouter";
+import { UserPlus, LogIn, Home } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -150,6 +150,16 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Home Button */}
+        <div className="mb-6 text-center">
+          <Link href="/">
+            <Button className="bg-black border-black hover:bg-gray-800 text-white px-6 py-2 rounded-full">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+          </Link>
+        </div>
+        
         <Card className="bg-gray-800/90 border-gray-700 shadow-2xl backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-white mb-2">
