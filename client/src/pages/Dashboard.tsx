@@ -23,12 +23,12 @@ import {
   TrendingUp, 
   DollarSign,
   Settings,
+  Trash2,
   RefreshCw,
   CreditCard,
   CheckCircle,
   Clock,
   Plus,
-  Trash2,
   User
 } from "lucide-react";
 import BankConfigModal from "@/components/BankConfigModal";
@@ -108,14 +108,33 @@ function TradingForm() {
     
     const { pips, profit } = calculatePipsAndProfit();
     
-    // Salvar no localStorage
+    // Criar nova entrada de trading
+    const newEntry = {
+      id: Date.now(),
+      date: formData.date,
+      pair: formData.pair,
+      direction: formData.direction,
+      entryPrice: formData.entryPrice,
+      exitPrice: formData.exitPrice,
+      exitType: formData.exitType,
+      lotSize: formData.lotSize,
+      pips: pips.toString(),
+      profit: profit.toString(),
+      timestamp: new Date().toISOString()
+    };
+    
+    // Salvar na lista de operações
+    const existingEntries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
+    existingEntries.unshift(newEntry); // Adicionar no início da lista
+    localStorage.setItem('tradingEntries', JSON.stringify(existingEntries));
+    
+    // Atualizar totais
     const userPips = localStorage.getItem('userTotalPips') || '0';
-    const newTotalPips = parseInt(userPips) + pips; // Pips podem ser negativos
+    const newTotalPips = parseInt(userPips) + pips;
     localStorage.setItem('userTotalPips', newTotalPips.toString());
     
-    // Atualizar progresso da banca (aceita tanto ganhos quanto perdas)
-    const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
-    const newProgress = currentProgress + profit; // Adicionar lucro/prejuízo ao progresso
+    const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '0');
+    const newProgress = currentProgress + profit;
     localStorage.setItem('currentProgress', newProgress.toString());
     
     toast({
@@ -123,6 +142,9 @@ function TradingForm() {
       description: `${pips > 0 ? '+' : ''}${pips} pips • ${profit > 0 ? '+' : ''}R$ ${profit.toFixed(2)}`,
       className: pips > 0 ? "bg-green-600 text-white border-green-700" : "bg-red-600 text-white border-red-700"
     });
+
+    // Invalidar cache para atualizar a interface
+    queryClient.invalidateQueries({ queryKey: ['/api/trading-entries'] });
 
     // Reset do formulário
     setFormData({
@@ -134,6 +156,9 @@ function TradingForm() {
       exitType: '',
       lotSize: '0.1'
     });
+    
+    // Forçar atualização da página para mostrar as mudanças
+    window.location.reload();
   };
 
   const { pips: previewPips, profit: previewProfit } = calculatePipsAndProfit();
@@ -266,8 +291,34 @@ function TradingForm() {
   );
 }
 
-function RecentTrades({ userEntries }: { userEntries: any[] }) {
-  if (!Array.isArray(userEntries) || userEntries.length === 0) {
+function RecentTrades() {
+  const { toast } = useToast();
+  
+  // Carregar operações do localStorage
+  const tradingEntries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
+
+  const handleDelete = (entryId: number) => {
+    const updatedEntries = tradingEntries.filter((entry: any) => entry.id !== entryId);
+    localStorage.setItem('tradingEntries', JSON.stringify(updatedEntries));
+    
+    // Recalcular totais
+    const totalPips = updatedEntries.reduce((sum: number, entry: any) => sum + parseFloat(entry.pips || '0'), 0);
+    const totalProfit = updatedEntries.reduce((sum: number, entry: any) => sum + parseFloat(entry.profit || '0'), 0);
+    
+    localStorage.setItem('userTotalPips', totalPips.toString());
+    localStorage.setItem('currentProgress', totalProfit.toString());
+    
+    toast({
+      title: "Operação removida!",
+      description: "A operação foi removida e os totais foram recalculados.",
+      className: "bg-blue-600 text-white border-blue-700"
+    });
+    
+    // Atualizar página para refletir mudanças
+    window.location.reload();
+  };
+
+  if (!Array.isArray(tradingEntries) || tradingEntries.length === 0) {
     return (
       <div className="text-center py-8 text-gray-400">
         <Signal className="mx-auto h-12 w-12 mb-4 opacity-50" />
@@ -278,27 +329,39 @@ function RecentTrades({ userEntries }: { userEntries: any[] }) {
   }
 
   return (
-    <div className="space-y-4">
-      {userEntries.slice(0, 5).map((entry, index) => {
+    <div className="space-y-3">
+      {tradingEntries.slice(0, 5).map((entry: any, index: number) => {
         const pips = parseFloat(entry.pips || '0');
         const profit = parseFloat(entry.profit || '0');
         
         return (
-          <div key={index} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+          <div key={entry.id || index} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg border border-gray-600 hover:bg-gray-700/70 transition-colors">
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${pips >= 0 ? 'bg-green-400' : 'bg-red-400'}`} />
               <div>
-                <p className="text-white font-medium">{entry.pair}</p>
-                <p className="text-sm text-gray-400">{entry.direction} • {entry.date}</p>
+                <p className="text-white font-medium text-sm">{entry.pair}</p>
+                <p className="text-xs text-gray-400">{entry.direction} • {entry.date}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className={`font-medium ${pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {pips >= 0 ? '+' : ''}{pips} pips
-              </p>
-              <p className={`text-sm ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {profit >= 0 ? '+' : ''}R$ {profit.toFixed(2)}
-              </p>
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <p className={`font-medium text-sm ${pips >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {pips >= 0 ? '+' : ''}{pips} pips
+                </p>
+                <p className={`text-xs ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {profit >= 0 ? '+' : ''}R$ {profit.toFixed(2)}
+                </p>
+              </div>
+              <div className="flex space-x-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleDelete(entry.id)}
+                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -670,7 +733,7 @@ export default function Dashboard() {
                 <CardTitle className="text-white">Operações Recentes</CardTitle>
               </CardHeader>
               <CardContent>
-                <RecentTrades userEntries={userTradingEntries} />
+                <RecentTrades />
               </CardContent>
             </Card>
           </TabsContent>
@@ -720,7 +783,7 @@ export default function Dashboard() {
                   <CardTitle className="text-white">Operações Recentes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RecentTrades userEntries={userTradingEntries} />
+                  <RecentTrades />
                 </CardContent>
               </Card>
             </div>
