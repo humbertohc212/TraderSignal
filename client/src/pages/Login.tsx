@@ -64,16 +64,11 @@ export default function Login() {
       const result = await response.json();
 
       if (result.success && result.token) {
-        localStorage.setItem('auth-token', result.token);
+        // Salva com a chave correta 'token'
+        localStorage.setItem('token', result.token);
         
-        await queryClient.invalidateQueries({ queryKey: ["user"] });
-        
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando para o dashboard...",
-        });
-        
-        setLocation("/");
+        // Força refresh da página para garantir que tudo seja recarregado
+        window.location.href = '/';
       } else {
         throw new Error(result.message || 'Credenciais inválidas');
       }
