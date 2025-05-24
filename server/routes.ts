@@ -166,14 +166,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Logout endpoint
-  app.post('/api/auth/logout', (req: any, res) => {
-    req.session.destroy((err: any) => {
-      if (err) {
-        return res.status(500).json({ message: "Erro ao fazer logout" });
+  app.post('/api/auth/logout', (req, res) => {
+    try {
+      // Limpa o cookie de autenticação
+      res.clearCookie('auth-token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/'
+      });
+      
+      // Destrói a sessão se existir
+      if (req.session) {
+        req.session.destroy((err: any) => {
+          if (err) {
+            console.error('Erro ao destruir sessão:', err);
+          }
+        });
       }
-      res.clearCookie('connect.sid');
-      res.json({ success: true });
-    });
+      
+      res.json({ 
+        success: true,
+        message: 'Logout realizado com sucesso'
+      });
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erro ao realizar logout'
+      });
+    }
   });
 
   // JWT auth middleware
