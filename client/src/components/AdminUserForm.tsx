@@ -21,8 +21,9 @@ const userFormSchema = z.object({
   email: z.string().email("Email inválido"),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  subscriptionPlan: z.enum(["basic", "premium", "vip", ""]).optional(),
-  subscriptionStatus: z.enum(["active", "inactive", "expired", ""]).optional(),
+  subscriptionPlan: z.enum(["free", "basic", "premium", "vip"]).optional(),
+  subscriptionStatus: z.enum(["active", "inactive", "expired", "cancelled"]).optional(),
+  isBanned: z.boolean().optional(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
@@ -44,8 +45,9 @@ export default function AdminUserForm({ user, isOpen, onClose, onSuccess }: Admi
       email: user?.email || "",
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
-      subscriptionPlan: user?.subscriptionPlan || "",
-      subscriptionStatus: user?.subscriptionStatus || "",
+      subscriptionPlan: user?.subscriptionPlan || "free",
+      subscriptionStatus: user?.subscriptionStatus || "inactive",
+      isBanned: user?.isBanned || false,
     },
   });
 

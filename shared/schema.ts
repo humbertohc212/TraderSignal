@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   subscriptionPlan: varchar("subscription_plan").default("free"), // 'free', 'basic', 'premium', 'vip'
   subscriptionStatus: varchar("subscription_status").default("inactive"), // 'active', 'inactive', 'cancelled'
   subscriptionExpiry: timestamp("subscription_expiry"),
+  isBanned: boolean("is_banned").default(false), // Para controle de banimento
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
