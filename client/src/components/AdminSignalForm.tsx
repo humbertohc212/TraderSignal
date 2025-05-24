@@ -53,16 +53,27 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
 
   const createSignalMutation = useMutation({
     mutationFn: async (data: SignalFormData) => {
-      if (signal?.id) {
-        // Edit existing signal
-        return await apiRequest("PUT", `/api/signals/${signal.id}`, data);
-      } else {
-        // Create new signal
-        return await apiRequest("POST", "/api/signals", {
+      const token = localStorage.getItem('auth-token');
+      const url = signal?.id ? `/api/signals/${signal.id}` : '/api/signals';
+      const method = signal?.id ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           ...data,
-          status: "active"
-        });
+          status: signal?.status || "active"
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao salvar sinal');
       }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/signals"] });

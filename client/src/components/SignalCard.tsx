@@ -29,7 +29,18 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
 
   const deleteSignalMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `/api/signals/${id}`);
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch(`/api/signals/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao remover sinal');
+      }
+      
       return response.json();
     },
     onSuccess: () => {

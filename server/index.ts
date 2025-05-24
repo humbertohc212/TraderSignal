@@ -58,55 +58,262 @@ app.get('/api/auth/user', authenticateToken, (req: any, res) => {
   res.json(req.user);
 });
 
-// Signals endpoint with multiple active signals
+// In-memory storage for demonstration
+let signals = [
+  {
+    id: 1,
+    pair: "EUR/USD",
+    direction: "BUY",
+    entryPrice: "1.0850",
+    takeProfitPrice: "1.0900",
+    stopLossPrice: "1.0800",
+    status: "active",
+    analysis: "Breakout acima da resistência de 1.0830. RSI mostra momentum bullish.",
+    tradingViewLink: "https://tradingview.com/chart",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 2,
+    pair: "GBP/USD",
+    direction: "SELL",
+    entryPrice: "1.2650",
+    takeProfitPrice: "1.2600",
+    stopLossPrice: "1.2700",
+    status: "active",
+    analysis: "Padrão de reversão formado. MACD divergente no H4.",
+    tradingViewLink: "https://tradingview.com/chart",
+    createdAt: new Date(Date.now() - 3600000).toISOString()
+  }
+];
+
+let lessons = [
+  {
+    id: 1,
+    title: "Introdução ao Forex",
+    description: "Conceitos básicos do mercado de câmbio",
+    category: "Básico",
+    level: "Iniciante",
+    duration: 30,
+    rating: "4.8",
+    thumbnailUrl: "",
+    videoUrl: "",
+    isPublished: true,
+    createdAt: new Date().toISOString()
+  }
+];
+
+let plans = [
+  {
+    id: 1,
+    name: "Plano Básico",
+    description: "Acesso a sinais básicos",
+    price: 47.00,
+    currency: "BRL",
+    interval: "monthly",
+    features: ["2 sinais por dia", "Suporte básico"],
+    isActive: true,
+    createdAt: new Date().toISOString()
+  }
+];
+
+let users = [
+  {
+    id: "admin-user-id",
+    email: "homercavalcanti@gmail.com",
+    firstName: "Admin",
+    lastName: "User",
+    role: "admin",
+    subscriptionPlan: "premium",
+    subscriptionStatus: "active",
+    createdAt: new Date().toISOString()
+  }
+];
+
+// SIGNALS CRUD
 app.get('/api/signals', authenticateToken, (req, res) => {
-  res.json([
-    {
-      id: 1,
-      pair: "EUR/USD",
-      direction: "BUY",
-      entryPrice: "1.0850",
-      takeProfitPrice: "1.0900",
-      stopLossPrice: "1.0800",
-      status: "active",
-      analysis: "Breakout acima da resistência de 1.0830. RSI mostra momentum bullish.",
-      tradingViewLink: "https://tradingview.com/chart",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 2,
-      pair: "GBP/USD",
-      direction: "SELL",
-      entryPrice: "1.2650",
-      takeProfitPrice: "1.2600",
-      stopLossPrice: "1.2700",
-      status: "active",
-      analysis: "Padrão de reversão formado. MACD divergente no H4.",
-      tradingViewLink: "https://tradingview.com/chart",
-      createdAt: new Date(Date.now() - 3600000).toISOString()
-    },
-    {
-      id: 3,
-      pair: "USD/JPY",
-      direction: "BUY",
-      entryPrice: "150.20",
-      takeProfitPrice: "151.00",
-      stopLossPrice: "149.50",
-      status: "closed",
-      result: "+80 pips",
-      analysis: "Bounce na support importante. Momentum forte.",
-      tradingViewLink: "https://tradingview.com/chart",
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ]);
+  res.json(signals);
 });
 
+app.post('/api/signals', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const newSignal = {
+    id: Date.now(),
+    ...req.body,
+    createdAt: new Date().toISOString()
+  };
+  
+  signals.push(newSignal);
+  res.json(newSignal);
+});
+
+app.put('/api/signals/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  const index = signals.findIndex(s => s.id === id);
+  
+  if (index === -1) {
+    return res.status(404).json({ message: 'Sinal não encontrado' });
+  }
+  
+  signals[index] = { ...signals[index], ...req.body };
+  res.json(signals[index]);
+});
+
+app.delete('/api/signals/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  signals = signals.filter(s => s.id !== id);
+  res.json({ success: true });
+});
+
+// LESSONS CRUD
 app.get('/api/lessons', authenticateToken, (req, res) => {
-  res.json([]);
+  res.json(lessons);
 });
 
+app.post('/api/lessons', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const newLesson = {
+    id: Date.now(),
+    ...req.body,
+    createdAt: new Date().toISOString()
+  };
+  
+  lessons.push(newLesson);
+  res.json(newLesson);
+});
+
+app.put('/api/lessons/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  const index = lessons.findIndex(l => l.id === id);
+  
+  if (index === -1) {
+    return res.status(404).json({ message: 'Aula não encontrada' });
+  }
+  
+  lessons[index] = { ...lessons[index], ...req.body };
+  res.json(lessons[index]);
+});
+
+app.delete('/api/lessons/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  lessons = lessons.filter(l => l.id !== id);
+  res.json({ success: true });
+});
+
+// PLANS CRUD
 app.get('/api/plans', authenticateToken, (req, res) => {
-  res.json([]);
+  res.json(plans);
+});
+
+app.post('/api/plans', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const newPlan = {
+    id: Date.now(),
+    ...req.body,
+    createdAt: new Date().toISOString()
+  };
+  
+  plans.push(newPlan);
+  res.json(newPlan);
+});
+
+app.put('/api/plans/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  const index = plans.findIndex(p => p.id === id);
+  
+  if (index === -1) {
+    return res.status(404).json({ message: 'Plano não encontrado' });
+  }
+  
+  plans[index] = { ...plans[index], ...req.body };
+  res.json(plans[index]);
+});
+
+app.delete('/api/plans/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = parseInt(req.params.id);
+  plans = plans.filter(p => p.id !== id);
+  res.json({ success: true });
+});
+
+// USERS CRUD
+app.get('/api/users', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  res.json(users);
+});
+
+app.post('/api/users', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const newUser = {
+    id: `user-${Date.now()}`,
+    ...req.body,
+    createdAt: new Date().toISOString()
+  };
+  
+  users.push(newUser);
+  res.json(newUser);
+});
+
+app.put('/api/users/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = req.params.id;
+  const index = users.findIndex(u => u.id === id);
+  
+  if (index === -1) {
+    return res.status(404).json({ message: 'Usuário não encontrado' });
+  }
+  
+  users[index] = { ...users[index], ...req.body };
+  res.json(users[index]);
+});
+
+app.delete('/api/users/:id', authenticateToken, (req: any, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado' });
+  }
+  
+  const id = req.params.id;
+  users = users.filter(u => u.id !== id);
+  res.json({ success: true });
 });
 
 // Create HTTP server

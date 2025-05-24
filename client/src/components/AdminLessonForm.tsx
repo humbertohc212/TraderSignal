@@ -61,9 +61,24 @@ export default function AdminLessonForm({ lesson, isOpen, onClose, onSuccess }: 
 
   const mutation = useMutation({
     mutationFn: async (data: LessonFormData) => {
+      const token = localStorage.getItem('auth-token');
       const url = lesson ? `/api/lessons/${lesson.id}` : "/api/lessons";
       const method = lesson ? "PUT" : "POST";
-      return await apiRequest(method, url, data);
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao salvar aula');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
