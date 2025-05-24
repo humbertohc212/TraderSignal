@@ -112,7 +112,7 @@ export default function Community() {
                     <MessageCircle className="h-5 w-5 text-blue-500" />
                     Discussões em Alta
                   </CardTitle>
-                  <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
+                  <Button variant="outline" size="sm" className="bg-gray-800/90 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
                     Nova Discussão
                   </Button>
                 </div>
