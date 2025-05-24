@@ -53,26 +53,20 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
 
   const updateBankConfigMutation = useMutation({
     mutationFn: async (data: BankConfigFormData) => {
-      return await apiRequest("PUT", "/api/user/bank-config", data);
+      const response = await apiRequest("PUT", "/api/user/bank-config", data);
+      return response.json();
     },
     onSuccess: async (data) => {
+      // Invalidar queries para atualizar dados em tempo real
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trading-entries"] });
+      
       toast({
         title: "Configurações Salvas!",
         description: "Sua banca e meta foram configuradas com sucesso.",
       });
       setOpen(false);
-      
-      // Salvar no localStorage para uso imediato
-      const configData = {
-        initialBalance: updateBankConfigMutation.variables?.initialBalance,
-        currentBalance: updateBankConfigMutation.variables?.initialBalance,
-        monthlyGoal: updateBankConfigMutation.variables?.monthlyGoal,
-        defaultLotSize: updateBankConfigMutation.variables?.defaultLotSize
-      };
-      localStorage.setItem('bankConfig', JSON.stringify(configData));
-      
-      // Recarregar página para mostrar dados atualizados
-      window.location.reload();
+      reset();
     },
     onError: () => {
       toast({
