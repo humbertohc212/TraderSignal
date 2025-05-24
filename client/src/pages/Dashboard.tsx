@@ -128,6 +128,10 @@ function TradingForm() {
     existingEntries.unshift(newEntry); // Adicionar no início da lista
     localStorage.setItem('tradingEntries', JSON.stringify(existingEntries));
     
+    console.log('Operação registrada:', newEntry);
+    console.log('Total de operações:', existingEntries.length);
+    console.log('Todas as operações:', existingEntries);
+    
     // Atualizar totais
     const userPips = localStorage.getItem('userTotalPips') || '0';
     const newTotalPips = parseInt(userPips) + pips;
@@ -294,14 +298,27 @@ function RecentTrades({ refreshTrigger }: { refreshTrigger?: number }) {
   const { toast } = useToast();
   const [tradingEntries, setTradingEntries] = useState([]);
 
-  // Recarregar dados sempre que refreshTrigger mudar
+  // Recarregar dados sempre que o componente for montado ou refreshTrigger mudar
   useEffect(() => {
     const loadEntries = () => {
-      const entries = JSON.parse(localStorage.getItem('tradingEntries') || '[]');
-      setTradingEntries(entries);
+      try {
+        const storedEntries = localStorage.getItem('tradingEntries');
+        console.log('Dados do localStorage:', storedEntries);
+        const entries = storedEntries ? JSON.parse(storedEntries) : [];
+        console.log('Entries carregadas:', entries);
+        setTradingEntries(entries);
+      } catch (error) {
+        console.error('Erro ao carregar entries:', error);
+        setTradingEntries([]);
+      }
     };
     
     loadEntries();
+    
+    // Atualizar a cada 3 segundos para garantir sincronização
+    const interval = setInterval(loadEntries, 3000);
+    
+    return () => clearInterval(interval);
   }, [refreshTrigger]);
 
   const handleDelete = (entryId: number) => {
