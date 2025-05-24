@@ -106,11 +106,17 @@ app.post('/api/auth/login', async (req, res) => {
     }
   
   try {
-    console.log('Login attempt for:', email);
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Email:', email);
+    console.log('Password provided:', !!password);
     
     // Primeiro, verifica se o usuário já existe no banco
+    console.log('Checking database for user...');
     let user = await storage.getUserByEmail(email);
     console.log('User found in database:', user ? 'Yes' : 'No');
+    if (user) {
+      console.log('User details:', { id: user.id, email: user.email, role: user.role });
+    }
     
     if (user) {
       // Usuário existe, verifica a senha
