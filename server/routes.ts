@@ -180,7 +180,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calcular pips das operações do usuário
       const userPips = userTradingEntries.reduce((sum, entry) => {
         const pips = parseFloat(entry.pips || "0");
-        return sum + (pips > 0 ? pips : 0);
+        console.log(`User entry - Pips: ${pips}`);
+        return sum + Math.abs(pips); // Contar todos os pips, positivos e negativos
       }, 0);
       
       // Total de pips (sinais + operações do usuário)
