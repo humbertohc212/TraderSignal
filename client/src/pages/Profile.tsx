@@ -127,7 +127,7 @@ export default function Profile() {
         title: "Perfil atualizado!",
         description: "Suas informações foram salvas com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {
       console.error('Profile update error:', error);
