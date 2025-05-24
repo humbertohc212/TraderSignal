@@ -58,7 +58,7 @@ app.get('/api/auth/user', authenticateToken, (req: any, res) => {
   res.json(req.user);
 });
 
-// Basic protected routes
+// Signals endpoint with multiple active signals
 app.get('/api/signals', authenticateToken, (req, res) => {
   res.json([
     {
@@ -69,7 +69,34 @@ app.get('/api/signals', authenticateToken, (req, res) => {
       takeProfitPrice: "1.0900",
       stopLossPrice: "1.0800",
       status: "active",
+      analysis: "Breakout acima da resistência de 1.0830. RSI mostra momentum bullish.",
+      tradingViewLink: "https://tradingview.com/chart",
       createdAt: new Date().toISOString()
+    },
+    {
+      id: 2,
+      pair: "GBP/USD",
+      direction: "SELL",
+      entryPrice: "1.2650",
+      takeProfitPrice: "1.2600",
+      stopLossPrice: "1.2700",
+      status: "active",
+      analysis: "Padrão de reversão formado. MACD divergente no H4.",
+      tradingViewLink: "https://tradingview.com/chart",
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      id: 3,
+      pair: "USD/JPY",
+      direction: "BUY",
+      entryPrice: "150.20",
+      takeProfitPrice: "151.00",
+      stopLossPrice: "149.50",
+      status: "closed",
+      result: "+80 pips",
+      analysis: "Bounce na support importante. Momentum forte.",
+      tradingViewLink: "https://tradingview.com/chart",
+      createdAt: new Date(Date.now() - 86400000).toISOString()
     }
   ]);
 });

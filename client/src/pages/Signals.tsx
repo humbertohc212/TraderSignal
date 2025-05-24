@@ -10,7 +10,7 @@ import SubscriptionGuard from "@/components/SubscriptionGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 
 export default function Signals() {
   const { user } = useAuth();
@@ -19,8 +19,23 @@ export default function Signals() {
   const [filterPair, setFilterPair] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const { data: signals, isLoading } = useQuery({
+  const { data: signals, isLoading, refetch } = useQuery({
     queryKey: ["/api/signals"],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth-token');
+      const response = await fetch('/api/signals', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao carregar sinais');
+      }
+      
+      return response.json();
+    },
+    refetchInterval: 30000, // Atualiza a cada 30 segundos
   });
 
   const filteredSignals = signals?.filter((signal: any) => {
@@ -49,15 +64,26 @@ export default function Signals() {
                 Sinais profissionais com análise técnica detalhada
               </p>
             </div>
-            {isAdmin && (
+            <div className="flex gap-3">
               <Button 
-                onClick={() => setShowSignalForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2"
+                onClick={() => refetch()}
+                variant="outline"
+                className="flex items-center space-x-2"
+                disabled={isLoading}
               >
-                <Plus className="h-4 w-4" />
-                <span>Novo Sinal</span>
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Atualizar</span>
               </Button>
-            )}
+              {isAdmin && (
+                <Button 
+                  onClick={() => setShowSignalForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Novo Sinal</span>
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Filters */}
