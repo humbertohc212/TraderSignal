@@ -98,15 +98,23 @@ export default function TradingEntryForm({ user, children }: TradingEntryFormPro
       return await apiRequest("POST", "/api/trading-entries", entryData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
+      // Invalida todas as queries relevantes para atualizar os dados
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/trading-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      
       toast({
         title: "Operação Registrada!",
-        description: "Sua operação foi salva e o progresso foi atualizado.",
+        description: "Sua operação foi salva e os pips foram atualizados.",
       });
       setOpen(false);
       reset();
+      
+      // Força recarregamento da página para garantir atualização
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     onError: () => {
       toast({
