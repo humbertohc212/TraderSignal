@@ -55,12 +55,12 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
     mutationFn: async (data: BankConfigFormData) => {
       return await apiRequest("PUT", "/api/user/bank-config", data);
     },
-    onSuccess: () => {
-      // Invalidar e recarregar os dados do usuário
-      queryClient.invalidateQueries({ queryKey: ["user"] });
-      queryClient.refetchQueries({ queryKey: ["user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: async () => {
+      // Limpar todo o cache relacionado ao usuário
+      queryClient.clear();
+      
+      // Forçar refetch imediato dos dados do usuário
+      await queryClient.refetchQueries({ queryKey: ["user"] });
       
       toast({
         title: "Configurações Salvas!",
@@ -68,10 +68,8 @@ export default function BankConfigModal({ user, children }: BankConfigModalProps
       });
       setOpen(false);
       
-      // Forçar reload da página para garantir atualização
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // Recarregar página imediatamente para garantir atualização
+      window.location.reload();
     },
     onError: () => {
       toast({
