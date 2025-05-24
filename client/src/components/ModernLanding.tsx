@@ -12,7 +12,8 @@ import {
   BarChart3,
   Zap,
   Globe,
-  Target
+  Target,
+  Home
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -79,6 +80,31 @@ export default function ModernLanding() {
       <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
       <div className="absolute top-0 -right-4 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+
+      {/* Header with Home Button */}
+      <header className="relative z-20 pt-6 pb-4">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
+          <Link href="/">
+            <Button className="bg-black border-black hover:bg-gray-800 text-white px-6 py-2 rounded-full">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+          </Link>
+          
+          <div className="flex items-center space-x-4">
+            <Link href="/plans">
+              <Button variant="ghost" className="text-white hover:bg-white/10">
+                Planos
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full">
+                Entrar
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section className="relative z-10 pt-20 pb-32">
