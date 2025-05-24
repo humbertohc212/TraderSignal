@@ -207,11 +207,24 @@ export default function Admin() {
         <Sidebar />
         
         <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
-            <p className="mt-2 text-gray-600">
-              Gerencie conteúdo, usuários e configurações da plataforma
-            </p>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
+              <p className="mt-2 text-gray-600">
+                Gerencie conteúdo, usuários e configurações da plataforma
+              </p>
+            </div>
+            <Button 
+              onClick={() => {
+                queryClient.clear();
+                queryClient.invalidateQueries();
+                window.location.reload();
+              }}
+              variant="outline"
+              size="sm"
+            >
+              🔄 Atualizar Cache
+            </Button>
           </div>
 
           {/* Admin Stats */}
