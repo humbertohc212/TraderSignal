@@ -198,6 +198,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Download endpoint for project files
+  app.get('/download/project', (req, res) => {
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'tradesignal-pro-complete.tar.gz');
+    
+    res.setHeader('Content-Type', 'application/gzip');
+    res.setHeader('Content-Disposition', 'attachment; filename="tradesignal-pro-complete.tar.gz"');
+    
+    res.download(filePath, 'tradesignal-pro-complete.tar.gz', (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        res.status(404).send('File not found');
+      }
+    });
+  });
+
   // Signals routes
   app.get("/api/signals", jwtAuth, async (req, res) => {
     try {
