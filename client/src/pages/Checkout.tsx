@@ -1,9 +1,9 @@
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, MessageCircle, CheckCircle2 } from "lucide-react";
+import { Copy, MessageCircle, CheckCircle2, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Checkout() {
@@ -53,6 +53,14 @@ Enviarei o comprovante do PIX em seguida.`;
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/">
+              <Button variant="outline" size="sm" className="text-white border-gray-600 hover:bg-gray-700">
+                <Home className="h-4 w-4 mr-2" />
+                Voltar ao Início
+              </Button>
+            </Link>
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Finalizar Assinatura</h1>
           <p className="text-gray-300">Complete seu pagamento via PIX</p>
         </div>
