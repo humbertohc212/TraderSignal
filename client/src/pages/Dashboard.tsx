@@ -86,22 +86,13 @@ function TradingForm() {
           <SelectContent>
             {availablePairs.length > 0 && (
               <>
-                <SelectItem value="" disabled className="text-gray-400 font-semibold">
-                  🎯 Pares dos Sinais Ativos
-                </SelectItem>
                 {availablePairs.map((pair: string) => (
                   <SelectItem key={`signal-${pair}`} value={pair}>
-                    📈 {pair}
+                    📈 {pair} (dos sinais)
                   </SelectItem>
                 ))}
-                <SelectItem value="" disabled className="text-gray-400 font-semibold">
-                  ━━━━━━━━━━━━━━━━
-                </SelectItem>
               </>
             )}
-            <SelectItem value="" disabled className="text-gray-400 font-semibold">
-              💰 Outros Pares Populares
-            </SelectItem>
             <SelectItem value="EUR/USD">EUR/USD</SelectItem>
             <SelectItem value="GBP/USD">GBP/USD</SelectItem>
             <SelectItem value="USD/JPY">USD/JPY</SelectItem>
@@ -309,9 +300,13 @@ export default function Dashboard() {
                   <BarChart3 className="h-4 w-4 text-purple-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-white">{stats?.winRate || 87}%</div>
+                  <div className="text-2xl font-bold text-white">
+                    {signals ? 
+                      Math.round((signals.filter((s: any) => s.status === 'closed' && parseFloat(s.result || '0') > 0).length / 
+                      Math.max(signals.filter((s: any) => s.status === 'closed').length, 1)) * 100) : 87}%
+                  </div>
                   <p className="text-xs text-gray-400">
-                    {stats?.winningSignals || 0} de {stats?.closedSignals || 0} sinais
+                    {signals ? signals.filter((s: any) => s.status === 'closed' && parseFloat(s.result || '0') > 0).length : 0} de {signals ? signals.filter((s: any) => s.status === 'closed').length : 0} sinais
                   </p>
                 </CardContent>
               </Card>
