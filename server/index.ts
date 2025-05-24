@@ -1,62 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 
 const app = express();
 
-// Configure CORS with specific origin for Replit
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://*.repl.co', 'https://*.replit.dev'] 
-    : 'http://localhost:5000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Parse JSON bodies
+// Minimal setup - just what we need
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-
-// Handle JSON parsing errors
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof SyntaxError && 'body' in err) {
-    return res.status(400).json({ 
-      success: false,
-      message: 'Invalid JSON' 
-    });
-  }
-  next();
-});
-
-// Configure session with proper cookie settings for Replit
-app.use(session({
-  secret: 'simple-dev-secret',
-  resave: false,
-  saveUninitialized: false,
-  name: 'sessionId',
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'lax'
-  }
-}));
-
-// API error handler - ensure JSON responses
-app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('API Error:', err);
-  
-  // Ensure we send a JSON response
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  });
-});
 
 // Request logging middleware
 app.use((req, res, next) => {
