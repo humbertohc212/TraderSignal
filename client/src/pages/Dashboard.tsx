@@ -216,14 +216,14 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
-                      {user?.initialBalance ? (
+                      {user?.initialBalance && user?.monthlyGoal ? (
                         <>
                           {/* Progresso Principal */}
                           <div className="mb-6">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-gray-700">Progresso da Meta</span>
                               <span className="text-2xl font-bold text-green-600">
-                                R$ {((user?.currentBalance || user?.initialBalance) - user?.initialBalance).toFixed(2)}
+                                R$ {((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)).toFixed(2)}
                               </span>
                             </div>
                             
@@ -233,23 +233,23 @@ export default function Dashboard() {
                                 style={{ 
                                   width: `${Math.min(
                                     Math.max(
-                                      ((user?.currentBalance || user?.initialBalance) - user?.initialBalance) / user?.monthlyGoal * 100, 
+                                      ((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100, 
                                       0
                                     ), 
                                     100
                                   )}%` 
                                 }}
                               >
-                                {((user?.currentBalance || user?.initialBalance) - user?.initialBalance) > 0 && (
+                                {((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) > 0 && (
                                   <span className="text-xs font-bold text-white">
-                                    {Math.round(((user?.currentBalance || user?.initialBalance) - user?.initialBalance) / user?.monthlyGoal * 100)}%
+                                    {Math.round(((parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)) - parseFloat(user?.initialBalance)) / parseFloat(user?.monthlyGoal) * 100)}%
                                   </span>
                                 )}
                               </div>
                             </div>
                             
                             <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
-                              <span>R$ {user?.initialBalance}</span>
+                              <span>R$ {parseFloat(user?.initialBalance).toFixed(2)}</span>
                               <span>Meta: R$ {(parseFloat(user?.initialBalance) + parseFloat(user?.monthlyGoal)).toFixed(2)}</span>
                             </div>
                           </div>
@@ -257,11 +257,11 @@ export default function Dashboard() {
                           {/* Métricas do Mês */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-blue-600">R$ {user?.currentBalance || user?.initialBalance}</div>
+                              <div className="text-lg font-bold text-blue-600">R$ {(parseFloat(user?.currentBalance) || parseFloat(user?.initialBalance)).toFixed(2)}</div>
                               <div className="text-xs text-gray-600">Banca Atual</div>
                             </div>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-lg font-bold text-purple-600">R$ {user?.monthlyGoal}</div>
+                              <div className="text-lg font-bold text-purple-600">R$ {parseFloat(user?.monthlyGoal).toFixed(2)}</div>
                               <div className="text-xs text-gray-600">Meta Mensal</div>
                             </div>
                           </div>
