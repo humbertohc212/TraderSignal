@@ -125,6 +125,22 @@ app.post('/api/auth/login', (req, res) => {
       user: userData,
       token: token
     });
+  } else if (email === 'vcbc8371@gmail.com' && password === 'Betinho21@') {
+    const userData = {
+      id: 'user-vcbc-id',
+      email: email,
+      role: 'user',
+      firstName: 'VCBC',
+      lastName: 'User'
+    };
+    
+    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+    
+    res.json({ 
+      success: true, 
+      user: userData,
+      token: token
+    });
   } else {
     res.status(401).json({ 
       success: false,
