@@ -952,6 +952,37 @@ app.delete('/api/users/:id', authenticateToken, (req: any, res) => {
   res.json({ success: true });
 });
 
+// Atualizar dados do perfil
+app.put('/api/profile', authenticateToken, async (req: any, res) => {
+  try {
+    const { firstName, lastName, phone, bio } = req.body;
+    const userId = req.user.id;
+    
+    console.log('Atualizando perfil do usuário:', userId, {
+      firstName,
+      lastName,
+      phone,
+      bio
+    });
+
+    const updatedUser = await storage.updateUser(userId, {
+      firstName,
+      lastName,
+      phone,
+      bio
+    });
+
+    res.json({ 
+      success: true, 
+      message: 'Perfil atualizado com sucesso',
+      user: updatedUser 
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
+
 // Create HTTP server
 const httpServer = createServer(app);
 
