@@ -70,13 +70,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Simple login endpoint that returns token for localStorage
   app.post('/api/auth/login', (req, res) => {
-    console.log('Login attempt:', req.body);
+    console.log('=== LOGIN ENDPOINT HIT ===');
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    // Force JSON response immediately
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    });
     
     try {
       const { email, password } = req.body;
-      
-      // Set JSON response headers first
-      res.setHeader('Content-Type', 'application/json');
       
       // For admin credentials
       if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
@@ -91,21 +96,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create JWT token
         const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
         
-        console.log('Token created for localStorage:', token);
-        
-        // Return token for frontend to store in localStorage
-        return res.status(200).json({ 
+        const response = { 
           success: true, 
           user: userData,
           token: token
-        });
+        };
+        
+        console.log('Sending response:', response);
+        res.end(JSON.stringify(response));
+        return;
       } else {
-        return res.status(401).json({ message: 'Credenciais inválidas' });
+        const errorResponse = { message: 'Credenciais inválidas' };
+        res.writeHead(401, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify(errorResponse));
+        return;
       }
     } catch (error) {
       console.error("Login error:", error);
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(500).json({ message: "Erro no servidor" });
+      const errorResponse = { message: "Erro no servidor" };
+      res.writeHead(500, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify(errorResponse));
+      return;
     }
   });
 
