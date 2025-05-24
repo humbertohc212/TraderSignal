@@ -896,6 +896,45 @@ app.get('/api/stats/user', authenticateToken, async (req: any, res) => {
   }
 });
 
+// PROFILE UPDATE ROUTE - FUNCIONAL
+app.put('/api/profile', authenticateToken, async (req: any, res) => {
+  try {
+    const { firstName, lastName, phone, bio } = req.body;
+    const userId = req.user.id;
+    
+    console.log('=== ATUALIZANDO PERFIL (MAIN SERVER) ===');
+    console.log('User ID:', userId);
+    console.log('Dados:', { firstName, lastName, phone, bio });
+    
+    const updatedUser = await storage.updateUser(userId, {
+      firstName: firstName || '',
+      lastName: lastName || '',
+      phone: phone || '',
+      bio: bio || ''
+    });
+    
+    console.log('Usuário atualizado com sucesso:', updatedUser);
+    
+    const result = { 
+      success: true, 
+      message: 'Perfil atualizado com sucesso',
+      user: updatedUser 
+    };
+    
+    console.log('Enviando resposta JSON:', JSON.stringify(result));
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erro ao atualizar perfil',
+      error: error.message 
+    });
+  }
+});
+
 // USERS CRUD
 app.get('/api/users', authenticateToken, async (req: any, res) => {
   if (req.user.role !== 'admin') {

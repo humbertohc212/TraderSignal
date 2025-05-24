@@ -301,47 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ========== ROTAS DO PERFIL ==========
   
-  // Atualizar dados do perfil
-  app.put('/api/profile', jwtAuth, async (req: any, res) => {
-    try {
-      const { userId, firstName, lastName, phone, bio } = req.body;
-      const authenticatedUserId = req.user.id;
-      
-      // Usar o ID do usuário autenticado se não foi fornecido
-      const targetUserId = userId || authenticatedUserId;
-      
-      if (!targetUserId) {
-        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
-      }
 
-      console.log('=== ATUALIZANDO PERFIL ===');
-      console.log('Target User ID:', targetUserId);
-      console.log('Dados recebidos:', { firstName, lastName, phone, bio });
-
-      const updatedUser = await storage.updateUser(targetUserId, {
-        firstName,
-        lastName,
-        phone,
-        bio
-      });
-
-      console.log('Usuário atualizado:', updatedUser);
-
-      const response = { 
-        success: true, 
-        message: 'Perfil atualizado com sucesso',
-        user: updatedUser 
-      };
-
-      console.log('Enviando resposta:', response);
-      
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(200).json(response);
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      return res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
-    }
-  });
 
   // Buscar entradas de trading do usuário
   app.get('/api/trading-entries/:userId', async (req, res) => {
