@@ -115,8 +115,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Rota de verificação do usuário
   app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
-    console.log('User data from token:', req.user);
-    res.json(req.user);
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.log('User not found in database, returning token data');
+        return res.json(req.user);
+      }
+
+      // Log para debug
+      console.log('User data from database:', {
+        id: user.id,
+        initialBalance: user.initialBalance,
+        monthlyGoal: user.monthlyGoal,
+        currentBalance: user.currentBalance
+      });
+
+      // Não retornar a senha
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Erro ao buscar usuário do banco:', error);
+      // Fallback para dados do token se houver erro
+      res.json(req.user);
+    }
   });
 
   // Rota de logout
