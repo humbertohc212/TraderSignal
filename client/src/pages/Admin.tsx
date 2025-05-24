@@ -126,8 +126,8 @@ export default function Admin() {
 
   const { data: adminStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/admin"],
-    refetchInterval: 5000, // Atualiza a cada 5 segundos
-    staleTime: 0, // Sempre busca dados frescos
+    refetchInterval: 30000, // Atualiza a cada 30 segundos (menos agressivo)
+    staleTime: 5000, // Cache por 5 segundos
   });
 
   const { data: signals } = useQuery({
