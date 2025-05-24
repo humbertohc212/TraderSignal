@@ -9,6 +9,68 @@ app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret';
 
+// PLANS - Rota pública DEVE vir primeiro
+app.get('/api/plans', (req, res) => {
+  console.log('=== ROTA /api/plans CHAMADA ===');
+  
+  const plans = [
+    {
+      id: 4,
+      name: "Free Trial",
+      price: 0,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "21 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
+    },
+    {
+      id: 1,
+      name: "Básico", 
+      price: 47,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "5 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
+    },
+    {
+      id: 2,
+      name: "Premium",
+      price: 97,
+      currency: "BRL", 
+      isPopular: true,
+      features: [
+        "15 sinais por semana",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário",
+        "Análises exclusivas"
+      ]
+    },
+    {
+      id: 3,
+      name: "VIP",
+      price: 197,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "Sinais ilimitados",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário", 
+        "Análises exclusivas",
+        "Mentoria personalizada",
+        "Suporte via WhatsApp",
+        "Relatórios detalhados"
+      ]
+    }
+  ];
+  
+  console.log('Enviando planos:', plans.length);
+  res.json(plans);
+});
+
 // Simple auth middleware
 function authenticateToken(req: any, res: any, next: any) {
   const authHeader = req.headers.authorization;
@@ -211,6 +273,69 @@ let users = [
   }
 ];
 
+// PLANS - Rota pública simples
+app.get('/api/plans', (req, res) => {
+  console.log('=== ROTA /api/plans CHAMADA ===');
+  
+  // Planos fixos baseados no banco de dados atual
+  const plans = [
+    {
+      id: 4,
+      name: "Free Trial",
+      price: 0,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "21 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
+    },
+    {
+      id: 1,
+      name: "Básico", 
+      price: 47,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "5 sinais por semana",
+        "Acesso ao conteúdo educacional"
+      ]
+    },
+    {
+      id: 2,
+      name: "Premium",
+      price: 97,
+      currency: "BRL", 
+      isPopular: true,
+      features: [
+        "15 sinais por semana",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário",
+        "Análises exclusivas"
+      ]
+    },
+    {
+      id: 3,
+      name: "VIP",
+      price: 197,
+      currency: "BRL",
+      isPopular: false,
+      features: [
+        "Sinais ilimitados",
+        "Acesso ao conteúdo educacional",
+        "Suporte prioritário", 
+        "Análises exclusivas",
+        "Mentoria personalizada",
+        "Suporte via WhatsApp",
+        "Relatórios detalhados"
+      ]
+    }
+  ];
+  
+  console.log('Enviando planos:', plans.length);
+  res.json(plans);
+});
+
 // SIGNALS CRUD
 app.get('/api/signals', authenticateToken, (req, res) => {
   res.json(signals);
@@ -397,36 +522,6 @@ app.get('/api/stats/user', authenticateToken, (req: any, res) => {
     winRate,
     totalProfit
   });
-});
-
-// PLANS - Rota pública (não requer autenticação)
-app.get('/api/plans', async (req, res) => {
-  try {
-    const plans = await storage.getActivePlans();
-    
-    // Formatando os planos para o frontend
-    const formattedPlans = plans.map(plan => ({
-      id: plan.id,
-      name: plan.name,
-      price: plan.price,
-      currency: plan.currency,
-      isPopular: plan.isPopular,
-      features: [
-        `${plan.signalsPerWeek === 999 ? 'Sinais ilimitados' : `${plan.signalsPerWeek} sinais por semana`}`,
-        ...(plan.hasEducationalAccess ? ['Acesso ao conteúdo educacional'] : []),
-        ...(plan.hasPrioritySupport ? ['Suporte prioritário'] : []),
-        ...(plan.hasExclusiveAnalysis ? ['Análises exclusivas'] : []),
-        ...(plan.hasMentoring ? ['Mentoria personalizada'] : []),
-        ...(plan.hasWhatsappSupport ? ['Suporte via WhatsApp'] : []),
-        ...(plan.hasDetailedReports ? ['Relatórios detalhados'] : [])
-      ]
-    }));
-    
-    res.json(formattedPlans);
-  } catch (error) {
-    console.error('Erro ao buscar planos:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
-  }
 });
 
 // USERS CRUD
