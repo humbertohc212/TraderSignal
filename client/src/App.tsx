@@ -32,10 +32,12 @@ function Router() {
 
   return (
     <Switch>
+      {/* Login page should always be accessible */}
+      <Route path="/login" component={Login} />
+      
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/login" component={Login} />
           <Route path="/demo" component={Demo} />
           <Route path="/plans" component={Plans} />
         </>
