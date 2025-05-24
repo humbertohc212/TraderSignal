@@ -1,5 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 import { storage } from "./storage";
@@ -90,61 +91,80 @@ function authenticateToken(req: any, res: any, next: any) {
 }
 
 // Auth routes
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   
-  if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
-    const userData = {
-      id: 'admin-user-id',
-      email: email,
-      role: 'admin',
-      firstName: 'Homer',
-      lastName: 'Cavalcanti'
-    };
+  try {
+    // Primeiro, verifica se o usuário já existe no banco
+    let user = await storage.getUserByEmail(email);
     
-    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
-    
-    res.json({ 
-      success: true, 
-      user: userData,
-      token: token
-    });
-  } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
-    const userData = {
-      id: 'user-alessandra-id',
-      email: email,
-      role: 'user',
-      firstName: 'Alessandra',
-      lastName: 'Berto'
-    };
-    
-    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
-    
-    res.json({ 
-      success: true, 
-      user: userData,
-      token: token
-    });
-  } else if (email === 'vcbc8371@gmail.com' && password === 'Betinho21@') {
-    const userData = {
-      id: 'user-vcbc-id',
-      email: email,
-      role: 'user',
-      firstName: 'VCBC',
-      lastName: 'User'
-    };
-    
-    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
-    
-    res.json({ 
-      success: true, 
-      user: userData,
-      token: token
-    });
-  } else {
-    res.status(401).json({ 
+    if (user) {
+      // Usuário existe, verifica a senha
+      const isValidPassword = await bcrypt.compare(password, user.password || '');
+      
+      if (!isValidPassword) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
+      }
+      
+      const userData = {
+        id: user.id,
+        email: user.email,
+        role: user.role || 'user',
+        firstName: user.firstName,
+        lastName: user.lastName
+      };
+      
+      const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      
+      return res.json({ 
+        success: true, 
+        user: userData,
+        token: token
+      });
+    } else {
+      // Usuário não existe, cria automaticamente com a senha fornecida
+      const hashedPassword = await bcrypt.hash(password, 12);
+      
+      // Define role baseado no email
+      const role = email === 'homercavalcanti@gmail.com' ? 'admin' : 'user';
+      
+      // Extrai nome do email
+      const emailPrefix = email.split('@')[0];
+      const firstName = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+      
+      const newUser = await storage.createUser({
+        id: `user_${Date.now()}`,
+        email: email,
+        password: hashedPassword,
+        role: role,
+        firstName: firstName,
+        lastName: 'User'
+      });
+      
+      const userData = {
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role || 'user',
+        firstName: newUser.firstName,
+        lastName: newUser.lastName
+      };
+      
+      const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+      
+      return res.json({ 
+        success: true, 
+        user: userData,
+        token: token
+      });
+    }
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.status(500).json({ 
       success: false,
-      message: 'Credenciais inválidas' 
+      message: 'Erro interno do servidor' 
     });
   }
 });
