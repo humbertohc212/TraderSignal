@@ -71,6 +71,7 @@ export default function AdminUserForm({ user, isOpen, onClose, onSuccess }: Admi
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] }); // Atualiza estatísticas
       toast({
         title: "Sucesso",
         description: "Usuário atualizado com sucesso!",

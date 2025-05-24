@@ -77,6 +77,7 @@ export default function AdminSignalForm({ signal, onClose, onSuccess }: AdminSig
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/signals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] }); // Atualiza estatísticas
       toast({
         title: "Sucesso!",
         description: signal?.id ? "Sinal editado com sucesso!" : "Sinal criado com sucesso!",

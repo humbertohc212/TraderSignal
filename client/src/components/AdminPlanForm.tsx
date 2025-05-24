@@ -103,6 +103,7 @@ export default function AdminPlanForm({ plan, onClose, onSuccess }: AdminPlanFor
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] }); // Atualiza estatísticas
       toast({
         title: isEditing ? "Plano atualizado" : "Plano criado",
         description: `O plano foi ${isEditing ? "atualizado" : "criado"} com sucesso.`,

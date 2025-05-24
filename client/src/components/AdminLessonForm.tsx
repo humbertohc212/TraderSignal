@@ -82,6 +82,7 @@ export default function AdminLessonForm({ lesson, isOpen, onClose, onSuccess }: 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] }); // Atualiza estatísticas
       toast({
         title: "Sucesso",
         description: lesson ? "Aula atualizada com sucesso!" : "Aula criada com sucesso!",
