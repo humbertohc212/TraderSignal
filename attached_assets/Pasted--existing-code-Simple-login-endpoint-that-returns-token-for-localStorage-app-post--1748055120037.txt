@@ -1,0 +1,72 @@
+// ... existing code ...
+  // Simple login endpoint that returns token for localStorage
+  app.post('/api/auth/login', async (req, res) => {
+    console.log('=== LOGIN ENDPOINT HIT ===');
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    // Ensure content type is application/json
+    const contentType = req.headers['content-type'];
+    if (!contentType || !contentType.includes('application/json')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content-Type must be application/json'
+      });
+    }
+    
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Email e senha são obrigatórios' 
+        });
+      }
+      
+      // For admin credentials
+      if (email === 'homercavalcanti@gmail.com' && password === 'Betinho21@') {
+        const userData = {
+          id: 'admin-user-id',
+          email: email,
+          role: 'admin',
+          firstName: 'Admin',
+          lastName: 'User'
+        };
+        
+        // Create JWT token
+        const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+        
+        // Set cookie for additional security
+        res.cookie('auth-token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+          path: '/'
+        });
+        
+        const response = { 
+          success: true, 
+          user: userData,
+          token: token
+        };
+        
+        console.log('Login successful, sending response:', response);
+        return res.status(200).json(response);
+      } else {
+        console.log('Invalid credentials attempt');
+        return res.status(401).json({ 
+          success: false,
+          message: 'Credenciais inválidas' 
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ 
+        success: false,
+        message: "Erro no servidor" 
+      });
+    }
+  });
+// ... existing code ...

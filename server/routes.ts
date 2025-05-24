@@ -68,11 +68,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Improved login endpoint with better error handling
-  app.post('/api/auth/login', (req, res) => {
+  // Robust login endpoint with proper JSON handling
+  app.post('/api/auth/login', async (req, res) => {
     console.log('=== LOGIN ENDPOINT HIT ===');
     console.log('Request body:', req.body);
     console.log('Request headers:', req.headers);
+    
+    // Ensure content type is application/json
+    const contentType = req.headers['content-type'];
+    if (!contentType || !contentType.includes('application/json')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content-Type must be application/json'
+      });
+    }
     
     try {
       const { email, password } = req.body;
@@ -101,8 +110,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.cookie('auth-token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000 // 24 hours
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+          path: '/'
         });
         
         const response = { 
@@ -112,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         console.log('Login successful, sending response:', response);
-        return res.json(response);
+        return res.status(200).json(response);
       } else {
         console.log('Invalid credentials attempt');
         return res.status(401).json({ 
