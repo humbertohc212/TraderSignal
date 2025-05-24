@@ -115,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Rota de verificação do usuário
   app.get('/api/auth/user', jwtAuth, async (req: any, res) => {
+    console.log('User data from token:', req.user);
     res.json(req.user);
   });
 
