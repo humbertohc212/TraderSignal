@@ -495,6 +495,7 @@ let signals = [
     status: "active",
     analysis: "Breakout acima da resistência de 1.0830. RSI mostra momentum bullish.",
     tradingViewLink: "https://tradingview.com/chart",
+    allowedPlans: ["basic", "premium", "vip"], // Sinal exclusivo para planos pagos
     createdAt: new Date().toISOString()
   },
   {
@@ -507,6 +508,7 @@ let signals = [
     status: "active",
     analysis: "Padrão de reversão formado. MACD divergente no H4.",
     tradingViewLink: "https://tradingview.com/chart",
+    allowedPlans: ["free", "basic", "premium", "vip"], // Sinal disponível para todos
     createdAt: new Date(Date.now() - 3600000).toISOString()
   }
 ];
@@ -622,8 +624,34 @@ let users = [
 
 
 // SIGNALS CRUD
-app.get('/api/signals', authenticateToken, (req, res) => {
-  res.json(signals);
+app.get('/api/signals', authenticateToken, async (req: any, res) => {
+  try {
+    const user = await storage.getUserByEmail(req.user.email);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    // Admin vê todos os sinais
+    if (user.role === 'admin') {
+      return res.json(signals);
+    }
+
+    // Filtrar sinais baseado no plano do usuário
+    const userPlan = user.subscriptionPlan || 'free';
+    const filteredSignals = signals.filter(signal => {
+      // Se o sinal não tem allowedPlans definido, permitir para todos
+      if (!signal.allowedPlans || signal.allowedPlans.length === 0) {
+        return true;
+      }
+      // Verificar se o plano do usuário está na lista de planos permitidos
+      return signal.allowedPlans.includes(userPlan);
+    });
+
+    res.json(filteredSignals);
+  } catch (error) {
+    console.error('Erro ao buscar sinais:', error);
+    res.status(500).json({ message: 'Erro interno do servidor' });
+  }
 });
 
 app.post('/api/signals', authenticateToken, (req: any, res) => {
@@ -634,6 +662,7 @@ app.post('/api/signals', authenticateToken, (req: any, res) => {
   const newSignal = {
     id: Date.now(),
     ...req.body,
+    allowedPlans: req.body.allowedPlans || ['free', 'basic', 'premium', 'vip'],
     createdAt: new Date().toISOString()
   };
   
