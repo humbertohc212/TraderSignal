@@ -209,47 +209,47 @@ export default function Community() {
                   </div>
                 ) : (
                   discussionTopics.map((topic: any) => (
-                  <div key={topic.id} className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-gray-500 transition-colors cursor-pointer">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gray-600 text-white text-sm">
-                            {topic.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="text-white font-medium hover:text-blue-400 transition-colors">
-                            {topic.title}
-                          </h3>
-                          <p className="text-gray-400 text-sm">
-                            por {topic.author} • {topic.time}
-                          </p>
+                    <div key={topic.id} className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-gray-500 transition-colors cursor-pointer">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-gray-600 text-white text-sm">
+                              {topic.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="text-white font-medium hover:text-blue-400 transition-colors">
+                              {topic.title}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              por {topic.author} • {topic.time}
+                            </p>
+                          </div>
+                        </div>
+                        {topic.isHot && (
+                          <Badge variant="destructive" className="bg-red-600">
+                            🔥 Hot
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="border-gray-500 text-gray-300">
+                          {topic.category}
+                        </Badge>
+                        <div className="flex items-center gap-4 text-gray-400 text-sm">
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="h-4 w-4" />
+                            {topic.replies}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Heart className="h-4 w-4" />
+                            {topic.likes}
+                          </span>
+                          <Share2 className="h-4 w-4 cursor-pointer hover:text-blue-400" />
                         </div>
                       </div>
-                      {topic.isHot && (
-                        <Badge variant="destructive" className="bg-red-600">
-                          🔥 Hot
-                        </Badge>
-                      )}
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="border-gray-500 text-gray-300">
-                        {topic.category}
-                      </Badge>
-                      <div className="flex items-center gap-4 text-gray-400 text-sm">
-                        <span className="flex items-center gap-1">
-                          <MessageCircle className="h-4 w-4" />
-                          {topic.replies}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Heart className="h-4 w-4" />
-                          {topic.likes}
-                        </span>
-                        <Share2 className="h-4 w-4 cursor-pointer hover:text-blue-400" />
-                      </div>
-                    </div>
-                  </div>
                   ))
                 )}
               </CardContent>
@@ -267,7 +267,7 @@ export default function Community() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {topTraders.map((trader, index) => (
+                {topTraders.map((trader: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
@@ -279,7 +279,12 @@ export default function Community() {
                         </Avatar>
                       </div>
                       <div>
-                        <p className="text-white font-medium text-sm">{trader.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-white font-medium text-sm">{trader.name}</p>
+                          {trader.isAdmin && (
+                            <Crown className="h-3 w-3 text-yellow-500" title="Administrador" />
+                          )}
+                        </div>
                         <p className="text-gray-400 text-xs">{trader.trades} trades</p>
                       </div>
                     </div>
