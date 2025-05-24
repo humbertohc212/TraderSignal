@@ -104,8 +104,7 @@ app.post('/api/auth/login', async (req, res) => {
         message: 'Email e senha são obrigatórios' 
       });
     }
-  
-  try {
+    
     console.log('=== LOGIN ATTEMPT ===');
     console.log('Email:', email);
     console.log('Password provided:', !!password);
@@ -190,7 +189,7 @@ app.post('/api/auth/login', async (req, res) => {
         token: token
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro no login:', error);
     console.error('Error details:', error.message);
     console.error('Stack trace:', error.stack);
