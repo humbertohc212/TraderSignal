@@ -175,6 +175,7 @@ function TradingForm() {
             <SelectValue placeholder="Escolha um par dos sinais" />
           </SelectTrigger>
           <SelectContent>
+            {/* Pares com sinais ativos primeiro */}
             {availablePairs.length > 0 && (
               <>
                 {availablePairs.map((pair: string) => (
@@ -182,14 +183,17 @@ function TradingForm() {
                     📈 {pair} (dos sinais)
                   </SelectItem>
                 ))}
+                <hr className="my-2 border-gray-600" />
               </>
             )}
-            <SelectItem value="EUR/USD">EUR/USD</SelectItem>
-            <SelectItem value="GBP/USD">GBP/USD</SelectItem>
-            <SelectItem value="USD/JPY">USD/JPY</SelectItem>
-            <SelectItem value="XAU/USD">XAU/USD (Ouro)</SelectItem>
-            <SelectItem value="BTC/USD">BTC/USD</SelectItem>
-            <SelectItem value="ETH/USD">ETH/USD</SelectItem>
+            {/* Pares populares (excluindo os que já aparecem nos sinais) */}
+            {['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD', 'BTC/USD', 'ETH/USD']
+              .filter(pair => !availablePairs.includes(pair))
+              .map(pair => (
+                <SelectItem key={`popular-${pair}`} value={pair}>
+                  {pair === 'XAU/USD' ? 'XAU/USD (Ouro)' : pair}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
       </div>
