@@ -95,6 +95,9 @@ app.post('/api/custom-login', async (req, res) => {
   console.log('=== LOGIN ENDPOINT HIT ===');
   console.log('Request body:', req.body);
   
+  // Força o header de resposta JSON
+  res.setHeader('Content-Type', 'application/json');
+  
   try {
     const { email, password } = req.body;
 
