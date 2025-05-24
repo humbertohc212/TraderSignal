@@ -35,8 +35,24 @@ app.post('/api/auth/login', (req, res) => {
       id: 'admin-user-id',
       email: email,
       role: 'admin',
-      firstName: 'Admin',
-      lastName: 'User'
+      firstName: 'Homer',
+      lastName: 'Cavalcanti'
+    };
+    
+    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
+    
+    res.json({ 
+      success: true, 
+      user: userData,
+      token: token
+    });
+  } else if (email === 'alessandrabertoo2001@gmail.com' && password === '1339Ale@') {
+    const userData = {
+      id: 'user-alessandra-id',
+      email: email,
+      role: 'user',
+      firstName: 'Alessandra',
+      lastName: 'Berto'
     };
     
     const token = jwt.sign(userData, JWT_SECRET, { expiresIn: '24h' });
