@@ -169,16 +169,25 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
           )}
 
           {signal.tradingViewLink && (
-            <div className="mt-3">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.open(signal.tradingViewLink, '_blank')}
-                className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Ver no TradingView
-              </Button>
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    📊 Análise Completa Disponível
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Veja gráficos detalhados e indicadores técnicos
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => window.open(signal.tradingViewLink, '_blank')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Abrir TradingView
+                </Button>
+              </div>
             </div>
           )}
         </div>
