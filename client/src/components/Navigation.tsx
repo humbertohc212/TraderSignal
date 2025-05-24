@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,7 +17,7 @@ export default function Navigation() {
     ...(user?.role === "admin" ? [{ path: "/admin", label: "Admin", id: "admin" }] : []),
   ];
 
-  const handleLogout = async (e: React.MouseEvent) => {
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     await logout();
   };
