@@ -23,6 +23,7 @@ const lessonFormSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
   description: z.string().optional(),
   content: z.string().min(1, "Conteúdo é obrigatório"),
+  videoUrl: z.string().url("URL do vídeo inválida").optional().or(z.literal("")),
   category: z.string().min(1, "Categoria é obrigatória"),
   level: z.enum(["Iniciante", "Intermediário", "Avançado"]),
   duration: z.number().min(1, "Duração deve ser maior que 0").optional(),
@@ -49,6 +50,7 @@ export default function AdminLessonForm({ lesson, isOpen, onClose, onSuccess }: 
       title: lesson?.title || "",
       description: lesson?.description || "",
       content: lesson?.content || "",
+      videoUrl: lesson?.videoUrl || "",
       category: lesson?.category || "",
       level: lesson?.level || "Iniciante",
       duration: lesson?.duration || 0,
@@ -127,6 +129,18 @@ export default function AdminLessonForm({ lesson, isOpen, onClose, onSuccess }: 
             />
             {form.formState.errors.content && (
               <p className="text-sm text-red-600">{form.formState.errors.content.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="videoUrl">URL do Vídeo</Label>
+            <Input
+              id="videoUrl"
+              {...form.register("videoUrl")}
+              placeholder="https://youtube.com/watch?v=... ou outro link de vídeo"
+            />
+            {form.formState.errors.videoUrl && (
+              <p className="text-sm text-red-600">{form.formState.errors.videoUrl.message}</p>
             )}
           </div>
 

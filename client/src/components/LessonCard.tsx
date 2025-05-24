@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, Star, Clock } from "lucide-react";
+import { Play, Star, Clock, FileX } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface LessonCardProps {
   lesson: {
@@ -13,11 +14,28 @@ interface LessonCardProps {
     duration?: number;
     rating?: string;
     thumbnailUrl?: string;
+    videoUrl?: string;
     isPublished: boolean;
   };
 }
 
 export default function LessonCard({ lesson }: LessonCardProps) {
+  const { toast } = useToast();
+
+  const handleWatchLesson = () => {
+    if (!lesson.videoUrl || lesson.videoUrl.trim() === "") {
+      toast({
+        title: "Não há arquivos disponíveis",
+        description: "Esta aula ainda não possui conteúdo em vídeo. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Abrir vídeo em nova aba
+    window.open(lesson.videoUrl, '_blank');
+  };
+
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
       fundamentals: "Fundamentos",
@@ -96,9 +114,22 @@ export default function LessonCard({ lesson }: LessonCardProps) {
               </div>
             </div>
             
-            <Button className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2">
-              <Play className="h-4 w-4" />
-              <span>Assistir</span>
+            <Button 
+              onClick={handleWatchLesson}
+              className={`flex items-center space-x-2 ${
+                lesson.videoUrl && lesson.videoUrl.trim() !== ""
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-gray-400 hover:bg-gray-500"
+              }`}
+            >
+              {lesson.videoUrl && lesson.videoUrl.trim() !== "" ? (
+                <Play className="h-4 w-4" />
+              ) : (
+                <FileX className="h-4 w-4" />
+              )}
+              <span>
+                {lesson.videoUrl && lesson.videoUrl.trim() !== "" ? "Assistir" : "Indisponível"}
+              </span>
             </Button>
           </div>
         </div>
