@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, type User } from '../shared/schema';
+import { users, type User } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 export const storage = {
