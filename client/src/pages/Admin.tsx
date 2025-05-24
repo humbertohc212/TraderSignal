@@ -126,8 +126,10 @@ export default function Admin() {
 
   const { data: adminStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/admin"],
-    refetchInterval: 30000, // Atualiza a cada 30 segundos (menos agressivo)
-    staleTime: 5000, // Cache por 5 segundos
+    refetchInterval: 2000, // Atualiza a cada 2 segundos para tempo real
+    staleTime: 0, // Sempre busca dados frescos
+    refetchOnWindowFocus: true, // Atualiza quando volta para a janela
+    refetchOnMount: true, // Atualiza ao montar o componente
   });
 
   const { data: signals } = useQuery({
@@ -154,6 +156,7 @@ export default function Admin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/plans"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats/admin"] }); // Atualiza estatísticas
       toast({
         title: "Plano removido",
         description: "O plano foi removido com sucesso.",
