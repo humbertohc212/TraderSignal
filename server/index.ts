@@ -299,17 +299,28 @@ app.get('/api/plans', (req, res) => {
 
 // Simple auth middleware
 function authenticateToken(req: any, res: any, next: any) {
+  console.log('=== AUTHENTICATE TOKEN ===');
   const authHeader = req.headers.authorization;
+  console.log('Auth header:', authHeader);
+  
   const token = authHeader && authHeader.split(' ')[1];
+  console.log('Extracted token:', token ? 'Present' : 'Missing');
   
   if (!token) {
+    console.log('No token provided');
     return res.status(401).json({ message: 'Access token required' });
   }
 
+  console.log('JWT_SECRET exists:', !!JWT_SECRET);
+  console.log('Token length:', token.length);
+
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
     if (err) {
+      console.log('Token verification error:', err.message);
+      console.log('Error type:', err.name);
       return res.status(403).json({ message: 'Invalid token' });
     }
+    console.log('Token verified successfully, user:', user);
     req.user = user;
     next();
   });
