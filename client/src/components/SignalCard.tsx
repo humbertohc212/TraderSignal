@@ -116,7 +116,18 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
     <Card className="bg-white rounded-lg shadow-sm border overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{signal.pair}</h3>
+          <div className="flex items-center space-x-3">
+            <h3 className="text-lg font-semibold text-gray-900">{signal.pair}</h3>
+            {signal.tradingViewLink && (
+              <Button
+                size="sm"
+                onClick={() => window.open(signal.tradingViewLink, '_blank')}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xs px-2 py-1 shadow-md hover:shadow-lg transition-all duration-200 border-0 animate-pulse"
+              >
+                📊 LIVE
+              </Button>
+            )}
+          </div>
           <Badge className={getStatusColor(signal.status, signal.result)}>
             {getStatusText(signal.status, signal.result)}
           </Badge>
@@ -169,24 +180,31 @@ export default function SignalCard({ signal, isAdmin }: SignalCardProps) {
           )}
 
           {signal.tradingViewLink && (
-            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                    📊 Análise Completa Disponível
-                  </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                    Veja gráficos detalhados e indicadores técnicos
-                  </p>
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 rounded-xl border-2 border-dashed border-blue-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-full -mr-10 -mt-10"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">TV</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">
+                        🚀 Análise EXCLUSIVA no TradingView!
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Clique para ver setup completo com indicadores
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => window.open(signal.tradingViewLink, '_blank')}
+                    className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    VER AGORA
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => window.open(signal.tradingViewLink, '_blank')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-md hover:shadow-lg transition-all"
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  Abrir TradingView
-                </Button>
               </div>
             </div>
           )}
