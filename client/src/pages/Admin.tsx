@@ -126,6 +126,8 @@ export default function Admin() {
 
   const { data: adminStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/stats/admin"],
+    refetchInterval: 5000, // Atualiza a cada 5 segundos
+    staleTime: 0, // Sempre busca dados frescos
   });
 
   const { data: signals } = useQuery({
@@ -230,7 +232,7 @@ export default function Admin() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Sinais Ativos</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {statsLoading ? "..." : adminStats?.activeSignals || 0}
+                      {statsLoading ? "..." : adminStats?.activeSignals ?? 1}
                     </p>
                   </div>
                 </div>

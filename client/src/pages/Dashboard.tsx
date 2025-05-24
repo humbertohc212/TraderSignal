@@ -76,7 +76,7 @@ export default function Dashboard() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Sinais Ativos</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {statsLoading ? "..." : stats?.activeSignals || 0}
+                      {statsLoading ? "..." : stats?.activeSignals ?? 1}
                     </p>
                     <p className="text-sm text-gray-600">Em andamento</p>
                   </div>
