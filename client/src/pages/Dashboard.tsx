@@ -133,6 +133,11 @@ function TradingForm() {
     const newTotalPips = parseInt(userPips) + pips; // Pips podem ser negativos
     localStorage.setItem('userTotalPips', newTotalPips.toString());
     
+    // Atualizar progresso da banca
+    const currentProgress = parseFloat(localStorage.getItem('currentProgress') || '200');
+    const newProgress = currentProgress + profit; // Adicionar lucro ao progresso
+    localStorage.setItem('currentProgress', newProgress.toString());
+    
     // Salvar operação
     const operations = JSON.parse(localStorage.getItem('userOperations') || '[]');
     operations.push({
@@ -146,7 +151,7 @@ function TradingForm() {
     
     toast({
       title: "Operação Registrada!",
-      description: `${pips > 0 ? '+' : ''}${pips} pips | R$ ${profit > 0 ? '+' : ''}${profit}`,
+      description: `${pips > 0 ? '+' : ''}${pips} pips | R$ ${profit > 0 ? '+' : ''}${profit} | Banca atualizada`,
     });
 
     setFormData({ pair: '', direction: '', entryPrice: '', exitPrice: '', exitType: '', lotSize: '0.1' });
