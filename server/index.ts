@@ -700,6 +700,10 @@ app.delete('/api/signals/:id', authenticateToken, (req: any, res) => {
 
 // Close signal with TP1/TP2/SL
 app.post('/api/signals/:id/close', authenticateToken, async (req: any, res) => {
+  console.log(`=== ROTA CLOSE SIGNAL CHAMADA ===`);
+  console.log(`ID recebido: ${req.params.id}`);
+  console.log(`Body recebido:`, req.body);
+  
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Acesso negado' });
   }
